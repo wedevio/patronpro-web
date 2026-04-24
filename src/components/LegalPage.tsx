@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { SiteHeader, SiteFooter } from "./SiteLayout";
 
 interface LegalPageProps {
@@ -14,15 +13,6 @@ export function LegalPage({ title, eyebrow, lastUpdated = "April 24, 2026", chil
       <SiteHeader />
       <main className="bg-white min-h-screen">
         <div className="max-w-[780px] mx-auto px-5 py-16">
-          {/* Back link */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-[14px] font-semibold mb-8 transition-colors hover:text-[#F67D0A]"
-            style={{ color: "#5f6f88" }}
-          >
-            ← Volver al inicio
-          </Link>
-
           {/* Eyebrow */}
           <span
             className="inline-flex items-center gap-[10px] px-[14px] py-[10px] rounded-full text-[13px] font-bold uppercase tracking-[0.02em] w-fit mb-4"
