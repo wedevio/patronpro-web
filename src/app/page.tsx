@@ -149,7 +149,6 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 // ─── Contact Form ───
 function ContactForm() {
   const [legalChecked, setLegalChecked] = useState(false);
-  const [smsChecked, setSmsChecked] = useState(false);
   const [legalError, setLegalError] = useState(false);
 
   const inputCls = "min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors w-full";
@@ -174,8 +173,14 @@ function ContactForm() {
         <input required type="text" placeholder="Apellido *" className={inputCls} style={inputStyle} />
       </div>
       <input required type="email" placeholder="Email *" className={inputCls} style={inputStyle} />
-      <input required type="tel" placeholder="Teléfono *" className={inputCls} style={inputStyle} />
       <input type="text" placeholder="Nombre de la empresa" className={inputCls} style={inputStyle} />
+      <textarea
+        required
+        placeholder="Mensaje *"
+        rows={5}
+        className="rounded-[16px] border px-4 py-3 text-[16px] font-medium bg-white outline-none transition-colors w-full resize-none"
+        style={inputStyle}
+      />
 
       {/* Required legal checkbox */}
       <div className="flex items-start gap-3 pt-2">
@@ -200,20 +205,6 @@ function ContactForm() {
         </p>
       )}
 
-      {/* Optional SMS/marketing checkbox */}
-      <div className="flex items-start gap-3 pt-1 pb-1 border-t" style={{ borderColor: "rgba(30,44,70,0.06)" }}>
-        <input
-          id="sms"
-          type="checkbox"
-          checked={smsChecked}
-          onChange={(e) => setSmsChecked(e.target.checked)}
-          className="mt-[3px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
-        />
-        <label htmlFor="sms" className="text-[13px] leading-[1.55] cursor-pointer" style={{ color: "#5f6f88" }}>
-          Acepto recibir SMS/mensajes de texto y emails promocionales de PatronPro sobre sus servicios, ofertas, recursos de incorporación y actualizaciones. La frecuencia de los mensajes puede variar. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar la suscripción a SMS o HELP para obtener ayuda. El consentimiento no es obligatorio para adquirir PatronPro.
-        </label>
-      </div>
-
       <button
         type="submit"
         className="min-h-[56px] rounded-[18px] font-bold text-[16px] text-white w-full transition-all hover:-translate-y-0.5"
@@ -221,13 +212,6 @@ function ContactForm() {
       >
         Enviar mensaje
       </button>
-
-      {/* Operational disclosure */}
-      <p className="text-[12px] leading-[1.5] text-center" style={{ color: "#8491a7" }}>
-        PatronPro puede enviarte comunicaciones relacionadas con tu cuenta, incorporación, facturación, soporte, seguridad y servicio por email, SMS o teléfono, tal como se describe en nuestros{" "}
-        <a href="/terms" className="underline">Términos</a> y{" "}
-        <a href="/privacy" className="underline">Política de Privacidad</a>.
-      </p>
     </form>
   );
 }
