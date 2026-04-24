@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
+import CheckoutModal from "@/components/CheckoutModal";
 
 // ─── Eyebrow badge ───
 function Eyebrow({
@@ -232,7 +233,8 @@ function ContactForm() {
 }
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState("pipeline");
+  const [activeTab, setActiveTab]         = useState("pipeline");
+  const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
   const activePanel = TABS.find((t) => t.id === activeTab)!;
 
   return (
@@ -729,15 +731,13 @@ export default function HomePage() {
                   "Contactos ilimitados",
                   "Soporte incluido",
                 ]} />
-                <a
-                  href="https://api.getpatronpro.com/payment-link/69eb33827dd3512d92079777"
-                  target="_blank"
-                  rel="noopener"
-                  className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] transition-all hover:-translate-y-0.5"
+                <button
+                  onClick={() => setCheckoutPlan("monthly")}
+                  className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] transition-all hover:-translate-y-0.5 cursor-pointer w-full"
                   style={{ background: "rgba(30,44,70,0.06)", color: "#1E2C46", border: "2px solid rgba(30,44,70,0.10)" }}
                 >
                   Crear cuenta mensual
-                </a>
+                </button>
               </div>
 
               {/* Anual */}
@@ -774,15 +774,13 @@ export default function HomePage() {
                   "Acceso anticipado a nuevas funciones",
                   "Onboarding personalizado incluido",
                 ]} />
-                <a
-                  href="https://api.getpatronpro.com/payment-link/69eb339d557558e89e5231c8"
-                  target="_blank"
-                  rel="noopener"
-                  className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] text-white transition-all hover:-translate-y-0.5"
+                <button
+                  onClick={() => setCheckoutPlan("annual")}
+                  className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] text-white transition-all hover:-translate-y-0.5 cursor-pointer w-full"
                   style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.32)" }}
                 >
                   Crear cuenta anual — $999/año
-                </a>
+                </button>
               </div>
             </div>
 
@@ -876,6 +874,14 @@ export default function HomePage() {
       </main>
 
       <SiteFooter />
+
+      {/* ─── CHECKOUT MODAL ─── */}
+      {checkoutPlan && (
+        <CheckoutModal
+          plan={checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+        />
+      )}
     </>
   );
 }
