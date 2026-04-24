@@ -10,7 +10,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Patron Pro | Sistema para constructoras",
   description:
-    "Patron Pro centraliza leads, pipeline, presupuestos y comunicación en un solo sistema pensado para constructoras y empresas de reformas.",
+    "PatronPro centraliza clientes, mensajes, cotizaciones, invoices, pagos y automatizaciones en una sola plataforma hecha para contratistas.",
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
