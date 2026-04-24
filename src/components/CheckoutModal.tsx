@@ -87,23 +87,12 @@ export default function CheckoutModal({ plan, onClose }: Props) {
       }
     }
 
-    // Build redirect URL with query params
+    // Build redirect URL — only GHL-supported prefill params
     const base = PAYMENT_LINKS[plan];
     const params = new URLSearchParams({
-      first_name:              payload.first_name,
-      last_name:               payload.last_name,
-      email:                   payload.email,
-      phone:                   payload.phone,
-      business_name:           payload.business_name,
-      selected_plan:           plan,
-      terms_accepted:          "true",
-      privacy_accepted:        "true",
-      cookies_accepted:        "true",
-      sms_marketing_consent:   String(smsChecked),
-      email_marketing_consent: String(smsChecked),
-      consent_timestamp:       payload.consent_timestamp,
-      consent_source_url:      payload.consent_source_url,
-      consent_text_version:    "2026-04-24",
+      firstName: form.first_name.trim(),
+      lastName:  form.last_name.trim(),
+      email:     form.email.trim(),
     });
 
     window.location.href = `${base}?${params.toString()}`;

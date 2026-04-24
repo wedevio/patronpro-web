@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,7 +26,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script
+          src="https://widgets.leadconnectorhq.com/loader.js"
+          data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
+          data-widget-id="69eba589fa2b28ffe2cf48fa"
+          strategy="lazyOnload"
+        />
+      </body>
     </html>
   );
 }
