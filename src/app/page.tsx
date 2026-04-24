@@ -145,6 +145,92 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   );
 }
 
+// ─── Contact Form ───
+function ContactForm() {
+  const [legalChecked, setLegalChecked] = useState(false);
+  const [smsChecked, setSmsChecked] = useState(false);
+  const [legalError, setLegalError] = useState(false);
+
+  const inputCls = "min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors w-full";
+  const inputStyle = { borderColor: "rgba(30,44,70,0.10)", color: "#24324a" };
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!legalChecked) { setLegalError(true); return; }
+    setLegalError(false);
+    // TODO: wire to backend
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-[22px] p-8 grid gap-4 border"
+      style={{ boxShadow: "0 18px 60px rgba(20,35,58,0.10)", borderColor: "rgba(30,44,70,0.08)" }}
+    >
+      {/* Name row */}
+      <div className="grid grid-cols-2 gap-3">
+        <input required type="text" placeholder="Nombre *" className={inputCls} style={inputStyle} />
+        <input required type="text" placeholder="Apellido *" className={inputCls} style={inputStyle} />
+      </div>
+      <input required type="email" placeholder="Email *" className={inputCls} style={inputStyle} />
+      <input required type="tel" placeholder="Teléfono *" className={inputCls} style={inputStyle} />
+      <input type="text" placeholder="Nombre de la empresa" className={inputCls} style={inputStyle} />
+
+      {/* Required legal checkbox */}
+      <div className="flex items-start gap-3 pt-2">
+        <input
+          id="legal"
+          type="checkbox"
+          checked={legalChecked}
+          onChange={(e) => { setLegalChecked(e.target.checked); if (e.target.checked) setLegalError(false); }}
+          className="mt-[3px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
+        />
+        <label htmlFor="legal" className="text-[14px] leading-[1.55] cursor-pointer" style={{ color: "#3d4f68" }}>
+          Acepto los{" "}
+          <a href="/terms" className="font-semibold underline" style={{ color: "#F67D0A" }}>Términos</a>,{" "}
+          la <a href="/privacy" className="font-semibold underline" style={{ color: "#F67D0A" }}>Política de Privacidad</a>{" "}
+          y la <a href="/cookies" className="font-semibold underline" style={{ color: "#F67D0A" }}>Política de Cookies</a>{" "}
+          de PatronPro.
+        </label>
+      </div>
+      {legalError && (
+        <p className="text-[13px] -mt-2" style={{ color: "#e03131" }}>
+          Por favor, acepta los Términos, la Política de Privacidad y la Política de Cookies de PatronPro para continuar.
+        </p>
+      )}
+
+      {/* Optional SMS/marketing checkbox */}
+      <div className="flex items-start gap-3 pt-1 pb-1 border-t" style={{ borderColor: "rgba(30,44,70,0.06)" }}>
+        <input
+          id="sms"
+          type="checkbox"
+          checked={smsChecked}
+          onChange={(e) => setSmsChecked(e.target.checked)}
+          className="mt-[3px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
+        />
+        <label htmlFor="sms" className="text-[13px] leading-[1.55] cursor-pointer" style={{ color: "#5f6f88" }}>
+          Acepto recibir SMS/mensajes de texto y emails promocionales de PatronPro sobre sus servicios, ofertas, recursos de incorporación y actualizaciones. La frecuencia de los mensajes puede variar. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para cancelar la suscripción a SMS o HELP para obtener ayuda. El consentimiento no es obligatorio para adquirir PatronPro.
+        </label>
+      </div>
+
+      <button
+        type="submit"
+        className="min-h-[56px] rounded-[18px] font-bold text-[16px] text-white w-full transition-all hover:-translate-y-0.5"
+        style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.28)" }}
+      >
+        Enviar mensaje
+      </button>
+
+      {/* Operational disclosure */}
+      <p className="text-[12px] leading-[1.5] text-center" style={{ color: "#8491a7" }}>
+        PatronPro puede enviarte comunicaciones relacionadas con tu cuenta, incorporación, facturación, soporte, seguridad y servicio por email, SMS o teléfono, tal como se describe en nuestros{" "}
+        <a href="/terms" className="underline">Términos</a> y{" "}
+        <a href="/privacy" className="underline">Política de Privacidad</a>.
+      </p>
+    </form>
+  );
+}
+
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState("pipeline");
   const activePanel = TABS.find((t) => t.id === activeTab)!;
@@ -701,7 +787,7 @@ export default function HomePage() {
             </div>
 
             <p className="text-center text-[13px] mt-6" style={{ color: "#5f6f88" }}>
-              Los costes de SMS, número de teléfono o WhatsApp pueden cobrarse aparte según uso y configuración.
+              Las suscripciones se renuevan automáticamente hasta que las canceles. Pueden aplicarse cargos adicionales por uso de SMS, llamadas, números de teléfono, WhatsApp, email, funciones de IA, procesamiento de pagos y otros complementos. Puedes cancelar antes del siguiente ciclo de facturación.
             </p>
           </div>
         </section>
@@ -764,6 +850,7 @@ export default function HomePage() {
                 { q: "¿Puedo automatizar follow-ups?", a: "Sí. Puedes usar automatizaciones base o crear tus propias campañas para seguimiento, reviews, reactivación de clientes y más." },
                 { q: "¿Tengo que pagar setup fee?", a: "No. No hay coste de implementación inicial." },
                 { q: "¿Puedo cancelar cuando quiera?", a: "Sí. En el plan mensual puedes cancelar cuando quieras. En el plan anual pagas el año completo por adelantado." },
+                { q: "¿Cuál es la política de reembolsos?", a: "PatronPro ofrece un período de reembolso de 7 días desde la primera compra. Las renovaciones, cargos por uso y complementos no son reembolsables salvo que lo exija la ley aplicable." },
               ].map((item) => (
                 <FAQItem key={item.q} q={item.q} a={item.a} />
               ))}
@@ -771,7 +858,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ═══════════ CONTACTO (unchanged) ═══════════ */}
+        {/* ═══════════ CONTACTO ═══════════ */}
         <section id="contacto" className="py-24 bg-white">
           <div className="w-full max-w-[600px] mx-auto px-5">
             <div className="grid gap-[18px] mb-10 text-center items-center justify-items-center">
@@ -783,43 +870,7 @@ export default function HomePage() {
                 Cuéntanos tu caso y te respondemos en menos de 24h.
               </p>
             </div>
-            <form
-              action="#"
-              className="bg-white rounded-[22px] p-8 grid gap-4 border"
-              style={{ boxShadow: "0 18px 60px rgba(20,35,58,0.10)", borderColor: "rgba(30,44,70,0.08)" }}
-            >
-              <input
-                type="text"
-                placeholder="Nombre"
-                className="min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors"
-                style={{ borderColor: "rgba(30,44,70,0.10)", color: "#24324a" }}
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors"
-                style={{ borderColor: "rgba(30,44,70,0.10)", color: "#24324a" }}
-              />
-              <input
-                type="text"
-                placeholder="Empresa"
-                className="min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors"
-                style={{ borderColor: "rgba(30,44,70,0.10)", color: "#24324a" }}
-              />
-              <textarea
-                placeholder="Mensaje"
-                rows={4}
-                className="rounded-[16px] border px-4 py-4 text-[16px] font-medium bg-white outline-none transition-colors resize-none"
-                style={{ borderColor: "rgba(30,44,70,0.10)", color: "#24324a" }}
-              />
-              <button
-                type="submit"
-                className="min-h-[56px] rounded-[18px] font-bold text-[16px] text-white w-full transition-all hover:-translate-y-0.5"
-                style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.28)" }}
-              >
-                Enviar mensaje
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </section>
       </main>
