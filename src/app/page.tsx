@@ -219,6 +219,8 @@ function ContactForm() {
 export default function HomePage() {
   const [activeTab, setActiveTab]         = useState("pipeline");
   const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
+  const [monthlySetup, setMonthlySetup]   = useState(false);
+  const [annualSetup, setAnnualSetup]     = useState(false);
   const activePanel = TABS.find((t) => t.id === activeTab)!;
 
   return (
@@ -715,6 +717,22 @@ export default function HomePage() {
                   "Contactos ilimitados",
                   "Soporte incluido",
                 ]} />
+                <label className="flex items-start gap-3 cursor-pointer select-none rounded-[14px] p-4 transition-colors" style={{ border: `2px solid ${monthlySetup ? "#F67D0A" : "rgba(30,44,70,0.10)"}`, background: monthlySetup ? "rgba(246,125,10,0.05)" : "transparent" }}>
+                  <input
+                    type="checkbox"
+                    checked={monthlySetup}
+                    onChange={(e) => setMonthlySetup(e.target.checked)}
+                    className="mt-[2px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
+                  />
+                  <div>
+                    <div className="text-[14px] font-extrabold" style={{ color: "#1E2C46" }}>
+                      Setup Fee — <span style={{ color: "#F67D0A" }}>$199 único</span>
+                    </div>
+                    <div className="text-[12px] leading-[1.6] mt-0.5" style={{ color: "#5f6f88" }}>
+                      Dominio personalizado · Teléfono, llamadas y email · Landings y calendarios. Todo configurado y listo para operar desde el día uno.
+                    </div>
+                  </div>
+                </label>
                 <button
                   onClick={() => setCheckoutPlan("monthly")}
                   className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] transition-all hover:-translate-y-0.5 cursor-pointer w-full"
@@ -758,6 +776,22 @@ export default function HomePage() {
                   "Acceso anticipado a nuevas funciones",
                   "Onboarding personalizado incluido",
                 ]} />
+                <label className="flex items-start gap-3 cursor-pointer select-none rounded-[14px] p-4 transition-colors" style={{ border: `2px solid ${annualSetup ? "#F67D0A" : "rgba(30,44,70,0.10)"}`, background: annualSetup ? "rgba(246,125,10,0.05)" : "transparent" }}>
+                  <input
+                    type="checkbox"
+                    checked={annualSetup}
+                    onChange={(e) => setAnnualSetup(e.target.checked)}
+                    className="mt-[2px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
+                  />
+                  <div>
+                    <div className="text-[14px] font-extrabold" style={{ color: "#1E2C46" }}>
+                      Setup Fee — <span style={{ color: "#F67D0A" }}>$199 único</span>
+                    </div>
+                    <div className="text-[12px] leading-[1.6] mt-0.5" style={{ color: "#5f6f88" }}>
+                      Dominio personalizado · Teléfono, llamadas y email · Landings y calendarios. Todo configurado y listo para operar desde el día uno.
+                    </div>
+                  </div>
+                </label>
                 <button
                   onClick={() => setCheckoutPlan("annual")}
                   className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] text-white transition-all hover:-translate-y-0.5 cursor-pointer w-full"
@@ -863,6 +897,7 @@ export default function HomePage() {
       {checkoutPlan && (
         <CheckoutModal
           plan={checkoutPlan}
+          withSetup={checkoutPlan === "monthly" ? monthlySetup : annualSetup}
           onClose={() => setCheckoutPlan(null)}
         />
       )}

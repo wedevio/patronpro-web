@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const PAYMENT_LINKS = {
-  monthly: "https://api.getpatronpro.com/payment-link/69eb33827dd3512d92079777",
-  annual:  "https://api.getpatronpro.com/payment-link/69eb339d557558e89e5231c8",
+  monthly:      "https://api.getpatronpro.com/payment-link/69fd14f434d67b041e7e82dc",
+  annual:       "https://api.getpatronpro.com/payment-link/69fd154034d67b041e7e82de",
+  monthlySetup: "https://api.getpatronpro.com/payment-link/69eb33827dd3512d92079777",
+  annualSetup:  "https://api.getpatronpro.com/payment-link/69eb339d557558e89e5231c8",
 };
 
 interface Props {
   plan: "monthly" | "annual";
+  withSetup: boolean;
   onClose: () => void;
 }
 
@@ -17,7 +20,7 @@ const inputCls =
   "min-h-[52px] rounded-[14px] border px-4 text-[15px] font-medium bg-white outline-none transition-colors w-full focus:border-[#F67D0A]";
 const inputStyle = { borderColor: "rgba(30,44,70,0.12)", color: "#24324a" };
 
-export default function CheckoutModal({ plan, onClose }: Props) {
+export default function CheckoutModal({ plan, withSetup, onClose }: Props) {
   const [form, setForm] = useState({
     first_name: "", last_name: "", email: "", phone: "", business_name: "",
   });
@@ -88,7 +91,8 @@ export default function CheckoutModal({ plan, onClose }: Props) {
     }
 
     // Build redirect URL — only GHL-supported prefill params
-    const base = PAYMENT_LINKS[plan];
+    const key = withSetup ? (`${plan}Setup` as keyof typeof PAYMENT_LINKS) : plan;
+    const base = PAYMENT_LINKS[key];
     const params = new URLSearchParams({
       firstName: form.first_name.trim(),
       lastName:  form.last_name.trim(),
@@ -127,6 +131,7 @@ export default function CheckoutModal({ plan, onClose }: Props) {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#F67D0A]" />
               {plan === "monthly" ? "Plan Mensual — $99/mes" : "Plan Anual — $999/año"}
+              {withSetup && " + Setup Fee $199"}
             </span>
             <h2 className="text-[26px] font-black leading-[1.1] tracking-[-0.02em]" style={{ color: "#1E2C46" }}>
               Create your PatronPro account
