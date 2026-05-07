@@ -219,8 +219,8 @@ function ContactForm() {
 export default function HomePage() {
   const [activeTab, setActiveTab]         = useState("pipeline");
   const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
-  const [monthlySetup, setMonthlySetup]   = useState(false);
-  const [annualSetup, setAnnualSetup]     = useState(false);
+  const [monthlySetup, setMonthlySetup]   = useState(true);
+  const [annualSetup, setAnnualSetup]     = useState(true);
   const activePanel = TABS.find((t) => t.id === activeTab)!;
 
   return (
