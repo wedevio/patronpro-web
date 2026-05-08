@@ -70,8 +70,8 @@ export default function ThankYouPage() {
                   },
                   {
                     n: "3",
-                    title: "Entra y empieza a configurar",
-                    body: "Una vez dentro encontrarás una guía de inicio rápido para tener tu pipeline, clientes y primeras automatizaciones en marcha.",
+                    title: "Empieza a construir tu negocio desde el primer día",
+                    body: "Añade tus primeros clientes, manda cotizaciones, activa el seguimiento automático y deja que PatronPro trabaje por ti mientras tú te concentras en la obra.",
                   },
                 ].map(({ n, title, body }) => (
                   <li key={n} className="flex gap-4">

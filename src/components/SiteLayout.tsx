@@ -17,13 +17,22 @@ export function SiteHeader() {
           <Link href="/#producto" className="hover:text-[#1E2C46] transition-colors">El producto</Link>
           <Link href="/#precios" className="hover:text-[#1E2C46] transition-colors">Precios</Link>
         </nav>
-        <Link
-          href="/#precios"
-          className="inline-flex items-center justify-center min-h-[56px] px-7 rounded-[18px] font-bold text-[16px] text-white transition-all hover:-translate-y-0.5"
-          style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.28)" }}
-        >
-          Empezar ahora
-        </Link>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://app.getpatronpro.com"
+            className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-[14px] font-semibold text-[15px] transition-all hover:-translate-y-0.5"
+            style={{ color: "#1E2C46", border: "2px solid rgba(30,44,70,0.12)" }}
+          >
+            Log In
+          </a>
+          <Link
+            href="/#precios"
+            className="inline-flex items-center justify-center min-h-[44px] px-6 rounded-[14px] font-bold text-[15px] text-white transition-all hover:-translate-y-0.5"
+            style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.28)" }}
+          >
+            Empezar ahora
+          </Link>
+        </div>
       </div>
     </header>
   );
