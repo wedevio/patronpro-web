@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { env } from "@/lib/env";
+import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
 import { updateBrandColors } from "@/lib/ghl/brand-board";
@@ -53,7 +53,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const token = env.ghlLocationToken;
+    const token = await getLocationAccessToken(locationId);
 
     // --- Upload logo if present ---
     let logoUrl: string | undefined;
