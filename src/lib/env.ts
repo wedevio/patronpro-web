@@ -6,7 +6,12 @@ function requireEnv(key: string): string {
   return value;
 }
 
+// Lazy getters — evaluated at runtime (inside request handlers), not at build time
 export const env = {
-  ghlAgencyToken: requireEnv("GHL_MCP"),
-  ghlLocationToken: process.env.GHL_LOCATION_PIT ?? requireEnv("GHL_MCP"),
+  get ghlAgencyToken() {
+    return requireEnv("GHL_MCP");
+  },
+  get ghlLocationToken() {
+    return process.env.GHL_LOCATION_PIT ?? requireEnv("GHL_MCP");
+  },
 };
