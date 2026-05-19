@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Script from "next/script";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -901,6 +902,23 @@ export default function HomePage() {
           onClose={() => setCheckoutPlan(null)}
         />
       )}
+      <Script
+        id="affiliate-manager"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function() {
+  var t = document.createElement("script");
+  t.type = "text/javascript", t.async = !0, t.src = 'https://api.getpatronpro.com/js/am.js', t.onload = t.onreadystatechange = function() {
+    var t = this.readyState;
+    if (!t || "complete" == t || "loaded" == t) try {
+      affiliateManager.init('hHLZC7FaTtUINPf3cbHd', 'https://backend.leadconnectorhq.com', '.getpatronpro.com')
+    } catch (t) {}
+  };
+  var e = document.getElementsByTagName("script")[0];
+  e.parentNode.insertBefore(t, e)
+})();`,
+        }}
+      />
     </>
   );
 }

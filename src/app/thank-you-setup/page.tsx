@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { SiteFooter } from "@/components/SiteLayout";
 
 export const metadata: Metadata = {
@@ -112,6 +113,23 @@ export default function ThankYouSetupPage() {
 
         <SiteFooter />
       </div>
+      <Script
+        id="affiliate-manager"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function() {
+  var t = document.createElement("script");
+  t.type = "text/javascript", t.async = !0, t.src = 'https://api.getpatronpro.com/js/am.js', t.onload = t.onreadystatechange = function() {
+    var t = this.readyState;
+    if (!t || "complete" == t || "loaded" == t) try {
+      affiliateManager.init('hHLZC7FaTtUINPf3cbHd', 'https://backend.leadconnectorhq.com', '.getpatronpro.com')
+    } catch (t) {}
+  };
+  var e = document.getElementsByTagName("script")[0];
+  e.parentNode.insertBefore(t, e)
+})();`,
+        }}
+      />
     </>
   );
 }

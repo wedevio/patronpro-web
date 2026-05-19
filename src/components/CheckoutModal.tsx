@@ -30,6 +30,11 @@ export default function CheckoutModal({ plan, withSetup, onClose }: Props) {
   const [loading, setLoading]           = useState(false);
   const [errors, setErrors]             = useState<Record<string, string>>({});
 
+  // Capture affiliate ID from URL so it survives the redirect to the GHL payment page
+  const affiliateId = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("am_id") ?? ""
+    : "";
+
   // Lock body scroll while modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -98,6 +103,9 @@ export default function CheckoutModal({ plan, withSetup, onClose }: Props) {
       lastName:  form.last_name.trim(),
       email:     form.email.trim(),
     });
+
+    // Forward affiliate ID so GHL can attribute the conversion correctly
+    if (affiliateId) params.set("am_id", affiliateId);
 
     window.location.href = `${base}?${params.toString()}`;
   }
