@@ -31,6 +31,7 @@ export async function updateBrandColors(
     }
 
     const board = boards[0];
+    console.info("[updateBrandColors] board structure:", JSON.stringify(board));
     const patchRes = await ghlFetch(`/brand-boards/${board.id}`, {
       method: "PATCH",
       token,

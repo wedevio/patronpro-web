@@ -50,27 +50,14 @@ export async function syncCustomValues(
     .filter(Boolean)
     .join(", ");
 
-  const domainInfo = JSON.stringify({
-    hasDomain: data.hasDomain,
-    existingDomain: data.existingDomain,
-    wantNewDomain: data.wantNewDomain,
-    desiredDomain: data.desiredDomain,
-    domainRegistrar: data.domainRegistrar,
-  });
-
   const mappings: Array<[string, string]> = [
-    ["business_name", data.businessName ?? ""],
-    ["legal_name", data.legalName ?? ""],
-    ["business_address", fullAddress],
-    ["business_website", data.website ?? ""],
-    ["business_phone", data.phone ?? ""],
-    ["business_email", data.email ?? ""],
-    ["business_ein", data.ein ?? ""],
-    ["brand_primary_color", data.primaryColor ?? ""],
-    ["brand_secondary_color", data.secondaryColor ?? ""],
-    ["domain_info", domainInfo],
-    ["brand_logo_url", data.logoUrl ?? ""],
-  ];
+    ["company_name", data.businessName ?? ""],
+    ["company_address", fullAddress],
+    ["company_phone", data.phone ?? ""],
+    ["dominio_web", data.website ?? ""],
+    ["logo", data.logoUrl ?? ""],
+    ["logo_cuadrado", data.logoUrl ?? ""],
+  ].filter(([, value]) => value !== "") as Array<[string, string]>;
 
   await Promise.all(
     mappings.map(([fieldKey, value]) =>
