@@ -36,13 +36,18 @@ export async function GET(request: Request): Promise<Response> {
   const results: Record<string, unknown> = { companyId };
 
   if (companyId) {
-    const cases: { label: string; path: string; token: string }[] = [
-      { label: "users-by-company-loc",    path: `/users/search?companyId=${companyId}&locationId=${locationId}`, token: loc },
-      { label: "users-by-company-agency", path: `/users/search?companyId=${companyId}&locationId=${locationId}`, token: agency },
-    ];
-    for (const c of cases) {
-      results[c.label] = await gh(c.path, c.token);
-    }
+    const res = await fetch(`${BASE}/users/search?companyId=${companyId}&locationId=${locationId}`, {
+      headers: { Authorization: `Bearer ${loc}`, Version: "2021-07-28" },
+    });
+    const json = await res.json();
+    // Return full permissions object for each user
+    results["users"] = json?.users?.map((u: Record<string, unknown>) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      permissions: u.permissions,
+      roles: u.roles,
+    }));
   } else {
     results["error"] = "Could not extract companyId from location";
   }
