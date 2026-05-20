@@ -18,8 +18,8 @@ export interface GHLLocationData {
   mrr:              number;  // monthly recurring revenue (0 if unknown)
   // Extra GHL data
   phoneNumbers:     string[];  // purchased phone numbers
-  stripeConnected:  boolean;
-  emailConnected:   boolean;
+  twilioActive:     boolean;   // phone system account status = active
+  stripeConnected:  boolean;   // inferred from transactions
   customDomain:     string;
   workflowsCount:   number;
 }
@@ -41,7 +41,7 @@ async function fetchLocation(
     mrr: 0,
     phoneNumbers: [],
     stripeConnected: false,
-    emailConnected: false,
+    twilioActive: false,
     customDomain: "",
     workflowsCount: 0,
   };
@@ -72,7 +72,7 @@ async function fetchLocation(
       mrr:             0,
       phoneNumbers:    [],
       stripeConnected: false,
-      emailConnected:  false,
+      twilioActive:    false,
       customDomain:    (loc.customDomain as string) ?? "",
       workflowsCount:  0,
     };
@@ -96,7 +96,7 @@ async function fetchLocation(
       // SaaS endpoint not available — leave defaults
     }
 
-    // Phone numbers — correct endpoint: /phone-system/numbers/location/:locationId (v2023-02-21)
+    // Phone system — also capture Twilio account status from the same response
     try {
       const phonesRes = await fetch(
         `${GHL_BASE}/phone-system/numbers/location/${locationId}`,
@@ -104,16 +104,15 @@ async function fetchLocation(
       );
       if (phonesRes.ok) {
         const phonesJson = await phonesRes.json() as Record<string, unknown>;
-        // Response: { numbers: [{ phoneNumber, ... }] }
         const list = (phonesJson.numbers as Record<string, unknown>[]) ?? [];
         result.phoneNumbers = list.map((p) => (p.phoneNumber as string) ?? "").filter(Boolean);
+        result.twilioActive = (phonesJson.accountStatus as string) === "active";
       }
     } catch {
       // not available — leave empty
     }
 
-    // Stripe — check via transactions: if any exist, payment is set up
-    // There's no dedicated "is Stripe connected" endpoint in GHL public API
+    // Stripe — inferred from transactions (no dedicated "is connected" endpoint)
     try {
       const txRes = await fetch(
         `${GHL_BASE}/payments/transactions?altId=${locationId}&altType=location&limit=1`,
@@ -121,26 +120,13 @@ async function fetchLocation(
       );
       if (txRes.ok) {
         const txJson = await txRes.json() as Record<string, unknown>;
-        const total = (txJson.totalCount as number) ?? (txJson.total as number) ?? 0;
+        const total = (txJson.totalCount as number) ?? 0;
         const list = (txJson.data as unknown[]) ?? [];
         result.stripeConnected = total > 0 || list.length > 0;
       }
     } catch {
       // not available
     }
-
-    // Email provider — check location settings from the full location object
-    // loc.settings may contain emailProvider or smtp info
-    const settings = (loc.settings as Record<string, unknown>) ?? {};
-    const allowDuplicate = settings.allowDuplicateContact; // just to probe object exists
-    void allowDuplicate;
-    // LC Email connected if location has a fromEmail or allowCustomEmail flag
-    result.emailConnected = !!(
-      (loc.fromEmail as string) ||
-      (loc.replyToEmail as string) ||
-      (settings.allowCustomEmail as boolean) ||
-      (settings.emailProvider as string)
-    );
 
     return result;
   } catch {

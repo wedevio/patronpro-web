@@ -55,7 +55,7 @@ export default async function PanelPage() {
       mrr:             0,
       phoneNumbers:    [],
       stripeConnected: false,
-      emailConnected:  false,
+      twilioActive:    false,
       customDomain:    "",
       workflowsCount:  0,
     };

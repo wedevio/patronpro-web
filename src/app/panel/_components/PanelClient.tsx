@@ -229,10 +229,10 @@ function SidePanel({
               </div>
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
-                  <Mail size={14} />
-                  Email prov.
+                  <PhoneCall size={14} />
+                  Twilio
                 </span>
-                <ConnectedBadge connected={ghl.emailConnected} labelNo="No conectado" />
+                <ConnectedBadge connected={ghl.twilioActive} labelYes="Activo" labelNo="Inactivo" />
               </div>
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
@@ -574,7 +574,7 @@ export default function PanelClient({
                   <Th>Plan</Th>
                   <Th>Estado GHL</Th>
                   <Th>Teléfonos</Th>
-                  <Th>Email prov.</Th>
+                  <Th>Twilio</Th>
                   <Th>Stripe</Th>
                   <Th>Onboarding</Th>
                   <Th>Acciones</Th>
@@ -636,7 +636,7 @@ export default function PanelClient({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <ConnectedBadge connected={account.ghl.emailConnected} labelYes="Sí" labelNo="No" />
+                        <ConnectedBadge connected={account.ghl.twilioActive} labelYes="Sí" labelNo="No" />
                       </td>
                       <td className="px-4 py-3">
                         <ConnectedBadge connected={account.ghl.stripeConnected} labelYes="Sí" labelNo="No" />
