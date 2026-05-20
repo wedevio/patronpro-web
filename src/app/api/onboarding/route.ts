@@ -5,6 +5,7 @@ import { uploadMedia } from "@/lib/ghl/media";
 import { updateBrandColors } from "@/lib/ghl/brand-board";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
 import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
+import { saveSubmission } from "@/lib/panel/store";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 export const dynamic = "force-dynamic";
@@ -132,6 +133,20 @@ export async function POST(request: Request): Promise<Response> {
       await notifyOnboarder(locationId, contactId, summary, token);
     } catch (err) {
       console.error("[onboarding] notifyOnboarder failed:", err);
+    }
+
+    // --- Save to panel store ---
+    try {
+      await saveSubmission({
+        locationId,
+        contactId,
+        businessName: data.businessName ?? "",
+        email:        data.email ?? "",
+        phone:        data.phone ?? "",
+        domain:       data.hasDomain ? (data.existingDomain ?? "") : (data.desiredDomain ?? "por definir"),
+      });
+    } catch (err) {
+      console.error("[onboarding] saveSubmission failed:", err);
     }
 
     return NextResponse.json({ success: true }, { status: 201 });
