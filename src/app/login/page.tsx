@@ -1,23 +1,27 @@
 "use client";
 
-import { Suspense, useActionState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { loginAction } from "@/app/actions/auth";
 
-// ─── Inner form (useSearchParams requires Suspense) ───────────────────────────
+// ─── Inner form ───────────────────────────────────────────────────────────────
 
 function LoginForm() {
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/panel";
+  const router = useRouter();
+  const [state, action, pending] = useActionState(loginAction, null);
 
-  const [error, action, pending] = useActionState(loginAction, null);
+  // Redirect client-side on success (avoids redirect() throw from Server Action)
+  useEffect(() => {
+    if (state && "success" in state) {
+      router.push("/panel");
+    }
+  }, [state, router]);
+
+  const error = state && "error" in state ? state.error : null;
 
   return (
     <form action={action} className="space-y-4">
-      {/* Pass next as hidden field so the Server Action can redirect correctly */}
-      <input type="hidden" name="next" value={next} />
-
       <div>
         <label className="block text-[12px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
           Email

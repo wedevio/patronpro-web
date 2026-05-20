@@ -18,9 +18,7 @@ export default async function proxy(req: NextRequest) {
     cookieStore.has(`${COOKIE_BASE}.0`);
 
   if (!hasSession) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   return NextResponse.next();

@@ -2,19 +2,18 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+
+type LoginResult = { error: string } | { success: true };
 
 export async function loginAction(
-  _prevState: string | null,
+  _prevState: LoginResult | null,
   formData: FormData
-): Promise<string | null> {
+): Promise<LoginResult> {
   const email    = formData.get("email")    as string;
   const password = formData.get("password") as string;
-  const next     = (formData.get("next")    as string) || "/panel";
 
-  if (!email || !password) return "Completá todos los campos.";
+  if (!email || !password) return { error: "Completá todos los campos." };
 
-  // In Server Actions, cookies() is fully writable
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
@@ -22,8 +21,8 @@ export async function loginAction(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: ()               => cookieStore.getAll(),
-        setAll: (cookiesToSet)   => {
+        getAll: ()             => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
@@ -34,7 +33,8 @@ export async function loginAction(
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) return "Credenciales incorrectas.";
+  if (error) return { error: "Credenciales incorrectas." };
 
-  redirect(next);
+  // Return success — client handles the redirect (avoids redirect() throw in Server Actions)
+  return { success: true };
 }
