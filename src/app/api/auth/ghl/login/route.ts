@@ -57,7 +57,6 @@ export async function GET(): Promise<Response> {
     // Payments
     "payments/integration.readonly",
     "payments/integration.write",
-    "payments/orders.readonly",
     "payments/transactions.readonly",
     "payments/subscriptions.readonly",
     "payments/coupons.readonly",
@@ -89,15 +88,14 @@ export async function GET(): Promise<Response> {
     "calendars/events.write",
     // Businesses
     "businesses.readonly",
-    "businesses.write",
     // LC Email
     "lc-email.readonly",
     // OAuth (agency-level)
     "oauth.readonly",
     "oauth.write",
-    // Snapshots
-    "snapshots.readonly",
-    "snapshots.write",
+    // Snapshots — Agency only, not available for private apps
+    // "snapshots.readonly",
+    // "snapshots.write",
   ].join(" "));
 
   return NextResponse.redirect(url.toString());
