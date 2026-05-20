@@ -81,11 +81,30 @@ export async function POST(request: Request): Promise<Response> {
     // GHL returns 404 for both /brand-boards?locationId= and /locations/{id}/brand-boards
     // if (!data.letUsChooseColors && data.primaryColor) { ... }
 
-    // --- Notify ---
+    // --- Notify: note on contact with full summary ---
     const domain = data.hasDomain
       ? data.existingDomain
       : data.desiredDomain ?? "por definir";
-    const summary = `✅ Onboarding completado para ${data.businessName}.\nNegocio: ${data.businessName}\nEmail: ${data.email}\nTeléfono: ${data.phone}\nDominio: ${domain}`;
+
+    const colorLines = data.letUsChooseColors
+      ? "Colores: PatronPro elige"
+      : [
+          `Color Principal (Main):       ${data.primaryColor ?? "-"}`,
+          `Color Acento (Accent):        ${data.secondaryColor ?? "-"}`,
+          `Color Complementario:         ${data.complementaryColor ?? "-"}`,
+          `→ Configurar en: Marketing → Brand Boards → Global Colors`,
+        ].join("\n");
+
+    const summary = [
+      `✅ Onboarding completado`,
+      `Negocio:  ${data.businessName}`,
+      `Email:    ${data.email}`,
+      `Teléfono: ${data.phone}`,
+      `Dominio:  ${domain}`,
+      ``,
+      colorLines,
+    ].join("\n");
+
     try {
       await notifyOnboarder(locationId, contactId, summary, token);
     } catch (err) {
