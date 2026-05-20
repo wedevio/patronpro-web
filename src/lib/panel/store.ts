@@ -192,30 +192,48 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
   });
 }
 
-/** Toggle a checklist item for a locationId */
+/** Toggle a checklist item for a locationId.
+ *  Creates the account + all checklist rows on-demand if they don't exist yet. */
 export async function updateChecklist(
   locationId: string,
   itemId: ChecklistItemId,
   checked: boolean
 ): Promise<PanelSubmission | null> {
   const db = getAdminClient();
+  const now = new Date().toISOString();
 
-  // Resolve account
+  // Upsert account (may not exist yet for GHL-only accounts)
   const { data: acc, error: accErr } = await db
     .from("accounts")
+    .upsert(
+      { location_id: locationId, onboarding_at: now },
+      { onConflict: "location_id", ignoreDuplicates: true }
+    )
     .select("id")
-    .eq("location_id", locationId)
     .single();
 
   if (accErr || !acc) return null;
 
-  const now = new Date().toISOString();
+  const accountId = acc.id as string;
 
+  // Seed all checklist rows if they don't exist yet
+  const seedRows = CHECKLIST_ITEMS.map((item) => ({
+    account_id: accountId,
+    item_id:    item.id,
+    checked:    false,
+    checked_at: null,
+  }));
+  await db
+    .from("account_checklist")
+    .upsert(seedRows, { onConflict: "account_id,item_id", ignoreDuplicates: true });
+
+  // Now upsert the specific item
   const { error } = await db
     .from("account_checklist")
-    .update({ checked, checked_at: checked ? now : null })
-    .eq("account_id", acc.id)
-    .eq("item_id", itemId);
+    .upsert(
+      { account_id: accountId, item_id: itemId, checked, checked_at: checked ? now : null },
+      { onConflict: "account_id,item_id" }
+    );
 
   if (error) throw new Error(`updateChecklist failed: ${error.message}`);
 

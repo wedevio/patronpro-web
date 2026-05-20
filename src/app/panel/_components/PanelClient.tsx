@@ -148,7 +148,12 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ locationId: account.locationId, itemId, checked: newVal }),
         });
-        if (!res.ok) setChecklist((prev) => ({ ...prev, [itemId]: !newVal }));
+        if (!res.ok) {
+          setChecklist((prev) => ({ ...prev, [itemId]: !newVal }));
+        } else {
+          const json = await res.json() as { checklist?: Record<ChecklistItemId, boolean> };
+          if (json.checklist) setChecklist(json.checklist);
+        }
       } catch {
         setChecklist((prev) => ({ ...prev, [itemId]: !newVal }));
       }
