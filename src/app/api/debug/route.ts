@@ -27,11 +27,10 @@ export async function GET(request: Request): Promise<Response> {
   ]);
 
   const cases: { label: string; path: string; token: string }[] = [
-    // List all users in the location
-    { label: "users-list-loc",    path: `/users?locationId=${locationId}`,    token: loc },
-    { label: "users-list-agency", path: `/users?locationId=${locationId}`,    token: agency },
-    // Location-nested users
-    { label: "nested-users-loc",  path: `/locations/${locationId}/users`,     token: loc },
+    { label: "users-loc-query",    path: `/users/?locationId=${locationId}`,          token: loc },
+    { label: "users-agency-query", path: `/users/?locationId=${locationId}`,          token: agency },
+    { label: "users-no-filter",    path: `/users/`,                                   token: loc },
+    { label: "users-search",       path: `/users/search?locationId=${locationId}`,    token: loc },
   ];
 
   const results: Record<string, unknown> = {};
