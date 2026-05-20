@@ -54,8 +54,9 @@ async function fetchPatronProSignals(
 
   try {
     // 1. Find contact in PatronPro by email → contactId
+    // GHL v2 contacts endpoint: GET /contacts/?locationId=...&query=...
     const contactRes = await fetch(
-      `${GHL_BASE}/contacts/search?locationId=${PATRONPRO_LOCATION_ID}&query=${encodeURIComponent(email)}&limit=1`,
+      `${GHL_BASE}/contacts/?locationId=${PATRONPRO_LOCATION_ID}&query=${encodeURIComponent(email)}&limit=1`,
       { headers: { Authorization: `Bearer ${patronProToken}`, Version: GHL_VERSION } }
     );
     if (!contactRes.ok) return result;
@@ -109,11 +110,12 @@ async function getSaasPlanMap(agencyToken: string): Promise<Map<string, string>>
 
   const map = new Map<string, string>();
 
-  // GHL exposes the plan list under the company saas endpoint
+  // GHL SaaS plan catalog — try known paths
   const endpoints = [
     `/saas-api/company/${COMPANY_ID}/plans`,
     `/saas/company/${COMPANY_ID}/plans`,
     `/saas-api/plans?companyId=${COMPANY_ID}`,
+    `/products?locationId=${PATRONPRO_LOCATION_ID}&type=recurring`,
   ];
 
   for (const path of endpoints) {
@@ -123,8 +125,8 @@ async function getSaasPlanMap(agencyToken: string): Promise<Map<string, string>>
       });
       if (!res.ok) continue;
       const json = await res.json() as Record<string, unknown>;
-      const plans = (json.plans ?? json.data ?? json) as Record<string, unknown>[];
-      if (!Array.isArray(plans)) continue;
+      const plans = (json.plans ?? json.data ?? json.products ?? json) as Record<string, unknown>[];
+      if (!Array.isArray(plans) || plans.length === 0) continue;
       for (const p of plans) {
         const id   = (p.id ?? p._id ?? p.planId) as string;
         const name = (p.name ?? p.planName ?? p.title) as string;
@@ -136,6 +138,7 @@ async function getSaasPlanMap(agencyToken: string): Promise<Map<string, string>>
     }
   }
 
+  // If all endpoints fail, map stays empty — caller shows truncated ID
   cachedPlanMap = map;
   return map;
 }

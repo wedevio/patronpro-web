@@ -236,33 +236,58 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
           {/* Form Data */}
           {submission && submission.checklist.form && (
             <section>
-              <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">Datos del formulario</h3>
+              <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">
+                Datos del formulario
+              </h3>
               <div className="grid gap-2 text-[13px]">
-                <Row icon={<Building2 size={14} />} label="Negocio"     value={submission.businessName} />
-                <Row icon={<Building2 size={14} />} label="Nombre legal" value={submission.legalName} />
-                <Row icon={<Mail size={14} />}      label="Email"        value={submission.email} />
-                <Row icon={<Phone size={14} />}     label="Teléfono"     value={submission.phone} />
-                <Row
-                  icon={<MapPin size={14} />}
-                  label="Dirección"
-                  value={[submission.address, submission.city, submission.state, submission.zip, submission.country].filter(Boolean).join(", ")}
-                />
-                {submission.ein && <Row icon={<Tag size={14} />} label="EIN" value={submission.ein} />}
 
+                {/* ── Campos NO enviados a GHL (requieren acción manual) ── */}
+                <div className="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3 mb-1">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-orange-400 mb-2">
+                    No sincronizados con GHL — requieren configuración manual
+                  </p>
+                  <div className="grid gap-1.5">
+                    {submission.legalName && (
+                      <Row icon={<Building2 size={14} />} label="Nombre legal" value={submission.legalName} />
+                    )}
+                    {submission.email && (
+                      <Row icon={<Mail size={14} />} label="Email dueño" value={submission.email} />
+                    )}
+                    {submission.ein && (
+                      <Row icon={<Tag size={14} />} label="EIN / Tax ID" value={submission.ein} />
+                    )}
+                    {submission.domainRegistrar && (
+                      <Row icon={<Globe size={14} />} label="Registrar" value={submission.domainRegistrar} />
+                    )}
+                    {submission.city && (
+                      <Row icon={<MapPin size={14} />} label="Ciudad" value={[submission.city, submission.state, submission.zip].filter(Boolean).join(", ")} />
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Campos sincronizados con GHL ── */}
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1 mb-1">
+                  Sincronizados con GHL (Custom Values)
+                </p>
+                <Row icon={<Building2 size={14} />} label="Negocio"   value={submission.businessName} />
+                <Row icon={<Phone size={14} />}     label="Teléfono"  value={submission.phone} />
+                <Row icon={<MapPin size={14} />}    label="Dirección" value={[submission.address, submission.city, submission.state, submission.zip, submission.country].filter(Boolean).join(", ")} />
+
+                {/* Dominio */}
                 <div className="pt-2 border-t border-slate-100">
                   <p className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold mb-2">Dominio</p>
                   <Row icon={<Globe size={14} />} label="Tipo"
                     value={submission.domainType === "existing" ? "Dominio existente"
                          : submission.domainType === "new" ? "Dominio nuevo"
                          : "Sin dominio"} />
-                  {submission.domain          && <Row icon={<Globe size={14} />} label="Dominio"    value={submission.domain} />}
-                  {submission.domainRegistrar && <Row icon={<Globe size={14} />} label="Registrar"  value={submission.domainRegistrar} />}
+                  {submission.domain && <Row icon={<Globe size={14} />} label="Dominio" value={submission.domain} />}
                 </div>
 
+                {/* Marca */}
                 <div className="pt-2 border-t border-slate-100">
                   <p className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold mb-2">Marca</p>
                   {submission.letUsChooseColors ? (
-                    <p className="text-slate-500 italic">PatronPro elige los colores</p>
+                    <p className="text-slate-500 italic text-[13px]">PatronPro elige los colores</p>
                   ) : (
                     <div className="flex flex-wrap gap-3">
                       <ColorSwatch label="Principal"      color={submission.primaryColor} />
@@ -272,6 +297,7 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
                   )}
                 </div>
 
+                {/* Logo */}
                 {submission.logoUrl && (
                   <div className="pt-2 border-t border-slate-100">
                     <p className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold mb-2">Logo</p>
@@ -281,6 +307,7 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
                   </div>
                 )}
 
+                {/* Horario */}
                 {submission.hoursOfOperation && (
                   <div className="pt-2 border-t border-slate-100">
                     <p className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold mb-2 flex items-center gap-1">
