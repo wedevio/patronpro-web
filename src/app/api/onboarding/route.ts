@@ -4,6 +4,7 @@ import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
 import { updateBrandColors } from "@/lib/ghl/brand-board";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
+import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 export const dynamic = "force-dynamic";
@@ -66,6 +67,19 @@ export async function POST(request: Request): Promise<Response> {
 
     const token = await getLocationAccessToken(locationId);
 
+    // --- Get companyId from location (needed for users API) ---
+    let companyId: string | undefined;
+    try {
+      const locRes = await fetch(
+        `https://services.leadconnectorhq.com/locations/${locationId}`,
+        { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
+      );
+      const locJson = await locRes.json();
+      companyId = locJson?.location?.companyId ?? locJson?.companyId;
+    } catch (err) {
+      console.error("[onboarding] Failed to fetch location companyId:", err);
+    }
+
     // --- Upload logo if present ---
     let logoUrl: string | undefined;
     const logoFile = fd.get("logoFile");
@@ -76,6 +90,15 @@ export async function POST(request: Request): Promise<Response> {
 
     // --- Sync custom values ---
     await syncCustomValues(locationId, { ...data, logoUrl }, token);
+
+    // --- Apply default staff permissions ---
+    if (companyId) {
+      try {
+        await applyDefaultStaffPermissions(locationId, companyId, token);
+      } catch (err) {
+        console.error("[onboarding] applyDefaultStaffPermissions failed:", err);
+      }
+    }
 
     // --- Brand colors — disabled until brand-board API path is confirmed ---
     // GHL returns 404 for both /brand-boards?locationId= and /locations/{id}/brand-boards
