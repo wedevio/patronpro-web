@@ -26,15 +26,14 @@ export async function GET(request: Request): Promise<Response> {
     getAgencyAccessToken(),
   ]);
 
-  // Step 1: get companyId from location
-  const locationRes = await gh(`/locations/${locationId}`, loc);
-  let companyId: string | null = null;
-  try {
-    const parsed = JSON.parse(locationRes.body);
-    companyId = parsed?.location?.companyId ?? parsed?.companyId ?? null;
-  } catch {}
+  // Step 1: get companyId from location (increase slice to avoid truncation)
+  const locationRaw = await fetch(`${BASE}/locations/${locationId}`, {
+    headers: { Authorization: `Bearer ${loc}`, Version: "2021-07-28" },
+  });
+  const locationJson = await locationRaw.json();
+  const companyId: string | null = locationJson?.location?.companyId ?? locationJson?.companyId ?? null;
 
-  const results: Record<string, unknown> = { locationRes, companyId };
+  const results: Record<string, unknown> = { companyId };
 
   if (companyId) {
     const cases: { label: string; path: string; token: string }[] = [
@@ -44,6 +43,8 @@ export async function GET(request: Request): Promise<Response> {
     for (const c of cases) {
       results[c.label] = await gh(c.path, c.token);
     }
+  } else {
+    results["error"] = "Could not extract companyId from location";
   }
 
   return NextResponse.json(results, { status: 200 });
