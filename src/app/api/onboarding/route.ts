@@ -77,20 +77,9 @@ export async function POST(request: Request): Promise<Response> {
     // --- Sync custom values ---
     await syncCustomValues(locationId, { ...data, logoUrl }, token);
 
-    // --- Brand colors ---
-    if (!data.letUsChooseColors && data.primaryColor) {
-      try {
-        await updateBrandColors(
-          locationId,
-          data.primaryColor,
-          data.secondaryColor ?? "",
-          token,
-          data.complementaryColor ?? undefined
-        );
-      } catch (err) {
-        console.error("[onboarding] updateBrandColors failed:", err);
-      }
-    }
+    // --- Brand colors — disabled until brand-board API path is confirmed ---
+    // GHL returns 404 for both /brand-boards?locationId= and /locations/{id}/brand-boards
+    // if (!data.letUsChooseColors && data.primaryColor) { ... }
 
     // --- Notify ---
     const domain = data.hasDomain

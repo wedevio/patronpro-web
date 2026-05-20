@@ -29,7 +29,7 @@ async function upsertCustomValue(
     const res = await ghlFetch(`/locations/${locationId}/customValues/${existing.id}`, {
       method: "PUT",
       token,
-      body: JSON.stringify({ value }),
+      body: JSON.stringify({ name: existing.name, value }),
     });
     if (!res.ok) {
       console.error(`[customValues] PUT ${fieldKey} failed:`, res.status, await res.text());
