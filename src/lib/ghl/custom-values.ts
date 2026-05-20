@@ -111,6 +111,10 @@ export async function syncCustomValues(
     ["logo_cuadrado", data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
     ["domain_purchase_authorized", data.authorizeDomainPurchase ? "Sí" : ""],
+    // Brand colors — stored as reference until brand-board API scope is confirmed
+    ["brand_color_main", (!data.letUsChooseColors && data.primaryColor) ? data.primaryColor : ""],
+    ["brand_color_accent", (!data.letUsChooseColors && data.secondaryColor) ? data.secondaryColor : ""],
+    ["brand_color_complementary", (!data.letUsChooseColors && data.complementaryColor) ? data.complementaryColor : ""],
   ].filter(([, value]) => value !== "") as Array<[string, string]>;
 
   await Promise.all(
