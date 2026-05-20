@@ -25,8 +25,8 @@ export async function GET(): Promise<Response> {
     "medias.write",
     "brand-boards/design-kit.readonly",
     "brand-boards/design-kit.write",
-    "phone-number.readonly",
-    "phone-number.write",
+    "phonenumbers.read",
+    "phonenumbers.write",
   ].join(" "));
 
   return NextResponse.redirect(url.toString());
