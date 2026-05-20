@@ -20,30 +20,50 @@ export async function GET(): Promise<Response> {
   url.searchParams.set("scope", [
     // Locations
     "locations.readonly",
+    "locations.write",
     "locations/customValues.readonly",
     "locations/customValues.write",
+    "locations/customFields.readonly",
+    "locations/customFields.write",
     "locations/tasks.readonly",
-    "locations/tasks.write",
     "locations/tags.readonly",
     "locations/tags.write",
     "locations/templates.readonly",
-    // Media & Brand
+    // Media
     "medias.readonly",
     "medias.write",
+    // Brand
     "brand-boards/design-kit.readonly",
     "brand-boards/design-kit.write",
     // Users
     "users.readonly",
+    "users.write",
     // Phone
     "phonenumbers.read",
     "phonenumbers.write",
+    // Voice AI
+    "voice-ai-dashboard.readonly",
+    "voice-ai-agents.readonly",
+    "voice-ai-agents.write",
+    "voice-ai-agent-goals.readonly",
+    "voice-ai-agent-goals.write",
     // Workflows
     "workflows.readonly",
+    // SaaS
+    "saas/company.read",
+    "saas/company.write",
+    "saas/location.read",
+    "saas/location.write",
     // Payments
     "payments/integration.readonly",
     "payments/integration.write",
+    "payments/orders.readonly",
+    "payments/transactions.readonly",
+    "payments/subscriptions.readonly",
     "payments/coupons.readonly",
     "payments/coupons.write",
+    "payments/custom-provider.readonly",
+    "payments/custom-provider.write",
     // Invoices
     "invoices.readonly",
     "invoices.write",
@@ -51,8 +71,33 @@ export async function GET(): Promise<Response> {
     "invoices/schedule.write",
     "invoices/template.readonly",
     "invoices/template.write",
+    // Contacts
+    "contacts.readonly",
+    "contacts.write",
+    // Conversations
+    "conversations.readonly",
+    "conversations.write",
+    "conversations/message.readonly",
+    "conversations/message.write",
+    // Opportunities
+    "opportunities.readonly",
+    "opportunities.write",
+    // Calendars
+    "calendars.readonly",
+    "calendars.write",
+    "calendars/events.readonly",
+    "calendars/events.write",
+    // Businesses
+    "businesses.readonly",
+    "businesses.write",
     // LC Email
     "lc-email.readonly",
+    // OAuth (agency-level)
+    "oauth.readonly",
+    "oauth.write",
+    // Snapshots
+    "snapshots.readonly",
+    "snapshots.write",
   ].join(" "));
 
   return NextResponse.redirect(url.toString());
