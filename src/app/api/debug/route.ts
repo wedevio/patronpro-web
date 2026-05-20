@@ -3,16 +3,13 @@ import { getLocationAccessToken, getAgencyAccessToken } from "@/lib/ghl/oauth";
 
 const BASE = "https://services.leadconnectorhq.com";
 
-async function gh(path: string, token: string, version = "2021-07-28") {
+async function gh(path: string, token: string) {
   const res = await fetch(`${BASE}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Version: version,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" },
   });
-  const text = await res.text();
-  return { status: res.status, body: text.slice(0, 1000) };
+  let body: unknown;
+  try { body = await res.json(); } catch { body = await res.text(); }
+  return { status: res.status, body };
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -21,36 +18,30 @@ export async function GET(request: Request): Promise<Response> {
   if (!locationId)
     return NextResponse.json({ error: "locationId required" }, { status: 400 });
 
-  const [loc, agency] = await Promise.all([
+  const [locToken, agencyToken] = await Promise.all([
     getLocationAccessToken(locationId),
     getAgencyAccessToken(),
   ]);
 
-  // Step 1: get companyId from location (increase slice to avoid truncation)
-  const locationRaw = await fetch(`${BASE}/locations/${locationId}`, {
-    headers: { Authorization: `Bearer ${loc}`, Version: "2021-07-28" },
+  const [phones, stripe, emailSettings, emailProvider] = await Promise.all([
+    gh(`/locations/${locationId}/phoneNumbers`, locToken),
+    gh(`/payments/integrations/provider/whitelabel?locationId=${locationId}`, locToken),
+    gh(`/locations/${locationId}/email/settings`, locToken),
+    gh(`/locations/${locationId}/emailProvider`, locToken),
+  ]);
+
+  // Also try with agency token for comparison
+  const [phonesAgency, stripeAgency] = await Promise.all([
+    gh(`/locations/${locationId}/phoneNumbers`, agencyToken),
+    gh(`/payments/integrations/provider/whitelabel?locationId=${locationId}`, agencyToken),
+  ]);
+
+  return NextResponse.json({
+    phones_loc:     phones,
+    phones_agency:  phonesAgency,
+    stripe_loc:     stripe,
+    stripe_agency:  stripeAgency,
+    email_settings: emailSettings,
+    email_provider: emailProvider,
   });
-  const locationJson = await locationRaw.json();
-  const companyId: string | null = locationJson?.location?.companyId ?? locationJson?.companyId ?? null;
-
-  const results: Record<string, unknown> = { companyId };
-
-  if (companyId) {
-    const res = await fetch(`${BASE}/users/search?companyId=${companyId}&locationId=${locationId}`, {
-      headers: { Authorization: `Bearer ${loc}`, Version: "2021-07-28" },
-    });
-    const json = await res.json();
-    // Return full permissions object for each user
-    results["users"] = json?.users?.map((u: Record<string, unknown>) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      permissions: u.permissions,
-      roles: u.roles,
-    }));
-  } else {
-    results["error"] = "Could not extract companyId from location";
-  }
-
-  return NextResponse.json(results, { status: 200 });
 }
