@@ -1,39 +1,29 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+// Supabase SSR stores auth in sb-{projectRef}-auth-token (or .0, .1 chunks)
+const PROJECT_REF = "mtkbqnngqcqywsdewaxs";
+const COOKIE_BASE = `sb-${PROJECT_REF}-auth-token`;
 
-  // Only protect /panel routes
+export default async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Only protect /panel
   if (!pathname.startsWith("/panel")) return NextResponse.next();
 
-  const response = NextResponse.next();
+  // Optimistic check: just verify the session cookie exists (no network call)
+  const cookieStore = await cookies();
+  const hasSession =
+    cookieStore.has(COOKIE_BASE) ||
+    cookieStore.has(`${COOKIE_BASE}.0`);
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll:  ()              => request.cookies.getAll(),
-        setAll: (cookiesToSet)   => {
-          for (const { name, value, options } of cookiesToSet) {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          }
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    const loginUrl = new URL("/login", request.url);
+  if (!hasSession) {
+    const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
