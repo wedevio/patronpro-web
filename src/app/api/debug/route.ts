@@ -1,38 +1,55 @@
 import { NextResponse } from "next/server";
-import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { getLocationAccessToken, getAgencyAccessToken } from "@/lib/ghl/oauth";
 
 const BASE = "https://services.leadconnectorhq.com";
 
-async function gh(path: string, token: string, options: RequestInit = {}) {
+async function gh(path: string, token: string, version = "2021-07-28") {
   const res = await fetch(`${BASE}${path}`, {
-    ...options,
     headers: {
       Authorization: `Bearer ${token}`,
-      Version: "2021-07-28",
+      Version: version,
       "Content-Type": "application/json",
-      ...(options.headers ?? {}),
     },
   });
   const text = await res.text();
-  return { status: res.status, body: text.slice(0, 600) };
+  return { status: res.status, body: text.slice(0, 500) };
 }
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const locationId = searchParams.get("locationId");
   const areaCode = searchParams.get("areaCode") ?? "210";
-  if (!locationId) return NextResponse.json({ error: "locationId required" }, { status: 400 });
+  if (!locationId)
+    return NextResponse.json({ error: "locationId required" }, { status: 400 });
 
-  const token = await getLocationAccessToken(locationId);
+  const [loc, agency] = await Promise.all([
+    getLocationAccessToken(locationId),
+    getAgencyAccessToken(),
+  ]);
 
-  // 1. Search available numbers for area code
-  const search = await gh(
-    `/phone-number/search?locationId=${locationId}&areaCode=${areaCode}&limit=5`,
-    token
-  );
+  const cases: { label: string; path: string; token: string; version?: string }[] = [
+    // plural vs singular
+    { label: "plural-search-loc",    path: `/phone-numbers/search?locationId=${locationId}&areaCode=${areaCode}&limit=3`, token: loc },
+    { label: "singular-search-loc",  path: `/phone-number/search?locationId=${locationId}&areaCode=${areaCode}&limit=3`,  token: loc },
+    { label: "plural-search-agency", path: `/phone-numbers/search?locationId=${locationId}&areaCode=${areaCode}&limit=3`, token: agency },
+    // nested under location
+    { label: "nested-loc",           path: `/locations/${locationId}/phone-numbers`,                                       token: loc },
+    { label: "nested-search-loc",    path: `/locations/${locationId}/phone-numbers/search?areaCode=${areaCode}`,           token: loc },
+    // older version header
+    { label: "v2-plural-loc",        path: `/phone-numbers/search?locationId=${locationId}&areaCode=${areaCode}&limit=3`, token: loc,    version: "2021-04-15" },
+    { label: "v2-singular-loc",      path: `/phone-number/search?locationId=${locationId}&areaCode=${areaCode}&limit=3`,  token: loc,    version: "2021-04-15" },
+    // LC Phone (alternate base path)
+    { label: "lc-phone-search",      path: `/lc-phone/search?locationId=${locationId}&areaCode=${areaCode}`,              token: loc },
+    { label: "twilio-search",        path: `/twilio/numbers/search?locationId=${locationId}&areaCode=${areaCode}`,        token: loc },
+    // list existing numbers
+    { label: "list-existing-loc",    path: `/phone-numbers?locationId=${locationId}`,                                     token: loc },
+    { label: "list-existing-agency", path: `/phone-numbers?locationId=${locationId}`,                                     token: agency },
+  ];
 
-  // 2. Also try listing numbers already on the location
-  const existing = await gh(`/phone-number?locationId=${locationId}`, token);
+  const results: Record<string, unknown> = {};
+  for (const c of cases) {
+    results[c.label] = await gh(c.path, c.token, c.version);
+  }
 
-  return NextResponse.json({ search, existing });
+  return NextResponse.json(results, { status: 200 });
 }
