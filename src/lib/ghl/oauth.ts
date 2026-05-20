@@ -2,18 +2,52 @@
  * GHL OAuth 2.0 token management
  *
  * Flow:
- * 1. Use GHL_REFRESH_TOKEN to get a fresh agency access token (valid 24h)
+ * 1. Use GHL_REFRESH_TOKEN (seed from env, then persisted in Redis) to get a
+ *    fresh agency access token (valid 24h)
  * 2. Use that agency token to generate a location-scoped token for any sub-account
  *
- * The refresh token is valid for 1 year. When it's used, GHL returns a NEW
- * refresh token — we persist that back to avoid expiry.
+ * The refresh token is valid for 1 year. GHL rotates it on every use —
+ * we persist the new one to Redis (KV_REST_API_URL / KV_REST_API_TOKEN).
  */
+
+import { Redis } from "@upstash/redis";
 
 const GHL_TOKEN_URL = "https://services.leadconnectorhq.com/oauth/token";
 const GHL_LOCATION_TOKEN_URL = "https://services.leadconnectorhq.com/oauth/locationToken";
+const REDIS_KEY = "ghl:refresh_token";
 
-// In-memory cache for the agency access token (reused within the same process)
+// In-memory cache for the agency access token (reused within the same serverless instance)
 let cachedAgencyToken: { token: string; expiresAt: number } | null = null;
+
+function getRedis(): Redis | null {
+  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null;
+  return new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+  });
+}
+
+async function getRefreshToken(): Promise<string> {
+  const redis = getRedis();
+  if (redis) {
+    const stored = await redis.get<string>(REDIS_KEY);
+    if (stored) return stored;
+  }
+  // Fallback to env var (seed value)
+  const fromEnv = process.env.GHL_REFRESH_TOKEN;
+  if (!fromEnv) throw new Error("Missing GHL_REFRESH_TOKEN env var and no token in Redis");
+  return fromEnv;
+}
+
+async function saveRefreshToken(token: string): Promise<void> {
+  const redis = getRedis();
+  if (redis) {
+    // Store with 11 months TTL (token is valid 1 year, rotate before expiry)
+    await redis.set(REDIS_KEY, token, { ex: 60 * 60 * 24 * 330 });
+  } else {
+    console.warn("[GHL OAuth] Redis not configured — new refresh token NOT persisted. Update GHL_REFRESH_TOKEN manually:", token.slice(0, 20) + "...");
+  }
+}
 
 export async function getAgencyAccessToken(): Promise<string> {
   // Return cached token if still valid (with 5 min buffer)
@@ -21,13 +55,14 @@ export async function getAgencyAccessToken(): Promise<string> {
     return cachedAgencyToken.token;
   }
 
-  const refreshToken = process.env.GHL_REFRESH_TOKEN;
   const clientId = process.env.GHL_CLIENT_ID;
   const clientSecret = process.env.GHL_CLIENT_SECRET;
 
-  if (!refreshToken || !clientId || !clientSecret) {
-    throw new Error("Missing GHL OAuth credentials (GHL_REFRESH_TOKEN, GHL_CLIENT_ID, GHL_CLIENT_SECRET)");
+  if (!clientId || !clientSecret) {
+    throw new Error("Missing GHL OAuth credentials (GHL_CLIENT_ID, GHL_CLIENT_SECRET)");
   }
+
+  const refreshToken = await getRefreshToken();
 
   const res = await fetch(GHL_TOKEN_URL, {
     method: "POST",
@@ -55,16 +90,15 @@ export async function getAgencyAccessToken(): Promise<string> {
     expires_in: number;
   };
 
-  // Cache the access token
+  // Cache the access token in memory
   cachedAgencyToken = {
     token: data.access_token,
     expiresAt: Date.now() + data.expires_in * 1000,
   };
 
-  // GHL rotates the refresh token on every use — log the new one
-  // In production you'd persist this to a DB; for now we log so you can update the env var if needed
-  if (data.refresh_token !== refreshToken) {
-    console.info("[GHL OAuth] Refresh token rotated. Update GHL_REFRESH_TOKEN in Vercel env vars with:", data.refresh_token.slice(0, 20) + "...");
+  // Persist the new rotated refresh token
+  if (data.refresh_token && data.refresh_token !== refreshToken) {
+    await saveRefreshToken(data.refresh_token);
   }
 
   return data.access_token;
