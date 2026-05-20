@@ -22,9 +22,8 @@ async function upsertCustomValue(
   existingValues: GHLCustomValue[]
 ): Promise<void> {
   if (!value) return;
-  const existing = existingValues.find(
-    (v) => v.fieldKey === fieldKey || v.fieldKey === `custom_values.${fieldKey}`
-  );
+  // GHL returns fieldKeys like "{{ custom_values.company_name }}" — use includes() to match
+  const existing = existingValues.find((v) => v.fieldKey.includes(fieldKey));
 
   if (existing) {
     const res = await ghlFetch(`/locations/${locationId}/customValues/${existing.id}`, {

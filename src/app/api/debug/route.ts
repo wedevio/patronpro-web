@@ -10,13 +10,15 @@ export async function GET(request: Request): Promise<Response> {
 
   const token = await getLocationAccessToken(locationId);
 
-  const [cvRes, bbRes] = await Promise.all([
+  const [cvRes, bbRes1, bbRes2] = await Promise.all([
     ghlFetch(`/locations/${locationId}/customValues`, { method: "GET", token }),
     ghlFetch(`/brand-boards?locationId=${locationId}`, { method: "GET", token }),
+    ghlFetch(`/locations/${locationId}/brand-boards`, { method: "GET", token }),
   ]);
 
   const customValues = cvRes.ok ? await cvRes.json() : { error: cvRes.status, body: await cvRes.text() };
-  const brandBoards = bbRes.ok ? await bbRes.json() : { error: bbRes.status, body: await bbRes.text() };
+  const brandBoards1 = bbRes1.ok ? await bbRes1.json() : { error: bbRes1.status, path: `/brand-boards?locationId=` };
+  const brandBoards2 = bbRes2.ok ? await bbRes2.json() : { error: bbRes2.status, path: `/locations/{id}/brand-boards` };
 
-  return NextResponse.json({ customValues, brandBoards });
+  return NextResponse.json({ customValues, brandBoards1, brandBoards2 });
 }
