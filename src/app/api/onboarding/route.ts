@@ -77,23 +77,31 @@ export async function POST(request: Request): Promise<Response> {
     // --- Sync custom values ---
     await syncCustomValues(locationId, { ...data, logoUrl }, token);
 
-    // --- Non-blocking: brand colors ---
+    // --- Brand colors ---
     if (!data.letUsChooseColors && data.primaryColor) {
-      void updateBrandColors(
-        locationId,
-        data.primaryColor,
-        data.secondaryColor ?? "",
-        token,
-        data.complementaryColor ?? undefined
-      );
+      try {
+        await updateBrandColors(
+          locationId,
+          data.primaryColor,
+          data.secondaryColor ?? "",
+          token,
+          data.complementaryColor ?? undefined
+        );
+      } catch (err) {
+        console.error("[onboarding] updateBrandColors failed:", err);
+      }
     }
 
-    // --- Non-blocking: notify ---
+    // --- Notify ---
     const domain = data.hasDomain
       ? data.existingDomain
       : data.desiredDomain ?? "por definir";
     const summary = `✅ Onboarding completado para ${data.businessName}.\nNegocio: ${data.businessName}\nEmail: ${data.email}\nTeléfono: ${data.phone}\nDominio: ${domain}`;
-    void notifyOnboarder(locationId, contactId, summary, token);
+    try {
+      await notifyOnboarder(locationId, contactId, summary, token);
+    } catch (err) {
+      console.error("[onboarding] notifyOnboarder failed:", err);
+    }
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err) {

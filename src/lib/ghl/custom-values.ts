@@ -22,20 +22,32 @@ async function upsertCustomValue(
   existingValues: GHLCustomValue[]
 ): Promise<void> {
   if (!value) return;
-  const existing = existingValues.find((v) => v.fieldKey === fieldKey);
+  const existing = existingValues.find(
+    (v) => v.fieldKey === fieldKey || v.fieldKey === `custom_values.${fieldKey}`
+  );
 
   if (existing) {
-    await ghlFetch(`/locations/${locationId}/customValues/${existing.id}`, {
+    const res = await ghlFetch(`/locations/${locationId}/customValues/${existing.id}`, {
       method: "PUT",
       token,
       body: JSON.stringify({ value }),
     });
+    if (!res.ok) {
+      console.error(`[customValues] PUT ${fieldKey} failed:`, res.status, await res.text());
+    } else {
+      console.info(`[customValues] PUT ${fieldKey} ok`);
+    }
   } else {
-    await ghlFetch(`/locations/${locationId}/customValues`, {
+    const res = await ghlFetch(`/locations/${locationId}/customValues`, {
       method: "POST",
       token,
       body: JSON.stringify({ name: fieldKey, fieldKey, value }),
     });
+    if (!res.ok) {
+      console.error(`[customValues] POST ${fieldKey} failed:`, res.status, await res.text());
+    } else {
+      console.info(`[customValues] POST ${fieldKey} ok (created)`);
+    }
   }
 }
 
