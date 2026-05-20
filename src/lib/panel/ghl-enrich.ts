@@ -221,10 +221,14 @@ async function fetchLocation(
         headers: { Authorization: `Bearer ${agencyToken}`, Version: "2023-02-21" },
       }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
 
-      // Stripe (inferred from transactions)
-      fetch(`${GHL_BASE}/payments/transactions?altId=${locationId}&altType=location&limit=1`, {
-        headers: { Authorization: `Bearer ${agencyToken}`, Version: GHL_VERSION },
-      }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      // Stripe (inferred from transactions — requires location-scoped token)
+      getLocationAccessToken(locationId)
+        .then((locToken) =>
+          fetch(`${GHL_BASE}/payments/transactions?altId=${locationId}&altType=location&limit=1`, {
+            headers: { Authorization: `Bearer ${locToken}`, Version: GHL_VERSION },
+          }).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        )
+        .catch(() => null),
 
       // PatronPro signals (SMS + appointment)
       fetchPatronProSignals(email || result.email, patronProToken),
