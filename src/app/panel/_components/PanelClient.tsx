@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   CheckCircle2,
@@ -21,6 +22,7 @@ import {
   BadgeCheck,
   CheckCheck,
   CalendarClock,
+  LogOut,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -416,10 +418,16 @@ type FilterType = "all" | "active" | "inactive" | "no-onboarding";
 type SortType   = "date-desc" | "date-asc" | "name";
 
 export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] }) {
+  const router = useRouter();
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState<FilterType>("all");
   const [sort,     setSort]     = useState<SortType>("date-desc");
   const [selected, setSelected] = useState<EnrichedAccount | null>(null);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }
 
   const total        = accounts.length;
   const active       = accounts.filter((a) => a.ghl.planStatus.toLowerCase() === "active").length;
@@ -458,6 +466,13 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
             <Chip label="activas"          value={active}       color="#22c55e" />
             <Chip label="pendientes setup" value={pendingSetup} color="#F67D0A" />
             <Chip label="completadas"      value={completed}    color="#60a5fa" />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <LogOut size={14} />
+              Salir
+            </button>
           </div>
         </div>
       </header>
