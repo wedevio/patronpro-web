@@ -2,7 +2,7 @@
 
 import type { OnboardingFormData } from "@/lib/onboarding/types";
 
-type Step1Data = Pick<
+type Step2Data = Pick<
   OnboardingFormData,
   | "businessName"
   | "legalName"
@@ -11,16 +11,15 @@ type Step1Data = Pick<
   | "state"
   | "zip"
   | "country"
-  | "website"
   | "phone"
   | "email"
   | "ein"
 >;
 
-interface Step1Props {
-  data: Partial<Step1Data>;
-  errors: Partial<Record<keyof Step1Data, string>>;
-  onChange: (field: keyof Step1Data, value: string) => void;
+interface Step2Props {
+  data: Partial<Step2Data>;
+  errors: Partial<Record<keyof Step2Data, string>>;
+  onChange: (field: keyof Step2Data, value: string) => void;
 }
 
 const inputClass =
@@ -60,7 +59,7 @@ function Field({
   );
 }
 
-export default function Step1Business({ data, errors, onChange }: Step1Props) {
+export default function Step2Business({ data, errors, onChange }: Step2Props) {
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-bold" style={{ color: "#1E2C46" }}>
@@ -68,11 +67,7 @@ export default function Step1Business({ data, errors, onChange }: Step1Props) {
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Field
-          label="Nombre del negocio"
-          required
-          error={errors.businessName}
-        >
+        <Field label="Nombre del negocio" required error={errors.businessName}>
           <input
             className={inputClass}
             style={{ borderColor: errors.businessName ? "#ef4444" : "#e5e7eb" }}
@@ -165,30 +160,18 @@ export default function Step1Business({ data, errors, onChange }: Step1Props) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Field label="Sitio web">
-          <input
-            className={inputClass}
-            style={{ borderColor: "#e5e7eb" }}
-            value={data.website ?? ""}
-            onChange={(e) => onChange("website", e.target.value)}
-            placeholder="https://tunegocio.com"
-            type="url"
-          />
-        </Field>
-        <Field
-          label="EIN (opcional)"
-          hint="Tu número de identificación fiscal. Lo usamos solo para configurar integraciones de pagos."
-        >
-          <input
-            className={inputClass}
-            style={{ borderColor: "#e5e7eb" }}
-            value={data.ein ?? ""}
-            onChange={(e) => onChange("ein", e.target.value)}
-            placeholder="12-3456789"
-          />
-        </Field>
-      </div>
+      <Field
+        label="EIN (opcional)"
+        hint="Número de identificación fiscal. Lo usamos solo para configurar integraciones de pagos."
+      >
+        <input
+          className={inputClass}
+          style={{ borderColor: "#e5e7eb" }}
+          value={data.ein ?? ""}
+          onChange={(e) => onChange("ein", e.target.value)}
+          placeholder="12-3456789"
+        />
+      </Field>
     </div>
   );
 }

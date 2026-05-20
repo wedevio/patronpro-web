@@ -6,7 +6,24 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// Step 1: Domain
 export function validateStep1(
+  data: Partial<OnboardingFormData>
+): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  if (data.hasDomain && !data.existingDomain?.trim()) {
+    errors.existingDomain = "Ingresá tu dominio existente";
+  }
+  if (data.wantNewDomain && !data.desiredDomain?.trim()) {
+    errors.desiredDomain = "Ingresá el dominio que te gustaría";
+  }
+
+  return errors;
+}
+
+// Step 2: Business Info
+export function validateStep2(
   data: Partial<OnboardingFormData>
 ): ValidationErrors {
   const errors: ValidationErrors = {};
@@ -29,30 +46,23 @@ export function validateStep1(
   return errors;
 }
 
-export function validateStep2(
+// Step 3: Brand Identity
+export function validateStep3(
   data: Partial<OnboardingFormData>
 ): ValidationErrors {
   const errors: ValidationErrors = {};
 
   if (!data.letUsChooseColors) {
     if (!data.primaryColor?.trim())
-      errors.primaryColor = "El color primario es requerido";
+      errors.primaryColor = "El color principal es requerido";
   }
 
   return errors;
 }
 
-export function validateStep3(
-  data: Partial<OnboardingFormData>
+// Step 4: Hours — no required fields (has defaults)
+export function validateStep4(
+  _data: Partial<OnboardingFormData>
 ): ValidationErrors {
-  const errors: ValidationErrors = {};
-
-  if (data.hasDomain && !data.existingDomain?.trim()) {
-    errors.existingDomain = "Ingresá tu dominio existente";
-  }
-  if (data.wantNewDomain && !data.desiredDomain?.trim()) {
-    errors.desiredDomain = "Ingresá el dominio que te gustaría";
-  }
-
-  return errors;
+  return {};
 }

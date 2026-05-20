@@ -4,7 +4,7 @@ import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
 import { updateBrandColors } from "@/lib/ghl/brand-board";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
-import type { OnboardingFormData } from "@/lib/onboarding/types";
+import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,17 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // --- Extract fields ---
+    // Parse hours of operation if present
+    let hoursOfOperation: HoursOfOperation | undefined;
+    const hoursRaw = fd.get("hoursOfOperation") as string | null;
+    if (hoursRaw) {
+      try {
+        hoursOfOperation = JSON.parse(hoursRaw) as HoursOfOperation;
+      } catch {
+        // ignore parse error
+      }
+    }
+
     const data: Partial<OnboardingFormData> = {
       businessName: (fd.get("businessName") as string) ?? "",
       legalName: (fd.get("legalName") as string) ?? "",
@@ -31,21 +41,21 @@ export async function POST(request: Request): Promise<Response> {
       state: (fd.get("state") as string) ?? "",
       zip: (fd.get("zip") as string) ?? "",
       country: (fd.get("country") as string) ?? "US",
-      website: (fd.get("website") as string) ?? "",
       phone: (fd.get("phone") as string) ?? "",
       email: (fd.get("email") as string) ?? "",
       ein: (fd.get("ein") as string) ?? undefined,
       primaryColor: (fd.get("primaryColor") as string) ?? "",
       secondaryColor: (fd.get("secondaryColor") as string) ?? "",
+      complementaryColor: (fd.get("complementaryColor") as string) ?? "",
       letUsChooseColors: fd.get("letUsChooseColors") === "true",
       hasDomain: fd.get("hasDomain") === "true",
       existingDomain: (fd.get("existingDomain") as string) ?? undefined,
       wantNewDomain: fd.get("wantNewDomain") === "true",
       desiredDomain: (fd.get("desiredDomain") as string) ?? undefined,
       domainRegistrar: (fd.get("domainRegistrar") as string) ?? undefined,
+      hoursOfOperation,
     };
 
-    // Validate required fields
     if (!data.businessName || !data.phone || !data.email) {
       return NextResponse.json(
         { error: "Faltan campos requeridos" },
@@ -72,12 +82,16 @@ export async function POST(request: Request): Promise<Response> {
         locationId,
         data.primaryColor,
         data.secondaryColor ?? "",
-        token
+        token,
+        data.complementaryColor ?? undefined
       );
     }
 
     // --- Non-blocking: notify ---
-    const summary = `✅ Onboarding completado para ${data.businessName}.\nNegocio: ${data.businessName}\nEmail: ${data.email}\nTeléfono: ${data.phone}\nDominio: ${data.hasDomain ? data.existingDomain : data.desiredDomain ?? "por definir"}`;
+    const domain = data.hasDomain
+      ? data.existingDomain
+      : data.desiredDomain ?? "por definir";
+    const summary = `✅ Onboarding completado para ${data.businessName}.\nNegocio: ${data.businessName}\nEmail: ${data.email}\nTeléfono: ${data.phone}\nDominio: ${domain}`;
     void notifyOnboarder(locationId, contactId, summary, token);
 
     return NextResponse.json({ success: true }, { status: 201 });

@@ -4,18 +4,18 @@ import { useRef, useState } from "react";
 import type { OnboardingFormData } from "@/lib/onboarding/types";
 import ColorPicker from "./ColorPicker";
 
-type Step2Data = Pick<
+type Step3Data = Pick<
   OnboardingFormData,
-  "logoFile" | "logoUrl" | "primaryColor" | "secondaryColor" | "letUsChooseColors"
+  "logoFile" | "logoUrl" | "primaryColor" | "secondaryColor" | "complementaryColor" | "letUsChooseColors"
 >;
 
-interface Step2Props {
-  data: Partial<Step2Data>;
-  errors: Partial<Record<keyof Step2Data, string>>;
-  onChange: (field: keyof Step2Data, value: unknown) => void;
+interface Step3Props {
+  data: Partial<Step3Data>;
+  errors: Partial<Record<keyof Step3Data, string>>;
+  onChange: (field: keyof Step3Data, value: unknown) => void;
 }
 
-export default function Step2Brand({ data, errors, onChange }: Step2Props) {
+export default function Step3Brand({ data, errors, onChange }: Step3Props) {
   const [noLogo, setNoLogo] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -133,17 +133,23 @@ export default function Step2Brand({ data, errors, onChange }: Step2Props) {
           </span>
         </label>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <ColorPicker
-            label="Color primario"
+            label="Color principal (Main)"
             value={data.primaryColor ?? "#1E2C46"}
             onChange={(v) => onChange("primaryColor", v)}
             disabled={data.letUsChooseColors ?? false}
           />
           <ColorPicker
-            label="Color secundario"
+            label="Color de acento (Accent)"
             value={data.secondaryColor ?? "#F67D0A"}
             onChange={(v) => onChange("secondaryColor", v)}
+            disabled={data.letUsChooseColors ?? false}
+          />
+          <ColorPicker
+            label="Color complementario"
+            value={data.complementaryColor ?? "#FFFFFF"}
+            onChange={(v) => onChange("complementaryColor", v)}
             disabled={data.letUsChooseColors ?? false}
           />
         </div>

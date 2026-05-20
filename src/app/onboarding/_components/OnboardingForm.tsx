@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { OnboardingFormData } from "@/lib/onboarding/types";
+import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
+import { DEFAULT_HOURS } from "@/lib/onboarding/types";
 import {
   validateStep1,
   validateStep2,
   validateStep3,
+  validateStep4,
 } from "@/lib/onboarding/validation";
 import ProgressBar from "./ProgressBar";
-import Step1Business from "./Step1Business";
-import Step2Brand from "./Step2Brand";
-import Step3Domain from "./Step3Domain";
+import Step1Domain from "./Step1Domain";
+import Step2Business from "./Step2Business";
+import Step3Brand from "./Step3Brand";
+import Step4Hours from "./Step4Hours";
 import StepReview from "./StepReview";
 import SuccessScreen from "./SuccessScreen";
 
@@ -19,7 +22,7 @@ interface OnboardingFormProps {
   contactId: string;
 }
 
-type FieldValue = string | boolean | File | undefined;
+type FieldValue = string | boolean | File | HoursOfOperation | undefined;
 
 export default function OnboardingForm({
   locationId,
@@ -31,6 +34,7 @@ export default function OnboardingForm({
     letUsChooseColors: false,
     hasDomain: false,
     wantNewDomain: false,
+    hoursOfOperation: DEFAULT_HOURS,
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof OnboardingFormData, string>>
@@ -39,10 +43,7 @@ export default function OnboardingForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  function updateField(
-    field: keyof OnboardingFormData,
-    value: FieldValue
-  ) {
+  function updateField(field: keyof OnboardingFormData, value: FieldValue) {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
       const next = { ...prev };
@@ -56,6 +57,7 @@ export default function OnboardingForm({
     if (currentStep === 1) stepErrors = validateStep1(formData);
     if (currentStep === 2) stepErrors = validateStep2(formData);
     if (currentStep === 3) stepErrors = validateStep3(formData);
+    if (currentStep === 4) stepErrors = validateStep4(formData);
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -82,12 +84,12 @@ export default function OnboardingForm({
         "state",
         "zip",
         "country",
-        "website",
         "phone",
         "email",
         "ein",
         "primaryColor",
         "secondaryColor",
+        "complementaryColor",
         "existingDomain",
         "desiredDomain",
         "domainRegistrar",
@@ -98,12 +100,13 @@ export default function OnboardingForm({
         if (v !== undefined && typeof v === "string") fd.append(key, v);
       }
 
-      fd.append(
-        "letUsChooseColors",
-        String(formData.letUsChooseColors ?? false)
-      );
+      fd.append("letUsChooseColors", String(formData.letUsChooseColors ?? false));
       fd.append("hasDomain", String(formData.hasDomain ?? false));
       fd.append("wantNewDomain", String(formData.wantNewDomain ?? false));
+
+      if (formData.hoursOfOperation) {
+        fd.append("hoursOfOperation", JSON.stringify(formData.hoursOfOperation));
+      }
 
       if (formData.logoFile instanceof File) {
         fd.append("logoFile", formData.logoFile);
@@ -134,35 +137,24 @@ export default function OnboardingForm({
       <SuccessScreen
         businessName={formData.businessName ?? ""}
         hasLogo={!!formData.logoFile}
-        hasColors={
-          !formData.letUsChooseColors && !!formData.primaryColor
-        }
-        hasDomainInfo={
-          !!(formData.existingDomain || formData.desiredDomain)
-        }
+        hasColors={!formData.letUsChooseColors && !!formData.primaryColor}
+        hasDomainInfo={!!(formData.existingDomain || formData.desiredDomain)}
       />
     );
   }
 
+  const TOTAL_STEPS = 5;
+
   return (
     <div className="max-w-2xl mx-auto">
-      <ProgressBar currentStep={currentStep} />
+      <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
       <div
         className="bg-white rounded-[24px] shadow-sm p-6 sm:p-8"
         style={{ border: "1px solid #e5e7eb" }}
       >
         {currentStep === 1 && (
-          <Step1Business
-            data={formData}
-            errors={errors}
-            onChange={(field, value) =>
-              updateField(field as keyof OnboardingFormData, value)
-            }
-          />
-        )}
-        {currentStep === 2 && (
-          <Step2Brand
+          <Step1Domain
             data={formData}
             errors={errors}
             onChange={(field, value) =>
@@ -170,8 +162,17 @@ export default function OnboardingForm({
             }
           />
         )}
+        {currentStep === 2 && (
+          <Step2Business
+            data={formData}
+            errors={errors}
+            onChange={(field, value) =>
+              updateField(field as keyof OnboardingFormData, value)
+            }
+          />
+        )}
         {currentStep === 3 && (
-          <Step3Domain
+          <Step3Brand
             data={formData}
             errors={errors}
             onChange={(field, value) =>
@@ -180,6 +181,14 @@ export default function OnboardingForm({
           />
         )}
         {currentStep === 4 && (
+          <Step4Hours
+            data={formData}
+            onChange={(field, value) =>
+              updateField(field as keyof OnboardingFormData, value as FieldValue)
+            }
+          />
+        )}
+        {currentStep === 5 && (
           <StepReview
             data={formData}
             onEdit={(step) => setCurrentStep(step)}
@@ -194,7 +203,7 @@ export default function OnboardingForm({
           </p>
         )}
 
-        {currentStep < 4 && (
+        {currentStep < 5 && (
           <div className="flex justify-between mt-8">
             {currentStep > 1 ? (
               <button
@@ -214,7 +223,7 @@ export default function OnboardingForm({
               className="rounded-[14px] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#F67D0A" }}
             >
-              {currentStep === 3 ? "Revisar" : "Siguiente"}
+              {currentStep === 4 ? "Revisar" : "Siguiente"}
             </button>
           </div>
         )}

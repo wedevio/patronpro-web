@@ -4,14 +4,16 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { number: 1, label: "Tu Negocio" },
-  { number: 2, label: "Tu Marca" },
-  { number: 3, label: "Dominio" },
-  { number: 4, label: "Revisar" },
+  { number: 1, label: "Dominio" },
+  { number: 2, label: "Negocio" },
+  { number: 3, label: "Marca" },
+  { number: 4, label: "Horarios" },
+  { number: 5, label: "Revisar" },
 ];
 
 interface ProgressBarProps {
   currentStep: number;
+  totalSteps?: number;
 }
 
 export default function ProgressBar({ currentStep }: ProgressBarProps) {
@@ -53,8 +55,7 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
               <span
                 className="text-xs mt-1 font-medium text-center"
                 style={{
-                  color:
-                    isCompleted || isActive ? "#1E2C46" : "#9ca3af",
+                  color: isCompleted || isActive ? "#1E2C46" : "#9ca3af",
                 }}
               >
                 {step.label}
@@ -64,7 +65,8 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
               <div
                 className="h-0.5 flex-1 mx-1 -mt-5 transition-all"
                 style={{
-                  backgroundColor: step.number < currentStep ? "#F67D0A" : "#e5e7eb",
+                  backgroundColor:
+                    step.number < currentStep ? "#F67D0A" : "#e5e7eb",
                 }}
               />
             )}

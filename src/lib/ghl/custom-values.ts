@@ -1,4 +1,4 @@
-import type { OnboardingFormData, GHLCustomValue } from "../onboarding/types";
+import type { OnboardingFormData, GHLCustomValue, HoursOfOperation } from "../onboarding/types";
 import { ghlFetch } from "./client";
 
 async function listCustomValues(
@@ -39,6 +39,35 @@ async function upsertCustomValue(
   }
 }
 
+function formatHours(hours: HoursOfOperation): string {
+  const DAY_LABELS: Record<keyof HoursOfOperation, string> = {
+    monday: "Lun", tuesday: "Mar", wednesday: "Mié",
+    thursday: "Jue", friday: "Vie", saturday: "Sáb", sunday: "Dom",
+  };
+
+  function fmt(t: string): string {
+    const [hh, mm] = t.split(":").map(Number);
+    const period = hh >= 12 ? "PM" : "AM";
+    const h = hh % 12 || 12;
+    return `${h}:${mm.toString().padStart(2, "0")} ${period}`;
+  }
+
+  return (Object.keys(DAY_LABELS) as Array<keyof HoursOfOperation>)
+    .map((day) => {
+      const d = hours[day];
+      return d.open
+        ? `${DAY_LABELS[day]}: ${fmt(d.from)} - ${fmt(d.to)}`
+        : `${DAY_LABELS[day]}: Cerrado`;
+    })
+    .join(" | ");
+}
+
+function deriveDomain(data: Partial<OnboardingFormData>): string {
+  if (data.hasDomain && data.existingDomain) return data.existingDomain;
+  if (data.wantNewDomain && data.desiredDomain) return data.desiredDomain;
+  return "";
+}
+
 export async function syncCustomValues(
   locationId: string,
   data: Partial<OnboardingFormData> & { logoUrl?: string },
@@ -50,13 +79,26 @@ export async function syncCustomValues(
     .filter(Boolean)
     .join(", ");
 
+  const domain = deriveDomain(data);
+
+  // automation_sender_email: info@domain if domain known
+  const senderEmail = domain
+    ? `info@${domain.replace(/^https?:\/\//, "").replace(/^www\./, "")}`
+    : "";
+
+  const hoursStr = data.hoursOfOperation
+    ? formatHours(data.hoursOfOperation)
+    : "";
+
   const mappings: Array<[string, string]> = [
     ["company_name", data.businessName ?? ""],
     ["company_address", fullAddress],
     ["company_phone", data.phone ?? ""],
-    ["dominio_web", data.website ?? ""],
+    ["dominio_web", domain],
+    ["automation_sender_email", senderEmail],
     ["logo", data.logoUrl ?? ""],
     ["logo_cuadrado", data.logoUrl ?? ""],
+    ["hours_of_operation", hoursStr],
   ].filter(([, value]) => value !== "") as Array<[string, string]>;
 
   await Promise.all(

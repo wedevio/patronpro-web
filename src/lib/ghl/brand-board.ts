@@ -16,7 +16,8 @@ export async function updateBrandColors(
   locationId: string,
   primaryColor: string,
   secondaryColor: string,
-  token: string
+  token: string,
+  complementaryColor?: string
 ): Promise<void> {
   try {
     const res = await ghlFetch(
@@ -46,6 +47,8 @@ export async function updateBrandColors(
     const updatedColors = existingColors.map((c) => {
       if (c.id === "grey") return { ...c, value: primaryColor };
       if (c.id === "new_color_607") return { ...c, value: secondaryColor };
+      if (c.id === "new_color_3589" && complementaryColor)
+        return { ...c, value: complementaryColor };
       return c;
     });
 
@@ -59,6 +62,7 @@ export async function updateBrandColors(
         : existingColors.map((c, i) => {
             if (i === 0) return { ...c, value: primaryColor };
             if (i === 1) return { ...c, value: secondaryColor };
+            if (i === 2 && complementaryColor) return { ...c, value: complementaryColor };
             return c;
           });
 
