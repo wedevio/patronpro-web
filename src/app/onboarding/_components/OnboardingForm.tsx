@@ -103,6 +103,7 @@ export default function OnboardingForm({
       fd.append("letUsChooseColors", String(formData.letUsChooseColors ?? false));
       fd.append("hasDomain", String(formData.hasDomain ?? false));
       fd.append("wantNewDomain", String(formData.wantNewDomain ?? false));
+      fd.append("authorizeDomainPurchase", String(formData.authorizeDomainPurchase ?? false));
 
       if (formData.hoursOfOperation) {
         fd.append("hoursOfOperation", JSON.stringify(formData.hoursOfOperation));

@@ -31,6 +31,7 @@ export interface OnboardingFormData {
   wantNewDomain?: boolean;
   desiredDomain?: string;
   domainRegistrar?: string;
+  authorizeDomainPurchase?: boolean; // user authorizes $11 domain purchase
 
   // Step 2: Business Info
   businessName: string;

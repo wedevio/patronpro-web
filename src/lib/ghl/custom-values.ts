@@ -99,6 +99,7 @@ export async function syncCustomValues(
     ["logo", data.logoUrl ?? ""],
     ["logo_cuadrado", data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
+    ["domain_purchase_authorized", data.authorizeDomainPurchase ? "Sí" : ""],
   ].filter(([, value]) => value !== "") as Array<[string, string]>;
 
   await Promise.all(

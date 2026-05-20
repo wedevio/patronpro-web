@@ -5,7 +5,12 @@ import type { OnboardingFormData } from "@/lib/onboarding/types";
 
 type Step1Data = Pick<
   OnboardingFormData,
-  "hasDomain" | "existingDomain" | "wantNewDomain" | "desiredDomain" | "domainRegistrar"
+  | "hasDomain"
+  | "existingDomain"
+  | "wantNewDomain"
+  | "desiredDomain"
+  | "domainRegistrar"
+  | "authorizeDomainPurchase"
 >;
 
 interface Step1Props {
@@ -18,7 +23,6 @@ const inputClass =
   "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A]";
 
 type DomainOption = "has" | "wants" | "unsure";
-
 type AvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error";
 
 export default function Step1Domain({ data, errors, onChange }: Step1Props) {
@@ -67,6 +71,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
         </p>
       </div>
 
+      {/* Options */}
       <div className="flex flex-col gap-3">
         {(
           [
@@ -97,6 +102,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
         ))}
       </div>
 
+      {/* Has domain */}
       {option === "has" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -117,7 +123,6 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
               </p>
             )}
           </div>
-
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium" style={{ color: "#1E2C46" }}>
               ¿Dónde está registrado?
@@ -139,9 +144,11 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
         </div>
       )}
 
+      {/* Wants new domain */}
       {option === "wants" && (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-4">
+          {/* Domain input + check */}
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium" style={{ color: "#1E2C46" }}>
               ¿Qué dominio te gustaría?
               <span style={{ color: "#F67D0A" }}> *</span>
@@ -181,42 +188,94 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                 {errors.desiredDomain}
               </p>
             )}
+
+            {/* Availability feedback */}
+            {availabilityStatus === "available" && (
+              <div
+                className="rounded-[14px] px-4 py-3 text-sm font-medium"
+                style={{ backgroundColor: "#f0fdf4", color: "#15803d" }}
+              >
+                ✅ ¡Ese dominio parece estar disponible!
+              </div>
+            )}
+            {availabilityStatus === "taken" && (
+              <div
+                className="rounded-[14px] px-4 py-3 text-sm"
+                style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
+              >
+                ❌ Ese dominio ya está en uso. Intentá con una variación (ej:{" "}
+                <span className="font-mono">
+                  {data.desiredDomain?.replace(/\.(com|net|org).*/, "")}-pro.com
+                </span>
+                ).
+              </div>
+            )}
+            {availabilityStatus === "error" && (
+              <p className="text-xs" style={{ color: "#6b7280" }}>
+                No pudimos verificar la disponibilidad. Lo revisamos en la llamada.
+              </p>
+            )}
+            {availabilityStatus === "idle" && (
+              <p className="text-xs" style={{ color: "#5f6f88" }}>
+                Hacé clic en "Verificar" para saber si está disponible.
+              </p>
+            )}
           </div>
 
-          {availabilityStatus === "available" && (
-            <div
-              className="rounded-[14px] px-4 py-3 text-sm font-medium"
-              style={{ backgroundColor: "#f0fdf4", color: "#15803d" }}
-            >
-              ✅ ¡Ese dominio parece estar disponible! Lo gestionamos juntos en la llamada.
+          {/* Purchase authorization */}
+          <div
+            className="rounded-[14px] border p-4 flex flex-col gap-3"
+            style={{ borderColor: "#e5e7eb", backgroundColor: "#f9fafb" }}
+          >
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-5 h-5 shrink-0 mt-0.5"
+                style={{ color: "#F67D0A" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#1E2C46" }}>
+                  Compra del dominio —{" "}
+                  <span style={{ color: "#F67D0A" }}>$11 / año</span>
+                </p>
+                <p className="text-sm mt-1" style={{ color: "#5f6f88" }}>
+                  Nosotros registramos el dominio por vos para poder configurar
+                  todo correctamente: sitio web, emails profesionales y sistema
+                  de seguimiento. El costo de{" "}
+                  <strong>$11 al año</strong> se cobra junto con tu plan en el
+                  momento de activación.
+                </p>
+              </div>
             </div>
-          )}
-          {availabilityStatus === "taken" && (
-            <div
-              className="rounded-[14px] px-4 py-3 text-sm"
-              style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
-            >
-              ❌ Ese dominio ya está en uso. Intentá con una variación (ej:{" "}
-              <span className="font-mono">
-                {data.desiredDomain?.replace(/\.(com|net|org).*/, "")}-pro.com
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={data.authorizeDomainPurchase ?? false}
+                onChange={(e) =>
+                  onChange("authorizeDomainPurchase", e.target.checked)
+                }
+                className="mt-0.5 rounded accent-[#F67D0A]"
+              />
+              <span className="text-sm font-medium" style={{ color: "#1E2C46" }}>
+                Autorizo a PatronPro a registrar este dominio por $11 al activar
+                mi cuenta
               </span>
-              ).
-            </div>
-          )}
-          {availabilityStatus === "error" && (
-            <p className="text-xs" style={{ color: "#6b7280" }}>
-              No pudimos verificar la disponibilidad. Lo revisamos en la llamada.
-            </p>
-          )}
-          {availabilityStatus === "idle" && (
-            <p className="text-xs" style={{ color: "#5f6f88" }}>
-              Hacé clic en "Verificar" para saber si está disponible. Lo
-              tramitamos juntos en la llamada.
-            </p>
-          )}
+            </label>
+          </div>
         </div>
       )}
 
+      {/* Unsure */}
       {option === "unsure" && (
         <div
           className="rounded-[14px] px-4 py-3 text-sm"

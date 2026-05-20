@@ -53,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
       wantNewDomain: fd.get("wantNewDomain") === "true",
       desiredDomain: (fd.get("desiredDomain") as string) ?? undefined,
       domainRegistrar: (fd.get("domainRegistrar") as string) ?? undefined,
+      authorizeDomainPurchase: fd.get("authorizeDomainPurchase") === "true",
       hoursOfOperation,
     };
 
