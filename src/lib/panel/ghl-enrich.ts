@@ -96,62 +96,51 @@ async function fetchLocation(
       // SaaS endpoint not available — leave defaults
     }
 
-    // Try to fetch purchased phone numbers
+    // Phone numbers — correct endpoint: /phone-system/numbers/location/:locationId (v2023-02-21)
     try {
       const phonesRes = await fetch(
-        `${GHL_BASE}/locations/${locationId}/phoneNumbers`,
-        { headers: { Authorization: `Bearer ${token}`, Version: GHL_VERSION } }
+        `${GHL_BASE}/phone-system/numbers/location/${locationId}`,
+        { headers: { Authorization: `Bearer ${token}`, Version: "2023-02-21" } }
       );
       if (phonesRes.ok) {
         const phonesJson = await phonesRes.json() as Record<string, unknown>;
-        const list = (phonesJson.phoneNumbers as Record<string, unknown>[]) ?? [];
+        // Response: { numbers: [{ phoneNumber, ... }] }
+        const list = (phonesJson.numbers as Record<string, unknown>[]) ?? [];
         result.phoneNumbers = list.map((p) => (p.phoneNumber as string) ?? "").filter(Boolean);
       }
     } catch {
       // not available — leave empty
     }
 
-    // Try to fetch Stripe / payment integration status
+    // Stripe — check via transactions: if any exist, payment is set up
+    // There's no dedicated "is Stripe connected" endpoint in GHL public API
     try {
-      const stripeRes = await fetch(
-        `${GHL_BASE}/payments/integrations/provider/whitelabel?locationId=${locationId}`,
+      const txRes = await fetch(
+        `${GHL_BASE}/payments/transactions?altId=${locationId}&altType=location&limit=1`,
         { headers: { Authorization: `Bearer ${token}`, Version: GHL_VERSION } }
       );
-      if (stripeRes.ok) {
-        const stripeJson = await stripeRes.json() as Record<string, unknown>;
-        result.stripeConnected = !!(stripeJson.isConnected ?? stripeJson.connected);
+      if (txRes.ok) {
+        const txJson = await txRes.json() as Record<string, unknown>;
+        const total = (txJson.totalCount as number) ?? (txJson.total as number) ?? 0;
+        const list = (txJson.data as unknown[]) ?? [];
+        result.stripeConnected = total > 0 || list.length > 0;
       }
     } catch {
       // not available
     }
 
-    // Try to fetch LC Email / email provider status
-    try {
-      const emailRes = await fetch(
-        `${GHL_BASE}/locations/${locationId}/email/settings`,
-        { headers: { Authorization: `Bearer ${token}`, Version: GHL_VERSION } }
-      );
-      if (emailRes.ok) {
-        const emailJson = await emailRes.json() as Record<string, unknown>;
-        result.emailConnected = !!(emailJson.isConnected ?? emailJson.enabled ?? emailJson.fromEmail);
-      }
-    } catch {
-      // not available
-    }
-
-    // Try to fetch workflow count
-    try {
-      const wfRes = await fetch(
-        `${GHL_BASE}/workflows?locationId=${locationId}&limit=1`,
-        { headers: { Authorization: `Bearer ${token}`, Version: GHL_VERSION } }
-      );
-      if (wfRes.ok) {
-        const wfJson = await wfRes.json() as Record<string, unknown>;
-        result.workflowsCount = (wfJson.total as number) ?? (wfJson.count as number) ?? 0;
-      }
-    } catch {
-      // not available
-    }
+    // Email provider — check location settings from the full location object
+    // loc.settings may contain emailProvider or smtp info
+    const settings = (loc.settings as Record<string, unknown>) ?? {};
+    const allowDuplicate = settings.allowDuplicateContact; // just to probe object exists
+    void allowDuplicate;
+    // LC Email connected if location has a fromEmail or allowCustomEmail flag
+    result.emailConnected = !!(
+      (loc.fromEmail as string) ||
+      (loc.replyToEmail as string) ||
+      (settings.allowCustomEmail as boolean) ||
+      (settings.emailProvider as string)
+    );
 
     return result;
   } catch {
