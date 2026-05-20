@@ -1,5 +1,8 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getServerClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -9,15 +12,36 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "Faltan credenciales" }, { status: 400 });
     }
 
-    const supabase = await getServerClient();
+    const cookieStore = await cookies();
+
+    // Build the response first so we can attach cookies to it
+    const response = NextResponse.json({ success: true });
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          // Set cookies on the response, not on the read-only cookieStore
+          setAll: (cookiesToSet) => {
+            for (const { name, value, options } of cookiesToSet) {
+              response.cookies.set(name, value, options);
+            }
+          },
+        },
+      }
+    );
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch {
+    return response; // carries the auth session cookies
+  } catch (err) {
+    console.error("[POST /api/auth/login]", err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

@@ -197,7 +197,8 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
 export async function updateChecklist(
   locationId: string,
   itemId: ChecklistItemId,
-  checked: boolean
+  checked: boolean,
+  checkedBy: string = ""
 ): Promise<PanelSubmission | null> {
   const db = getAdminClient();
   const now = new Date().toISOString();
@@ -231,7 +232,13 @@ export async function updateChecklist(
   const { error } = await db
     .from("account_checklist")
     .upsert(
-      { account_id: accountId, item_id: itemId, checked, checked_at: checked ? now : null },
+      {
+        account_id: accountId,
+        item_id:    itemId,
+        checked,
+        checked_at: checked ? now : null,
+        checked_by: checked ? checkedBy : null,
+      },
       { onConflict: "account_id,item_id" }
     );
 
