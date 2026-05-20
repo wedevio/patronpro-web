@@ -137,13 +137,39 @@ export async function POST(request: Request): Promise<Response> {
 
     // --- Save to panel store ---
     try {
+      // Determine domain type and value
+      let domainType: "existing" | "new" | "none" = "none";
+      let domainValue = "";
+      if (data.hasDomain && data.existingDomain) {
+        domainType = "existing";
+        domainValue = data.existingDomain;
+      } else if (data.wantNewDomain && data.desiredDomain) {
+        domainType = "new";
+        domainValue = data.desiredDomain;
+      }
+
       await saveSubmission({
         locationId,
         contactId,
-        businessName: data.businessName ?? "",
-        email:        data.email ?? "",
-        phone:        data.phone ?? "",
-        domain:       data.hasDomain ? (data.existingDomain ?? "") : (data.desiredDomain ?? "por definir"),
+        businessName:       data.businessName ?? "",
+        legalName:          data.legalName ?? "",
+        email:              data.email ?? "",
+        phone:              data.phone ?? "",
+        address:            data.address ?? "",
+        city:               data.city ?? "",
+        state:              data.state ?? "",
+        zip:                data.zip ?? "",
+        country:            data.country ?? "US",
+        ein:                data.ein ?? "",
+        domain:             domainValue,
+        domainType,
+        domainRegistrar:    data.domainRegistrar ?? "",
+        primaryColor:       data.primaryColor ?? "",
+        secondaryColor:     data.secondaryColor ?? "",
+        complementaryColor: data.complementaryColor ?? "",
+        letUsChooseColors:  data.letUsChooseColors ?? false,
+        logoUrl:            logoUrl ?? "",
+        hoursOfOperation:   data.hoursOfOperation,
       });
     } catch (err) {
       console.error("[onboarding] saveSubmission failed:", err);

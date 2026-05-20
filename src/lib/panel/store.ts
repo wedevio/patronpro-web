@@ -7,16 +7,17 @@
  */
 
 import { Redis } from "@upstash/redis";
+import type { HoursOfOperation } from "@/lib/onboarding/types";
 
 export const CHECKLIST_ITEMS = [
-  { id: "form",         label: "Formulario de onboarding recibido" },
-  { id: "domain",       label: "Dominio conectado / DNS configurado" },
-  { id: "phone",        label: "Número de teléfono asignado en GHL" },
-  { id: "email",        label: "Email de negocio conectado" },
-  { id: "landing",      label: "Landing page publicada" },
-  { id: "calendar",     label: "Calendario configurado" },
-  { id: "stripe",       label: "Stripe conectado" },
-  { id: "client_ok",   label: "Acceso verificado con el cliente" },
+  { id: "form",       label: "Formulario de onboarding recibido" },
+  { id: "domain",     label: "Dominio conectado / DNS configurado" },
+  { id: "phone",      label: "Número de teléfono asignado en GHL" },
+  { id: "email",      label: "Email de negocio conectado" },
+  { id: "landing",    label: "Landing page publicada" },
+  { id: "calendar",   label: "Calendario configurado" },
+  { id: "stripe",     label: "Stripe conectado" },
+  { id: "client_ok",  label: "Acceso verificado con el cliente" },
 ] as const;
 
 export type ChecklistItemId = (typeof CHECKLIST_ITEMS)[number]["id"];
@@ -24,12 +25,28 @@ export type ChecklistItemId = (typeof CHECKLIST_ITEMS)[number]["id"];
 export interface PanelSubmission {
   locationId:   string;
   contactId:    string;
+  submittedAt:  string;
+  checklist:    Record<ChecklistItemId, boolean>;
+  // Full form data
   businessName: string;
+  legalName:    string;
   email:        string;
   phone:        string;
-  domain:       string; // existing or desired
-  submittedAt:  string; // ISO string
-  checklist:    Record<ChecklistItemId, boolean>;
+  address:      string;
+  city:         string;
+  state:        string;
+  zip:          string;
+  country:      string;
+  ein:          string;
+  domain:       string;
+  domainType:   "existing" | "new" | "none";
+  domainRegistrar: string;
+  primaryColor:    string;
+  secondaryColor:  string;
+  complementaryColor: string;
+  letUsChooseColors: boolean;
+  logoUrl:         string;
+  hoursOfOperation?: HoursOfOperation;
 }
 
 function getRedis(): Redis {
@@ -42,7 +59,7 @@ function getRedis(): Redis {
   });
 }
 
-function defaultChecklist(): Record<ChecklistItemId, boolean> {
+export function defaultChecklist(): Record<ChecklistItemId, boolean> {
   return Object.fromEntries(
     CHECKLIST_ITEMS.map((item) => [item.id, false])
   ) as Record<ChecklistItemId, boolean>;
