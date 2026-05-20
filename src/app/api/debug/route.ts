@@ -9,38 +9,34 @@ export async function GET(request: Request): Promise<Response> {
 
   const token = await getLocationAccessToken(locationId);
 
-  // 1. GET custom values
-  const cvRes = await ghlFetch(`/locations/${locationId}/customValues`, { method: "GET", token });
-  const cvData = cvRes.ok
-    ? (await cvRes.json()) as { customValues?: Array<{ id: string; name: string; fieldKey: string; value?: string }> }
-    : null;
+  // Try all possible brand board paths
+  const paths = [
+    `/brand-boards?locationId=${locationId}`,
+    `/locations/${locationId}/brand-boards`,
+    `/brand-boards/${locationId}`,
+    `/marketing/brand-boards?locationId=${locationId}`,
+    `/locations/${locationId}/marketing/brand-boards`,
+  ];
 
-  const values = cvData?.customValues ?? [];
-
-  // 2. Try a direct PUT on company_name to verify PUT works
-  const companyNameEntry = values.find((v) => v.fieldKey.includes("company_name"));
-  let putResult: unknown = "company_name entry not found";
-  if (companyNameEntry) {
-    const putRes = await ghlFetch(
-      `/locations/${locationId}/customValues/${companyNameEntry.id}`,
-      { method: "PUT", token, body: JSON.stringify({ value: "DEBUG_TEST_" + Date.now() }) }
-    );
-    putResult = {
-      status: putRes.status,
-      body: await putRes.text(),
-    };
+  const bbResults: Record<string, unknown> = {};
+  for (const path of paths) {
+    const res = await ghlFetch(path, { method: "GET", token });
+    const body = await res.text();
+    bbResults[path] = { status: res.status, body: body.slice(0, 200) };
   }
 
-  // 3. Check brand board paths
-  const [bb1, bb2] = await Promise.all([
-    ghlFetch(`/brand-boards?locationId=${locationId}`, { method: "GET", token }),
-    ghlFetch(`/locations/${locationId}/brand-boards`, { method: "GET", token }),
-  ]);
+  // Also check custom values
+  const cvRes = await ghlFetch(`/locations/${locationId}/customValues`, { method: "GET", token });
+  const cvData = cvRes.ok
+    ? (await cvRes.json()) as { customValues?: Array<{ name: string; fieldKey: string; value?: string }> }
+    : null;
 
   return NextResponse.json({
-    fieldKeys: values.map((v) => ({ name: v.name, fieldKey: v.fieldKey, hasValue: !!v.value })),
-    putCompanyName: putResult,
-    brandBoard1: { status: bb1.status, body: await bb1.text() },
-    brandBoard2: { status: bb2.status, body: await bb2.text() },
+    customValues: cvData?.customValues?.map((v) => ({
+      name: v.name,
+      fieldKey: v.fieldKey,
+      value: v.value ?? "(empty)",
+    })),
+    brandBoardPaths: bbResults,
   });
 }

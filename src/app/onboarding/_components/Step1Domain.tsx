@@ -22,7 +22,7 @@ interface Step1Props {
 const inputClass =
   "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A]";
 
-type DomainOption = "has" | "wants" | "unsure";
+type DomainOption = "has" | "wants";
 type AvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error";
 
 export default function Step1Domain({ data, errors, onChange }: Step1Props) {
@@ -30,9 +30,8 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
     useState<AvailabilityStatus>("idle");
 
   function getOption(): DomainOption {
-    if (data.hasDomain) return "has";
     if (data.wantNewDomain) return "wants";
-    return "unsure";
+    return "has";
   }
 
   function setOption(opt: DomainOption) {
@@ -77,7 +76,6 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
           [
             { value: "has", label: "Ya tengo un dominio" },
             { value: "wants", label: "Quiero comprar un dominio nuevo" },
-            { value: "unsure", label: "No sé todavía" },
           ] as { value: DomainOption; label: string }[]
         ).map(({ value, label }) => (
           <label
@@ -272,16 +270,6 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
               </span>
             </label>
           </div>
-        </div>
-      )}
-
-      {/* Unsure */}
-      {option === "unsure" && (
-        <div
-          className="rounded-[14px] px-4 py-3 text-sm"
-          style={{ backgroundColor: "#f9fafb", color: "#5f6f88" }}
-        >
-          Sin problema — lo vemos juntos en la llamada de bienvenida 👋
         </div>
       )}
     </div>
