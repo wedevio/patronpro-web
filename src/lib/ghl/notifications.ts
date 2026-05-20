@@ -6,22 +6,20 @@ export async function notifyOnboarder(
   summary: string,
   token: string
 ): Promise<void> {
-  try {
-    const res = await ghlFetch("/conversations/messages/outbound", {
-      method: "POST",
-      token,
-      body: JSON.stringify({
-        locationId,
-        contactId,
-        type: "SMS",
-        message: summary,
-      }),
-    });
+  // Add an internal note to the contact — no extra scope needed
+  const res = await ghlFetch(`/contacts/${contactId}/notes`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({
+      locationId,
+      body: summary,
+      userId: "onboarding-bot",
+    }),
+  });
 
-    if (!res.ok) {
-      console.error("[notifyOnboarder] failed:", res.status, await res.text());
-    }
-  } catch (err) {
-    console.error("[notifyOnboarder] error:", err);
+  if (!res.ok) {
+    console.error("[notifyOnboarder] POST note failed:", res.status, await res.text());
+  } else {
+    console.info("[notifyOnboarder] note added to contact ok");
   }
 }
