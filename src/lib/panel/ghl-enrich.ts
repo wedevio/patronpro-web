@@ -73,7 +73,7 @@ async function fetchPatronProSignals(
 
     const [smsRes, apptRes] = await Promise.allSettled([
       fetch(
-        `${GHL_BASE}/conversations/search?locationId=${PATRONPRO_LOCATION_ID}&contactId=${contactId}&lastMessageType=TYPE_SMS&limit=1`,
+        `${GHL_BASE}/conversations/search?locationId=${PATRONPRO_LOCATION_ID}&contactId=${contactId}&limit=1`,
         { headers: { Authorization: `Bearer ${patronProToken}`, Version: GHL_VERSION } }
       ).then((r) => (r.ok ? r.json() : null)).catch(() => null),
       fetch(
