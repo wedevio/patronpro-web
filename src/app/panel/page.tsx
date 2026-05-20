@@ -44,15 +44,20 @@ export default async function PanelPage() {
     // Build GHLLocationData — prefer enriched, fallback to basic GHL data
     const ghl: GHLLocationData = ghlRich ?? {
       locationId,
-      name:       ghlBasic?.name ?? submission?.businessName ?? "",
-      address:    ghlBasic?.website ?? "",
-      phone:      ghlBasic?.phone ?? submission?.phone ?? "",
-      email:      ghlBasic?.email ?? submission?.email ?? "",
-      website:    ghlBasic?.website ?? submission?.domain ?? "",
-      createdAt:  ghlBasic?.createdAt ?? submission?.submittedAt ?? "",
-      planName:   "—",
-      planStatus: "—",
-      mrr: 0,
+      name:            ghlBasic?.name ?? submission?.businessName ?? "",
+      address:         ghlBasic?.website ?? "",
+      phone:           ghlBasic?.phone ?? submission?.phone ?? "",
+      email:           ghlBasic?.email ?? submission?.email ?? "",
+      website:         ghlBasic?.website ?? submission?.domain ?? "",
+      createdAt:       ghlBasic?.createdAt ?? submission?.submittedAt ?? "",
+      planName:        "—",
+      planStatus:      "—",
+      mrr:             0,
+      phoneNumbers:    [],
+      stripeConnected: false,
+      emailConnected:  false,
+      customDomain:    "",
+      workflowsCount:  0,
     };
 
     // If no Redis submission, build a minimal one from GHL data

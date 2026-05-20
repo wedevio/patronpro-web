@@ -6,6 +6,7 @@ import { updateBrandColors } from "@/lib/ghl/brand-board";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
 import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
 import { saveSubmission } from "@/lib/panel/store";
+import { getAdminClient } from "@/lib/supabase/client";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 export const dynamic = "force-dynamic";
@@ -85,8 +86,30 @@ export async function POST(request: Request): Promise<Response> {
     let logoUrl: string | undefined;
     const logoFile = fd.get("logoFile");
     if (logoFile instanceof File && logoFile.size > 0) {
-      const uploaded = await uploadMedia(locationId, logoFile, token);
-      logoUrl = uploaded ?? undefined;
+      // Upload to GHL for custom values sync
+      const ghlLogoUrl = await uploadMedia(locationId, logoFile, token);
+      logoUrl = ghlLogoUrl ?? undefined;
+
+      // Also upload to Supabase Storage for own copy
+      try {
+        const db = getAdminClient();
+        const ext = logoFile.name.split(".").pop() ?? "png";
+        const path = `logos/${locationId}/logo.${ext}`;
+        const buffer = Buffer.from(await logoFile.arrayBuffer());
+        const { error } = await db.storage
+          .from("logos")
+          .upload(path, buffer, {
+            contentType: logoFile.type,
+            upsert: true,
+          });
+        if (!error) {
+          const { data: urlData } = db.storage.from("logos").getPublicUrl(path);
+          logoUrl = urlData.publicUrl; // prefer Supabase URL
+        }
+      } catch (err) {
+        console.error("[onboarding] Supabase logo upload failed:", err);
+        // fallback to GHL URL already set above
+      }
     }
 
     // --- Sync custom values ---

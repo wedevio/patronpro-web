@@ -1,12 +1,13 @@
 /**
- * Panel data store — Upstash Redis
+ * Panel data store — Supabase
  *
- * Keys:
- *   panel:index          → Redis sorted set  { score: timestamp, member: locationId }
- *   panel:sub:{locationId} → JSON string with PanelSubmission
+ * Tables:
+ *   accounts            — one row per locationId
+ *   account_submissions — full form data per account
+ *   account_checklist   — per-item checked state
  */
 
-import { Redis } from "@upstash/redis";
+import { getAdminClient } from "@/lib/supabase/client";
 import type { HoursOfOperation } from "@/lib/onboarding/types";
 
 export const CHECKLIST_ITEMS = [
@@ -23,40 +24,29 @@ export const CHECKLIST_ITEMS = [
 export type ChecklistItemId = (typeof CHECKLIST_ITEMS)[number]["id"];
 
 export interface PanelSubmission {
-  locationId:   string;
-  contactId:    string;
-  submittedAt:  string;
-  checklist:    Record<ChecklistItemId, boolean>;
-  // Full form data
-  businessName: string;
-  legalName:    string;
-  email:        string;
-  phone:        string;
-  address:      string;
-  city:         string;
-  state:        string;
-  zip:          string;
-  country:      string;
-  ein:          string;
-  domain:       string;
-  domainType:   "existing" | "new" | "none";
-  domainRegistrar: string;
-  primaryColor:    string;
-  secondaryColor:  string;
+  locationId:         string;
+  contactId:          string;
+  submittedAt:        string;
+  checklist:          Record<ChecklistItemId, boolean>;
+  businessName:       string;
+  legalName:          string;
+  email:              string;
+  phone:              string;
+  address:            string;
+  city:               string;
+  state:              string;
+  zip:                string;
+  country:            string;
+  ein:                string;
+  domain:             string;
+  domainType:         "existing" | "new" | "none";
+  domainRegistrar:    string;
+  primaryColor:       string;
+  secondaryColor:     string;
   complementaryColor: string;
-  letUsChooseColors: boolean;
-  logoUrl:         string;
-  hoursOfOperation?: HoursOfOperation;
-}
-
-function getRedis(): Redis {
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-    throw new Error("Redis env vars not configured");
-  }
-  return new Redis({
-    url: process.env.KV_REST_API_URL,
-    token: process.env.KV_REST_API_TOKEN,
-  });
+  letUsChooseColors:  boolean;
+  logoUrl:            string;
+  hoursOfOperation?:  HoursOfOperation;
 }
 
 export function defaultChecklist(): Record<ChecklistItemId, boolean> {
@@ -65,54 +55,171 @@ export function defaultChecklist(): Record<ChecklistItemId, boolean> {
   ) as Record<ChecklistItemId, boolean>;
 }
 
+/** Upsert account + submission + default checklist in Supabase */
 export async function saveSubmission(
   data: Omit<PanelSubmission, "checklist" | "submittedAt">
 ): Promise<void> {
-  const redis = getRedis();
+  const db = getAdminClient();
   const now = new Date().toISOString();
-  const score = Date.now();
 
-  const submission: PanelSubmission = {
-    ...data,
-    submittedAt: now,
-    checklist: { ...defaultChecklist(), form: true }, // "form received" auto-checked
-  };
+  // 1. Upsert account row
+  const { data: account, error: accErr } = await db
+    .from("accounts")
+    .upsert(
+      {
+        location_id:   data.locationId,
+        contact_id:    data.contactId,
+        onboarding_at: now,
+      },
+      { onConflict: "location_id" }
+    )
+    .select("id")
+    .single();
 
-  await redis.set(`panel:sub:${data.locationId}`, JSON.stringify(submission));
-  await redis.zadd("panel:index", { score, member: data.locationId });
-}
-
-export async function getAllSubmissions(): Promise<PanelSubmission[]> {
-  const redis = getRedis();
-
-  // Get all locationIds ordered by submission date (newest first)
-  const locationIds = await redis.zrange("panel:index", 0, -1, { rev: true });
-  if (!locationIds.length) return [];
-
-  const results: PanelSubmission[] = [];
-  for (const id of locationIds) {
-    const raw = await redis.get<string>(`panel:sub:${id}`);
-    if (raw) {
-      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-      results.push(parsed as PanelSubmission);
-    }
+  if (accErr || !account) {
+    throw new Error(`Failed to upsert account: ${accErr?.message}`);
   }
-  return results;
+
+  const accountId = account.id as string;
+
+  // 2. Insert submission row (always a new record per submit)
+  const { error: subErr } = await db.from("account_submissions").insert({
+    account_id:          accountId,
+    submitted_at:        now,
+    business_name:       data.businessName,
+    legal_name:          data.legalName,
+    email:               data.email,
+    phone:               data.phone,
+    address:             data.address,
+    city:                data.city,
+    state:               data.state,
+    zip:                 data.zip,
+    country:             data.country,
+    ein:                 data.ein,
+    domain:              data.domain,
+    domain_type:         data.domainType,
+    domain_registrar:    data.domainRegistrar,
+    primary_color:       data.primaryColor,
+    secondary_color:     data.secondaryColor,
+    complementary_color: data.complementaryColor,
+    let_patronpro_choose_colors: data.letUsChooseColors,
+    logo_url:            data.logoUrl,
+    hours_of_operation:  data.hoursOfOperation ?? null,
+  });
+
+  if (subErr) {
+    throw new Error(`Failed to insert submission: ${subErr.message}`);
+  }
+
+  // 3. Seed checklist with "form" auto-checked (upsert — skip if already exists)
+  const checklistRows = CHECKLIST_ITEMS.map((item) => ({
+    account_id: accountId,
+    item_id:    item.id,
+    checked:    item.id === "form",
+    checked_at: item.id === "form" ? now : null,
+  }));
+
+  const { error: clErr } = await db
+    .from("account_checklist")
+    .upsert(checklistRows, { onConflict: "account_id,item_id", ignoreDuplicates: true });
+
+  if (clErr) {
+    throw new Error(`Failed to seed checklist: ${clErr.message}`);
+  }
 }
 
+/** Returns all submissions ordered by onboarding_at desc */
+export async function getAllSubmissions(): Promise<PanelSubmission[]> {
+  const db = getAdminClient();
+
+  // Fetch accounts with latest submission and checklist
+  const { data: accounts, error } = await db
+    .from("accounts")
+    .select(`
+      id,
+      location_id,
+      contact_id,
+      onboarding_at,
+      account_submissions ( * ),
+      account_checklist ( item_id, checked )
+    `)
+    .order("onboarding_at", { ascending: false });
+
+  if (error) throw new Error(`getAllSubmissions failed: ${error.message}`);
+  if (!accounts?.length) return [];
+
+  return accounts.map((acc) => {
+    // Latest submission (last inserted)
+    const subs = (acc.account_submissions as Record<string, unknown>[]) ?? [];
+    const sub = subs.sort((a, b) =>
+      String(b.submitted_at ?? "").localeCompare(String(a.submitted_at ?? ""))
+    )[0] ?? {};
+
+    // Build checklist
+    const checklist = defaultChecklist();
+    const items = (acc.account_checklist as { item_id: string; checked: boolean }[]) ?? [];
+    for (const item of items) {
+      if (item.item_id in checklist) {
+        checklist[item.item_id as ChecklistItemId] = item.checked;
+      }
+    }
+
+    return {
+      locationId:         acc.location_id as string,
+      contactId:          (acc.contact_id as string) ?? "",
+      submittedAt:        (acc.onboarding_at as string) ?? "",
+      checklist,
+      businessName:       (sub.business_name as string) ?? "",
+      legalName:          (sub.legal_name as string) ?? "",
+      email:              (sub.email as string) ?? "",
+      phone:              (sub.phone as string) ?? "",
+      address:            (sub.address as string) ?? "",
+      city:               (sub.city as string) ?? "",
+      state:              (sub.state as string) ?? "",
+      zip:                (sub.zip as string) ?? "",
+      country:            (sub.country as string) ?? "US",
+      ein:                (sub.ein as string) ?? "",
+      domain:             (sub.domain as string) ?? "",
+      domainType:         ((sub.domain_type as string) ?? "none") as "existing" | "new" | "none",
+      domainRegistrar:    (sub.domain_registrar as string) ?? "",
+      primaryColor:       (sub.primary_color as string) ?? "",
+      secondaryColor:     (sub.secondary_color as string) ?? "",
+      complementaryColor: (sub.complementary_color as string) ?? "",
+      letUsChooseColors:  (sub.let_patronpro_choose_colors as boolean) ?? false,
+      logoUrl:            (sub.logo_url as string) ?? "",
+      hoursOfOperation:   sub.hours_of_operation as HoursOfOperation | undefined,
+    };
+  });
+}
+
+/** Toggle a checklist item for a locationId */
 export async function updateChecklist(
   locationId: string,
   itemId: ChecklistItemId,
   checked: boolean
 ): Promise<PanelSubmission | null> {
-  const redis = getRedis();
-  const raw = await redis.get<string>(`panel:sub:${locationId}`);
-  if (!raw) return null;
+  const db = getAdminClient();
 
-  const submission: PanelSubmission =
-    typeof raw === "string" ? JSON.parse(raw) : raw;
+  // Resolve account
+  const { data: acc, error: accErr } = await db
+    .from("accounts")
+    .select("id")
+    .eq("location_id", locationId)
+    .single();
 
-  submission.checklist[itemId] = checked;
-  await redis.set(`panel:sub:${locationId}`, JSON.stringify(submission));
-  return submission;
+  if (accErr || !acc) return null;
+
+  const now = new Date().toISOString();
+
+  const { error } = await db
+    .from("account_checklist")
+    .update({ checked, checked_at: checked ? now : null })
+    .eq("account_id", acc.id)
+    .eq("item_id", itemId);
+
+  if (error) throw new Error(`updateChecklist failed: ${error.message}`);
+
+  // Return fresh data
+  const all = await getAllSubmissions();
+  return all.find((s) => s.locationId === locationId) ?? null;
 }
