@@ -68,7 +68,7 @@ export default async function PanelPage() {
       customDomain:      "",
       workflowsCount:    0,
       smsSent:           false,
-      appointmentBooked: false,
+      appointmentDate:   "",
     };
 
     // If no Redis submission, build a minimal one from GHL data

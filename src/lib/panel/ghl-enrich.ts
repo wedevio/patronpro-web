@@ -26,7 +26,7 @@ export interface GHLLocationData {
   workflowsCount:    number;
   // PatronPro signals
   smsSent:           boolean;   // outbound SMS sent from PatronPro's location
-  appointmentBooked: boolean;   // appointment in onboarding calendar
+  appointmentDate:   string;    // ISO date of onboarding appointment, "" if none
 }
 
 // ─── PatronPro location token (in-memory cache) ──────────────────────────────
@@ -48,8 +48,8 @@ async function getPatronProToken(): Promise<string> {
 async function fetchPatronProSignals(
   email: string,
   patronProToken: string
-): Promise<{ smsSent: boolean; appointmentBooked: boolean }> {
-  const result = { smsSent: false, appointmentBooked: false };
+): Promise<{ smsSent: boolean; appointmentDate: string }> {
+  const result = { smsSent: false, appointmentDate: "" };
   if (!email) return result;
 
   try {
@@ -88,7 +88,10 @@ async function fetchPatronProSignals(
 
     if (apptRes.status === "fulfilled" && apptRes.value) {
       const events = ((apptRes.value as Record<string, unknown>).events as Record<string, unknown>[]) ?? [];
-      result.appointmentBooked = events.some((e) => e.contactId === contactId);
+      const match = events.find((e) => e.contactId === contactId);
+      result.appointmentDate = match
+        ? ((match.startTime as string) ?? (match.dateAdded as string) ?? "found")
+        : "";
     }
   } catch {
     // not available — leave defaults
@@ -97,7 +100,45 @@ async function fetchPatronProSignals(
   return result;
 }
 
-// ─── Per-location enrichment ─────────────────────────────────────────────────
+// ─── SaaS plan name cache ─────────────────────────────────────────────────────
+
+let cachedPlanMap: Map<string, string> | null = null;
+
+async function getSaasPlanMap(agencyToken: string): Promise<Map<string, string>> {
+  if (cachedPlanMap) return cachedPlanMap;
+
+  const map = new Map<string, string>();
+
+  // GHL exposes the plan list under the company saas endpoint
+  const endpoints = [
+    `/saas-api/company/${COMPANY_ID}/plans`,
+    `/saas/company/${COMPANY_ID}/plans`,
+    `/saas-api/plans?companyId=${COMPANY_ID}`,
+  ];
+
+  for (const path of endpoints) {
+    try {
+      const res = await fetch(`${GHL_BASE}${path}`, {
+        headers: { Authorization: `Bearer ${agencyToken}`, Version: GHL_VERSION },
+      });
+      if (!res.ok) continue;
+      const json = await res.json() as Record<string, unknown>;
+      const plans = (json.plans ?? json.data ?? json) as Record<string, unknown>[];
+      if (!Array.isArray(plans)) continue;
+      for (const p of plans) {
+        const id   = (p.id ?? p._id ?? p.planId) as string;
+        const name = (p.name ?? p.planName ?? p.title) as string;
+        if (id && name) map.set(id, name);
+      }
+      if (map.size > 0) break;
+    } catch {
+      continue;
+    }
+  }
+
+  cachedPlanMap = map;
+  return map;
+}
 
 async function fetchLocation(
   locationId: string,
@@ -122,7 +163,7 @@ async function fetchLocation(
     customDomain: "",
     workflowsCount: 0,
     smsSent: false,
-    appointmentBooked: false,
+    appointmentDate: "",
   };
 
   try {
@@ -134,6 +175,17 @@ async function fetchLocation(
     const json = await locRes.json() as Record<string, unknown>;
     const loc = (json?.location as Record<string, unknown>) ?? json ?? {};
 
+    // Extract SaaS status + plan directly from location object
+    const settings     = (loc.settings as Record<string, unknown>) ?? {};
+    const saasSettings = (settings.saasSettings as Record<string, unknown>) ?? {};
+    const planDetails  = (saasSettings.planDetails as Record<string, unknown>) ?? {};
+    const saasMode     = (saasSettings.saasMode as string) ?? "";
+    const subStatus    = (planDetails.subscriptionStatus as string) ?? "";
+    const saasPlanId   = (saasSettings.saasPlanId as string) ?? "";
+
+    // planStatus: use subscriptionStatus if SaaS is activated, otherwise "—"
+    const planStatus = saasMode === "activated" && subStatus ? subStatus : "—";
+
     const result: GHLLocationData = {
       locationId,
       name:              (loc.name as string) ?? "",
@@ -143,7 +195,7 @@ async function fetchLocation(
       website:           (loc.website as string) ?? "",
       createdAt:         (loc.dateAdded as string) ?? (loc.createdAt as string) ?? "",
       planName:          "—",
-      planStatus:        "—",
+      planStatus,
       mrr:               0,
       phoneNumbers:      [],
       stripeConnected:   false,
@@ -151,17 +203,17 @@ async function fetchLocation(
       customDomain:      (loc.customDomain as string) ?? "",
       workflowsCount:    0,
       smsSent:           false,
-      appointmentBooked: false,
+      appointmentDate:   "",
     };
 
-    // Run all secondary fetches in parallel
-    const [saasResult, phonesResult, stripeResult, signalsResult] = await Promise.allSettled([
-      // SaaS subscription
-      fetch(`${GHL_BASE}/saas/location/${locationId}`, {
-        headers: { Authorization: `Bearer ${agencyToken}`, Version: GHL_VERSION },
-      }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    // Resolve plan name from cache
+    if (saasPlanId) {
+      const planMap = await getSaasPlanMap(agencyToken);
+      result.planName = planMap.get(saasPlanId) ?? saasPlanId.slice(0, 8) + "…";
+    }
 
-      // Phone numbers + Twilio status
+    // Run secondary fetches in parallel (plan already extracted from location object)
+    const [phonesResult, stripeResult, signalsResult] = await Promise.allSettled([
       fetch(`${GHL_BASE}/phone-system/numbers/location/${locationId}`, {
         headers: { Authorization: `Bearer ${agencyToken}`, Version: "2023-02-21" },
       }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -175,13 +227,8 @@ async function fetchLocation(
       fetchPatronProSignals(email || result.email, patronProToken),
     ]);
 
-    // SaaS
-    if (saasResult.status === "fulfilled" && saasResult.value) {
-      const saas = saasResult.value as Record<string, unknown>;
-      result.planName   = (saas.planName as string) ?? (saas.name as string) ?? "—";
-      result.planStatus = (saas.status as string) ?? (saas.planStatus as string) ?? "—";
-      result.mrr        = (saas.mrr as number) ?? (saas.amount as number) ?? 0;
-    }
+    // SaaS — plan name + status already extracted from location object above
+    // (saasSettings in loc.settings — no separate API call needed)
 
     // Phones
     if (phonesResult.status === "fulfilled" && phonesResult.value) {
@@ -201,8 +248,8 @@ async function fetchLocation(
 
     // PatronPro signals
     if (signalsResult.status === "fulfilled") {
-      result.smsSent           = signalsResult.value.smsSent;
-      result.appointmentBooked = signalsResult.value.appointmentBooked;
+      result.smsSent          = signalsResult.value.smsSent;
+      result.appointmentDate  = signalsResult.value.appointmentDate;
     }
 
     return result;
