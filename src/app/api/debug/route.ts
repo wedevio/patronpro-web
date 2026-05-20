@@ -18,29 +18,49 @@ export async function GET(request: Request): Promise<Response> {
   if (!locationId)
     return NextResponse.json({ error: "locationId required" }, { status: 400 });
 
-  const [locToken] = await Promise.all([
-    getLocationAccessToken(locationId),
-    getAgencyAccessToken(),
-  ]);
+  const CALENDAR_ID = "D7x8ts5xcdNOWnd6Pjlq";
+  const now = Date.now();
+  const oneYearAgo = now - 365 * 24 * 60 * 60 * 1000;
+  const oneYearAhead = now + 365 * 24 * 60 * 60 * 1000;
 
-  const [phones, transactions, locationFull] = await Promise.all([
-    gh(`/phone-system/numbers/location/${locationId}`, locToken, "2023-02-21"),
-    gh(`/payments/transactions?altId=${locationId}&altType=location&limit=1`, locToken),
+  const [locToken] = await Promise.all([getLocationAccessToken(locationId)]);
+  const agencyToken = await getAgencyAccessToken();
+
+  const [
+    // Stripe — try direct integration endpoint with correct params
+    stripeV1,
+    stripeV2,
+    // Location object — check for stripe/payment fields
+    locationObj,
+    // SMS outbound — search conversations with outbound SMS
+    smsOutbound,
+    // Appointment in onboarding calendar
+    appointment,
+  ] = await Promise.all([
+    gh(`/payments/integrations/provider/whitelabel?altId=${locationId}&altType=location`, locToken),
+    gh(`/payments/integrations/provider/whitelabel?altId=${locationId}&altType=location`, agencyToken),
     gh(`/locations/${locationId}`, locToken),
+    gh(`/conversations/search?locationId=${locationId}&lastMessageType=TYPE_SMS&lastMessageDirection=outbound&limit=1`, locToken),
+    gh(`/calendars/events?locationId=${locationId}&calendarId=${CALENDAR_ID}&startTime=${oneYearAgo}&endTime=${oneYearAhead}`, agencyToken),
   ]);
 
-  // Extract relevant fields from location to check email
-  const locBody = (locationFull.body as Record<string, unknown>);
+  // Extract stripe-related fields from location
+  const locBody = (locationObj.body as Record<string, unknown>);
   const loc = (locBody?.location as Record<string, unknown>) ?? locBody ?? {};
-  const emailFields = {
-    fromEmail:    loc.fromEmail,
-    replyToEmail: loc.replyToEmail,
-    settings:     loc.settings,
+  const stripeFields = {
+    stripeId: loc.stripeId,
+    stripeAccountId: loc.stripeAccountId,
+    paymentProvider: loc.paymentProvider,
+    stripeLiveMode: loc.stripeLiveMode,
+    settings_stripe: (loc.settings as Record<string, unknown>)?.stripe,
+    billing: loc.billing,
   };
 
   return NextResponse.json({
-    phones,
-    transactions,
-    email_fields: emailFields,
+    stripe_v1:    stripeV1,
+    stripe_v2:    stripeV2,
+    stripe_fields_in_location: stripeFields,
+    sms_outbound: smsOutbound,
+    appointment,
   });
 }
