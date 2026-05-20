@@ -18,20 +18,11 @@ export async function GET(): Promise<Response> {
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("scope", [
-    // OAuth — needed for location token exchange
-    "oauth.readonly",
-    "oauth.write",
-    // Location info
     "locations.readonly",
-    // Custom values — onboarding data
     "locations/customValues.readonly",
     "locations/customValues.write",
-    // Media — logo upload
-    "locations/media.readonly",
-    "locations/media.write",
-    // Brand board — colors
-    "locations/brandboards.readonly",
-    "locations/brandboards.write",
+    "medias.readonly",
+    "medias.write",
   ].join(" "));
 
   return NextResponse.redirect(url.toString());
