@@ -18,7 +18,7 @@ export default function OnboardingLayout({
           style={{ backgroundColor: "#1E2C46" }}
         >
           <img
-            src="/assets/PatronPro.svg"
+            src="/assets/PatronPro-white.png"
             alt="PatronPro"
             className="h-8"
           />

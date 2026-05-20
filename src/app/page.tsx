@@ -274,15 +274,19 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Right: image — aspect-[4/3], always visible */}
+              {/* Right: video hero */}
               <div className="relative rounded-[24px] overflow-hidden aspect-[4/3]">
-                <Image
-                  src="/assets/asset1.jpg"
-                  alt="PatronPro"
-                  fill
-                  className="object-cover"
-                  priority
-                />
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster="/assets/hero-poster.jpg"
+                  className="w-full h-full object-cover"
+                >
+                  <source src="/assets/hero.webm" type="video/webm" />
+                  <source src="/assets/hero.mp4" type="video/mp4" />
+                </video>
               </div>
             </div>
 

@@ -12,7 +12,7 @@ export default function SeminarioPage() {
       {/* Header */}
       <header className="flex items-center justify-center px-6 py-5" style={{ backgroundColor: "#1E2C46" }}>
         <img
-          src="/assets/PatronPro.svg"
+          src="/assets/PatronPro-white.png"
           alt="PatronPro"
           className="h-8"
         />
