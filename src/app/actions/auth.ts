@@ -2,9 +2,7 @@
 
 import { cookies } from "next/headers";
 
-const SUPABASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const COOKIE_NAME   = "pp-session";
+const COOKIE_NAME = "pp-session";
 
 type LoginResult = { error: string } | { success: true };
 
@@ -17,13 +15,22 @@ export async function loginAction(
 
   if (!email || !password) return { error: "Completá todos los campos." };
 
+  // Read env vars at runtime (not module-level) to avoid undefined on Vercel
+  const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnon) {
+    console.error("[auth] Missing env vars: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    return { error: "Error de configuración del servidor." };
+  }
+
   try {
     // Call Supabase Auth REST directly — no @supabase/ssr
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    const res = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON,
+        "apikey": supabaseAnon,
       },
       body: JSON.stringify({ email, password }),
     });
@@ -43,7 +50,8 @@ export async function loginAction(
     });
 
     return { success: true };
-  } catch {
+  } catch (err) {
+    console.error("[auth] loginAction fetch error:", err);
     return { error: "Error de conexión. Intentá de nuevo." };
   }
 }
