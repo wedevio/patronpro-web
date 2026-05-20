@@ -23,6 +23,8 @@ export async function GET(): Promise<Response> {
     "locations/customValues.write",
     "medias.readonly",
     "medias.write",
+    "marketing.readonly",
+    "marketing.write",
   ].join(" "));
 
   return NextResponse.redirect(url.toString());
