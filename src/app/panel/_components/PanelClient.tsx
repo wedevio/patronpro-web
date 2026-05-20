@@ -17,6 +17,8 @@ import {
   CreditCard,
   Tag,
   Clock,
+  PhoneCall,
+  BadgeCheck,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -209,6 +211,36 @@ function SidePanel({
                   value={`$${ghl.mrr.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                 />
               )}
+              {/* Extra GHL integrations */}
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
+                  <PhoneCall size={14} />
+                  Teléfonos
+                </span>
+                {ghl.phoneNumbers.length > 0 ? (
+                  <div className="flex flex-col gap-0.5">
+                    {ghl.phoneNumbers.map((n) => (
+                      <span key={n} className="font-mono text-[12px] text-slate-700">{n}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )}
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
+                  <Mail size={14} />
+                  Email prov.
+                </span>
+                <ConnectedBadge connected={ghl.emailConnected} labelNo="No conectado" />
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
+                  <CreditCard size={14} />
+                  Stripe
+                </span>
+                <ConnectedBadge connected={ghl.stripeConnected} labelNo="No conectado" />
+              </div>
             </div>
           </section>
 
@@ -376,6 +408,19 @@ function ColorSwatch({ label, color }: { label: string; color: string }) {
   );
 }
 
+function ConnectedBadge({ connected, labelYes = "Conectado", labelNo = "No conectado" }: { connected: boolean; labelYes?: string; labelNo?: string }) {
+  return connected ? (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-green-100 text-green-700">
+      <BadgeCheck size={11} />
+      {labelYes}
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-400">
+      {labelNo}
+    </span>
+  );
+}
+
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
 type FilterType = "all" | "active" | "inactive" | "no-onboarding";
@@ -528,6 +573,9 @@ export default function PanelClient({
                   <Th>Dominio</Th>
                   <Th>Plan</Th>
                   <Th>Estado GHL</Th>
+                  <Th>Teléfonos</Th>
+                  <Th>Email prov.</Th>
+                  <Th>Stripe</Th>
                   <Th>Onboarding</Th>
                   <Th>Acciones</Th>
                 </tr>
@@ -577,6 +625,22 @@ export default function PanelClient({
                         )}
                       </td>
                       <td className="px-4 py-3">{statusBadge(account.ghl.planStatus)}</td>
+                      <td className="px-4 py-3">
+                        {account.ghl.phoneNumbers.length > 0 ? (
+                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700">
+                            <PhoneCall size={12} className="text-slate-400" />
+                            {account.ghl.phoneNumbers.length}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <ConnectedBadge connected={account.ghl.emailConnected} labelYes="Sí" labelNo="No" />
+                      </td>
+                      <td className="px-4 py-3">
+                        <ConnectedBadge connected={account.ghl.stripeConnected} labelYes="Sí" labelNo="No" />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <ProgressBar pct={pct} />
