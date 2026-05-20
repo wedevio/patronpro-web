@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
+import { getAgencyAccessToken } from "@/lib/ghl/oauth";
 
 // TEMPORARY — remove after debugging
 export async function GET() {
-  return NextResponse.json({
-    // Supabase
-    SUPABASE_URL:   process.env.NEXT_PUBLIC_SUPABASE_URL   ? "SET" : "MISSING",
-    SUPABASE_ANON:  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "SET" : "MISSING",
-    SERVICE_ROLE:   process.env.SUPABASE_SERVICE_ROLE_KEY  ? "SET" : "MISSING",
-    // GHL
-    GHL_CLIENT_ID:      process.env.GHL_CLIENT_ID      ? "SET" : "MISSING",
-    GHL_CLIENT_SECRET:  process.env.GHL_CLIENT_SECRET  ? "SET" : "MISSING",
-    GHL_COMPANY_ID:     process.env.GHL_COMPANY_ID     ? "SET" : "MISSING",
-    GHL_REFRESH_TOKEN:  process.env.GHL_REFRESH_TOKEN  ? "SET" : "MISSING",
-    // Redis (Upstash)
-    KV_REST_API_URL:    process.env.KV_REST_API_URL    ? "SET" : "MISSING",
-    KV_REST_API_TOKEN:  process.env.KV_REST_API_TOKEN  ? "SET" : "MISSING",
-  });
+  try {
+    const token = await getAgencyAccessToken();
+    const res = await fetch(
+      `https://services.leadconnectorhq.com/locations/search?companyId=${process.env.GHL_COMPANY_ID}&limit=5`,
+      { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
+    );
+    const body = await res.json();
+    return NextResponse.json({ status: res.status, tokenPrefix: token.slice(0, 20), body });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
