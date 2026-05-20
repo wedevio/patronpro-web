@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import Script from "next/script";
+import { GraduationCap, Star, Check, CheckCircle2 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -51,8 +52,8 @@ function PriceFeatures({ items }: { items: string[] }) {
     <ul className="list-none p-0 m-0 grid gap-3 border-t border-navy/10 pt-6">
       {items.map((item, i) => (
         <li key={i} className="flex gap-3 items-start text-[15px] font-medium text-[#24324a]">
-          <span className="w-[22px] h-[22px] rounded-full bg-gradient-to-br from-orange to-orange-2 text-white text-[12px] font-black flex items-center justify-center flex-shrink-0 mt-[1px]">
-            ✓
+          <span className="w-[22px] h-[22px] rounded-full bg-gradient-to-br from-orange to-orange-2 text-white flex items-center justify-center flex-shrink-0 mt-[1px]">
+            <Check size={13} strokeWidth={3} color="white" />
           </span>
           {item}
         </li>
@@ -222,7 +223,14 @@ export default function HomePage() {
   const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
   const [monthlySetup, setMonthlySetup]   = useState(true);
   const [annualSetup, setAnnualSetup]     = useState(true);
+  const [videoPlaying, setVideoPlaying]   = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const activePanel = TABS.find((t) => t.id === activeTab)!;
+
+  function handlePlay() {
+    setVideoPlaying(true);
+    videoRef.current?.play();
+  }
 
   return (
     <>
@@ -263,10 +271,11 @@ export default function HomePage() {
                   </a>
                   <a
                     href="/seminario"
-                    className="inline-flex items-center justify-center min-h-[56px] px-7 rounded-[18px] font-bold text-[16px] transition-all hover:-translate-y-0.5"
+                    className="inline-flex items-center justify-center gap-2 min-h-[56px] px-7 rounded-[18px] font-bold text-[16px] transition-all hover:-translate-y-0.5"
                     style={{ background: "#1E2C46", color: "white", border: "1px solid rgba(255,255,255,0.10)" }}
                   >
-                    🎓 Reserva tu Plaza en el Próximo Seminario
+                    <GraduationCap size={18} strokeWidth={2} />
+                    Reserva tu Plaza en el Próximo Seminario
                   </a>
                 </div>
                 <p className="text-[14px]" style={{ color: "#5f6f88" }}>
@@ -760,10 +769,10 @@ export default function HomePage() {
                 style={{ background: "linear-gradient(160deg,#fff 0%,#fff8f0 100%)", border: "2px solid #F67D0A", boxShadow: "0 18px 60px rgba(20,35,58,0.10)" }}
               >
                 <div
-                  className="absolute top-[-14px] left-1/2 -translate-x-1/2 px-5 py-[6px] rounded-full text-white text-[12px] font-extrabold whitespace-nowrap tracking-[0.04em]"
+                  className="absolute top-[-14px] left-1/2 -translate-x-1/2 px-5 py-[6px] rounded-full text-white text-[12px] font-extrabold whitespace-nowrap tracking-[0.04em] inline-flex items-center gap-1.5"
                   style={{ background: "linear-gradient(90deg,#F67D0A,#FFAA38)" }}
                 >
-                  ⭐ Más popular · Ahorra $189
+                  <Star size={12} strokeWidth={2.5} fill="white" color="white" /> Más popular · Ahorra $189
                 </div>
                 <div>
                   <div className="text-[13px] font-bold uppercase tracking-[0.06em]" style={{ color: "#5f6f88" }}>

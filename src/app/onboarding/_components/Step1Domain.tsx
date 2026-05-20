@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import type { OnboardingFormData } from "@/lib/onboarding/types";
 
 type Step1Data = Pick<
@@ -190,10 +191,11 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
             {/* Availability feedback */}
             {availabilityStatus === "available" && (
               <div
-                className="rounded-[14px] px-4 py-3 text-sm font-medium"
+                className="rounded-[14px] px-4 py-3 text-sm font-medium flex items-center gap-2"
                 style={{ backgroundColor: "#f0fdf4", color: "#15803d" }}
               >
-                ✅ ¡Ese dominio parece estar disponible!
+                <CheckCircle2 size={16} strokeWidth={2} />
+                ¡Ese dominio parece estar disponible!
               </div>
             )}
             {availabilityStatus === "taken" && (

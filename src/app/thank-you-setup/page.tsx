@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { Globe, Phone, Monitor, Zap } from "lucide-react";
 import { SiteFooter } from "@/components/SiteLayout";
 
 export const metadata: Metadata = {
@@ -68,13 +69,18 @@ export default function ThankYouSetupPage() {
 
               <ul className="flex flex-col gap-4">
                 {[
-                  { icon: "🌐", title: "Dominio personalizado", desc: "Conectamos tu dominio para que todo luzca con tu marca desde el primer día." },
-                  { icon: "📞", title: "Teléfono, llamadas y email", desc: "Número dedicado, bandeja de entrada unificada y todo listo para comunicarte con tus clientes." },
-                  { icon: "🖥️", title: "Landings y calendarios", desc: "Páginas de captura y calendarios de reserva configurados y conectados a tu pipeline." },
-                  { icon: "🚀", title: "Listo para operar", desc: "Cuando terminemos, solo tendrás que entrar y empezar a trabajar. Sin configuración técnica de tu parte." },
-                ].map(({ icon, title, desc }) => (
+                  { icon: Globe,   title: "Dominio personalizado",       desc: "Conectamos tu dominio para que todo luzca con tu marca desde el primer día." },
+                  { icon: Phone,   title: "Teléfono, llamadas y email",  desc: "Número dedicado, bandeja de entrada unificada y todo listo para comunicarte con tus clientes." },
+                  { icon: Monitor, title: "Landings y calendarios",      desc: "Páginas de captura y calendarios de reserva configurados y conectados a tu pipeline." },
+                  { icon: Zap,     title: "Listo para operar",           desc: "Cuando terminemos, solo tendrás que entrar y empezar a trabajar. Sin configuración técnica de tu parte." },
+                ].map(({ icon: Icon, title, desc }) => (
                   <li key={title} className="flex gap-4">
-                    <span className="text-[22px] flex-shrink-0 mt-[1px]">{icon}</span>
+                    <span
+                      className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 mt-[1px]"
+                      style={{ background: "rgba(246,125,10,0.10)" }}
+                    >
+                      <Icon size={18} color="#F67D0A" strokeWidth={2} />
+                    </span>
                     <div>
                       <p className="text-[15px] font-bold" style={{ color: "#1E2C46" }}>{title}</p>
                       <p className="text-[14px] leading-[1.6] mt-0.5" style={{ color: "#5f6f88" }}>{desc}</p>

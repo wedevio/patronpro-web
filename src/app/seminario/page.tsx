@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Reserva tu Plaza — Seminario PatronPro",
@@ -49,10 +50,10 @@ export default function SeminarioPage() {
               ].map((item) => (
                 <li key={item} className="flex gap-3 items-start">
                   <span
-                    className="w-[22px] h-[22px] rounded-full text-white text-[12px] font-black flex items-center justify-center flex-shrink-0 mt-[1px]"
+                    className="w-[22px] h-[22px] rounded-full text-white flex items-center justify-center flex-shrink-0 mt-[1px]"
                     style={{ background: "linear-gradient(135deg,#F67D0A,#FFAA38)" }}
                   >
-                    ✓
+                    <Check size={13} strokeWidth={3} color="white" />
                   </span>
                   <span className="text-[15px] leading-[1.6]" style={{ color: "#5f6f88" }}>{item}</span>
                 </li>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 interface StepReviewProps {
@@ -169,7 +170,7 @@ export default function StepReview({
         className="w-full rounded-[14px] py-4 text-base font-bold text-white transition-opacity disabled:opacity-50"
         style={{ backgroundColor: "#F67D0A" }}
       >
-        {isSubmitting ? "Enviando..." : "Confirmar y enviar ✓"}
+        {isSubmitting ? "Enviando..." : <><Check size={16} strokeWidth={2.5} className="inline mr-1" />Confirmar y enviar</>}
       </button>
     </div>
   );

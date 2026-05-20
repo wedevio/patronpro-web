@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Check, Mail, Smartphone, CalendarDays } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "¡Estás registrado! — Seminario PatronPro",
@@ -25,10 +26,10 @@ export default function SeminarioGraciasPage() {
         >
           {/* Check icon */}
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-[36px] font-black flex-shrink-0"
+            className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "linear-gradient(135deg, #F67D0A, #FFAA38)", boxShadow: "0 12px 30px rgba(246,125,10,0.30)" }}
           >
-            ✓
+            <Check size={36} color="white" strokeWidth={3} />
           </div>
 
           {/* Logo */}
@@ -50,30 +51,35 @@ export default function SeminarioGraciasPage() {
           <div className="w-full grid gap-3 mt-2">
             {[
               {
-                icon: "📧",
+                Icon: Mail,
                 title: "Confirmación por email",
                 body: "Te hemos enviado un email con todos los detalles del seminario.",
               },
               {
-                icon: "📱",
+                Icon: Smartphone,
                 title: "Recordatorio por SMS",
                 body: "Recibirás un SMS el día anterior y una hora antes del seminario para que no se te olvide.",
               },
               {
-                icon: "📅",
+                Icon: CalendarDays,
                 title: "Añade al calendario",
                 body: "En el email de confirmación encontrarás el enlace para añadirlo a tu calendario.",
               },
-            ].map((item) => (
+            ].map(({ Icon, title, body }) => (
               <div
-                key={item.title}
+                key={title}
                 className="flex gap-4 items-start text-left p-4 rounded-[16px] border"
                 style={{ borderColor: "rgba(30,44,70,0.08)", background: "#fafafa" }}
               >
-                <span className="text-[22px] flex-shrink-0 mt-[1px]">{item.icon}</span>
+                <span
+                  className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 mt-[1px]"
+                  style={{ background: "rgba(246,125,10,0.10)" }}
+                >
+                  <Icon size={18} color="#F67D0A" strokeWidth={2} />
+                </span>
                 <div>
-                  <div className="font-bold text-[15px]" style={{ color: "#1E2C46" }}>{item.title}</div>
-                  <div className="text-[13px] leading-[1.5] mt-0.5" style={{ color: "#5f6f88" }}>{item.body}</div>
+                  <div className="font-bold text-[15px]" style={{ color: "#1E2C46" }}>{title}</div>
+                  <div className="text-[13px] leading-[1.5] mt-0.5" style={{ color: "#5f6f88" }}>{body}</div>
                 </div>
               </div>
             ))}
