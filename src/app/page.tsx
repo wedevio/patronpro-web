@@ -261,6 +261,13 @@ export default function HomePage() {
                   >
                     Ver cómo funciona
                   </a>
+                  <a
+                    href="/seminario"
+                    className="inline-flex items-center justify-center min-h-[56px] px-7 rounded-[18px] font-bold text-[16px] transition-all hover:-translate-y-0.5"
+                    style={{ background: "#1E2C46", color: "white", border: "1px solid rgba(255,255,255,0.10)" }}
+                  >
+                    🎓 Reserva tu Plaza en el Próximo Seminario
+                  </a>
                 </div>
                 <p className="text-[14px]" style={{ color: "#5f6f88" }}>
                   Sin contrato de permanencia. Cancela cuando quieras.
