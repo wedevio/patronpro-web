@@ -1,7 +1,10 @@
 "use server";
 
-import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+
+const SUPABASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const COOKIE_NAME   = "pp-session";
 
 type LoginResult = { error: string } | { success: true };
 
@@ -14,27 +17,38 @@ export async function loginAction(
 
   if (!email || !password) return { error: "Completá todos los campos." };
 
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: ()             => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
-          for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
-          }
-        },
+  try {
+    // Call Supabase Auth REST directly — no @supabase/ssr
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON,
       },
-    }
-  );
+      body: JSON.stringify({ email, password }),
+    });
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!res.ok) return { error: "Credenciales incorrectas." };
 
-  if (error) return { error: "Credenciales incorrectas." };
+    const data = await res.json() as { access_token: string; expires_in: number };
+    const cookieStore = await cookies();
 
-  // Return success — client handles the redirect (avoids redirect() throw in Server Actions)
-  return { success: true };
+    // Set a simple signed session cookie
+    cookieStore.set(COOKIE_NAME, data.access_token, {
+      httpOnly: true,
+      secure:   true,
+      sameSite: "lax",
+      path:     "/",
+      maxAge:   data.expires_in ?? 3600,
+    });
+
+    return { success: true };
+  } catch {
+    return { error: "Error de conexión. Intentá de nuevo." };
+  }
+}
+
+export async function logoutAction(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete(COOKIE_NAME);
 }
