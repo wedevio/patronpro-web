@@ -1,10 +1,25 @@
 import { NextResponse } from "next/server";
 import { getAgencyAccessToken, getLocationAccessToken } from "@/lib/ghl/oauth";
-import { ghlFetch } from "@/lib/ghl/client";
+
+const BASE = "https://services.leadconnectorhq.com";
+
+async function ghFetch(path: string, token: string, options: RequestInit = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Version: "2021-07-28",
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+  return { status: res.status, body: (await res.text()).slice(0, 400) };
+}
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
   const locationId = searchParams.get("locationId");
+  const companyId = process.env.GHL_COMPANY_ID ?? "";
   if (!locationId) return NextResponse.json({ error: "locationId required" }, { status: 400 });
 
   const [agencyToken, locationToken] = await Promise.all([
@@ -12,32 +27,24 @@ export async function GET(request: Request): Promise<Response> {
     getLocationAccessToken(locationId),
   ]);
 
-  // Try brand board paths with BOTH tokens
-  const paths = [
-    `/brand-boards?locationId=${locationId}`,
-    `/brand-boards`,
-  ];
+  // 1. Try listing brand boards multiple ways
+  const list1 = await ghFetch(`/brand-boards?locationId=${locationId}`, locationToken);
+  const list2 = await ghFetch(`/brand-boards?locationId=${locationId}`, agencyToken);
+  const list3 = await ghFetch(`/brand-boards?companyId=${companyId}`, agencyToken);
 
-  const results: Record<string, unknown> = {};
+  // 2. Try creating a brand board for the location
+  const createRes = await ghFetch(`/brand-boards`, locationToken, {
+    method: "POST",
+    body: JSON.stringify({
+      locationId,
+      name: "Default",
+      colors: [
+        { id: "grey", value: "#1E2C46", name: "Main" },
+        { id: "new_color_1", value: "#F67D0A", name: "Accent" },
+        { id: "new_color_2", value: "#FFFFFF", name: "Complementary" },
+      ],
+    }),
+  });
 
-  for (const path of paths) {
-    const [r1, r2] = await Promise.all([
-      fetch(`https://services.leadconnectorhq.com${path}`, {
-        headers: { Authorization: `Bearer ${agencyToken}`, Version: "2021-07-28" },
-      }),
-      fetch(`https://services.leadconnectorhq.com${path}`, {
-        headers: { Authorization: `Bearer ${locationToken}`, Version: "2021-07-28" },
-      }),
-    ]);
-    results[path] = {
-      agencyToken: { status: r1.status, body: (await r1.text()).slice(0, 300) },
-      locationToken: { status: r2.status, body: (await r2.text()).slice(0, 300) },
-    };
-  }
-
-  // Also confirm custom values are still good
-  const cvRes = await ghlFetch(`/locations/${locationId}/customValues`, { method: "GET", token: locationToken });
-  const cv = cvRes.ok ? (await cvRes.json() as { customValues: Array<{ name: string; value?: string }> }).customValues.map(v => ({ name: v.name, value: v.value ?? "(empty)" })) : null;
-
-  return NextResponse.json({ brandBoardTests: results, customValues: cv });
+  return NextResponse.json({ list1, list2, list3, createAttempt: createRes });
 }
