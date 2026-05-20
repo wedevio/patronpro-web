@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Script from "next/script";
-import { GraduationCap, Star, Check, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Star, Check, CheckCircle2, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -223,14 +223,50 @@ export default function HomePage() {
   const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
   const [monthlySetup, setMonthlySetup]   = useState(true);
   const [annualSetup, setAnnualSetup]     = useState(true);
-  const [videoPlaying, setVideoPlaying]   = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying]             = useState(false);
+  const [muted, setMuted]                 = useState(false);
+  const [progress, setProgress]           = useState(0);
+  const [duration, setDuration]           = useState(0);
+  const videoRef                          = useRef<HTMLVideoElement>(null);
   const activePanel = TABS.find((t) => t.id === activeTab)!;
 
-  function handlePlay() {
-    setVideoPlaying(true);
-    videoRef.current?.play();
-  }
+  const togglePlay = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) { v.play(); setPlaying(true); }
+    else          { v.pause(); setPlaying(false); }
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  }, []);
+
+  const handleTimeUpdate = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || !v.duration) return;
+    setProgress((v.currentTime / v.duration) * 100);
+  }, []);
+
+  const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const v = videoRef.current;
+    if (!v) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    v.currentTime = ratio * v.duration;
+  }, []);
+
+  const handleFullscreen = useCallback(() => {
+    videoRef.current?.requestFullscreen?.();
+  }, []);
+
+  const fmt = (s: number) => {
+    const m = Math.floor(s / 60);
+    const ss = Math.floor(s % 60).toString().padStart(2, "0");
+    return `${m}:${ss}`;
+  };
 
   return (
     <>
@@ -283,19 +319,68 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Right: video hero */}
-              <div className="relative rounded-[24px] overflow-hidden aspect-[4/3]">
+              {/* Right: video hero — custom player */}
+              <div className="relative rounded-[24px] overflow-hidden aspect-[4/3] group bg-black">
                 <video
-                  autoPlay
-                  muted
-                  loop
+                  ref={videoRef}
                   playsInline
                   poster="/assets/hero-poster.jpg"
                   className="w-full h-full object-cover"
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={() => setDuration(videoRef.current?.duration ?? 0)}
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
                 >
                   <source src="/assets/hero.webm" type="video/webm" />
                   <source src="/assets/hero.mp4" type="video/mp4" />
                 </video>
+
+                {/* Click-to-play overlay (centre big play button when paused) */}
+                {!playing && (
+                  <button
+                    onClick={togglePlay}
+                    aria-label="Reproducir"
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                  >
+                    <span className="flex items-center justify-center w-16 h-16 rounded-full bg-white/90 text-[#1E2C46] shadow-lg hover:scale-105 transition-transform">
+                      <Play size={28} strokeWidth={2.5} fill="#1E2C46" color="#1E2C46" />
+                    </span>
+                  </button>
+                )}
+
+                {/* Controls bar — always visible on mobile, fades in on hover on desktop */}
+                <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex flex-col gap-2 bg-gradient-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+                  {/* Progress bar */}
+                  <div
+                    className="w-full h-1.5 rounded-full bg-white/30 cursor-pointer overflow-hidden"
+                    onClick={handleSeek}
+                  >
+                    <div
+                      className="h-full rounded-full bg-[#F67D0A] transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+
+                  {/* Buttons row */}
+                  <div className="flex items-center gap-3">
+                    <button onClick={togglePlay} aria-label={playing ? "Pausar" : "Reproducir"} className="text-white hover:text-[#F67D0A] transition-colors">
+                      {playing
+                        ? <Pause size={18} strokeWidth={2.5} />
+                        : <Play size={18} strokeWidth={2.5} fill="currentColor" />}
+                    </button>
+                    <button onClick={toggleMute} aria-label={muted ? "Activar sonido" : "Silenciar"} className="text-white hover:text-[#F67D0A] transition-colors">
+                      {muted
+                        ? <VolumeX size={18} strokeWidth={2.5} />
+                        : <Volume2 size={18} strokeWidth={2.5} />}
+                    </button>
+                    <span className="text-white/70 text-[12px] font-medium tabular-nums ml-auto">
+                      {fmt(duration > 0 ? (progress / 100) * duration : 0)} / {fmt(duration)}
+                    </span>
+                    <button onClick={handleFullscreen} aria-label="Pantalla completa" className="text-white hover:text-[#F67D0A] transition-colors">
+                      <Maximize2 size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
