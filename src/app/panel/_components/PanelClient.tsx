@@ -49,6 +49,19 @@ function formatDate(iso: string): string {
       day: "2-digit",
       month: "short",
       year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function formatDateTime(iso: string): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -90,13 +103,42 @@ function ProgressBar({ pct, width = "w-20" }: { pct: number; width?: string }) {
   const color =
     pct === 100 ? "#22c55e" : pct >= 50 ? "#F67D0A" : "#94a3b8";
   return (
-    <div
-      className={`${width} h-1.5 rounded-full bg-slate-200 overflow-hidden shrink-0`}
-    >
+    <div className={`${width} h-1.5 rounded-full bg-slate-200 overflow-hidden shrink-0`}>
       <div
         className="h-full rounded-full transition-all duration-300"
         style={{ width: `${pct}%`, background: color }}
       />
+    </div>
+  );
+}
+
+function SignalDot({ active, label }: { active: boolean; label: string }) {
+  return (
+    <span
+      title={label}
+      className="w-2.5 h-2.5 rounded-full inline-block shrink-0 cursor-default"
+      style={{ background: active ? "#F67D0A" : "#e2e8f0" }}
+    />
+  );
+}
+
+function SignalDots({ account }: { account: EnrichedAccount }) {
+  const { ghl, submission } = account;
+  const hasPhone  = ghl.phoneNumbers.length > 0;
+  const hasStripe = ghl.stripeConnected;
+  const hasDomain = Boolean(ghl.customDomain && !ghl.customDomain.includes("gohighlevel.com"));
+  const hasForm   = submission?.checklist.form ?? false;
+  const hasSms    = ghl.smsSent;
+  const hasAppt   = ghl.appointmentBooked;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <SignalDot active={hasPhone}  label={hasPhone  ? `Teléfono: ${ghl.phoneNumbers.join(", ")}` : "Teléfono: no comprado"} />
+      <SignalDot active={hasStripe} label={hasStripe ? "Stripe: conectado" : "Stripe: no conectado"} />
+      <SignalDot active={hasDomain} label={hasDomain ? `Dominio: ${ghl.customDomain}` : "Dominio: no configurado"} />
+      <SignalDot active={hasForm}   label={hasForm   ? "Formulario: recibido" : "Formulario: pendiente"} />
+      <SignalDot active={hasSms}    label={hasSms    ? "SMS: enviado" : "SMS: sin enviar"} />
+      <SignalDot active={hasAppt}   label={hasAppt   ? "Cita: agendada" : "Cita: sin agendar"} />
     </div>
   );
 }
@@ -143,22 +185,19 @@ function SidePanel({
   }
 
   const DAYS: Array<[string, string]> = [
-    ["monday", "Lunes"],
-    ["tuesday", "Martes"],
+    ["monday",    "Lunes"],
+    ["tuesday",   "Martes"],
     ["wednesday", "Miércoles"],
-    ["thursday", "Jueves"],
-    ["friday", "Viernes"],
-    ["saturday", "Sábado"],
-    ["sunday", "Domingo"],
+    ["thursday",  "Jueves"],
+    ["friday",    "Viernes"],
+    ["saturday",  "Sábado"],
+    ["sunday",    "Domingo"],
   ];
 
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/30 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
 
       {/* Panel */}
       <div className="fixed right-0 top-0 h-full w-[50vw] min-w-[400px] max-w-[700px] bg-white z-50 flex flex-col shadow-2xl">
@@ -190,13 +229,14 @@ function SidePanel({
               Cuenta GHL
             </h3>
             <div className="grid gap-2 text-[13px]">
-              <Row icon={<Building2 size={14} />} label="Nombre" value={ghl.name} />
-              <Row icon={<MapPin size={14} />} label="Dirección" value={ghl.address} />
-              <Row icon={<Phone size={14} />} label="Teléfono" value={ghl.phone} />
-              <Row icon={<Mail size={14} />} label="Email" value={ghl.email} />
-              <Row icon={<Globe size={14} />} label="Sitio web" value={ghl.website} />
-              <Row icon={<Calendar size={14} />} label="Creado" value={formatDate(ghl.createdAt)} />
-              <Row icon={<Tag size={14} />} label="Plan" value={ghl.planName} />
+              <Row icon={<Building2 size={14} />} label="Nombre"    value={ghl.name} />
+              <Row icon={<MapPin size={14} />}    label="Dirección"  value={ghl.address} />
+              <Row icon={<Phone size={14} />}     label="Teléfono"   value={ghl.phone} />
+              <Row icon={<Mail size={14} />}      label="Email"      value={ghl.email} />
+              <Row icon={<Globe size={14} />}     label="Sitio web"  value={ghl.website} />
+              <Row icon={<Globe size={14} />}     label="Dominio"    value={ghl.customDomain || "—"} />
+              <Row icon={<Calendar size={14} />}  label="Creado"     value={formatDateTime(ghl.createdAt)} />
+              <Row icon={<Tag size={14} />}       label="Plan"       value={ghl.planName} />
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
                   <CreditCard size={14} />
@@ -211,7 +251,7 @@ function SidePanel({
                   value={`$${ghl.mrr.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
                 />
               )}
-              {/* Extra GHL integrations */}
+              {/* Phone numbers */}
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
                   <PhoneCall size={14} />
@@ -227,6 +267,7 @@ function SidePanel({
                   <span className="text-slate-400">—</span>
                 )}
               </div>
+              {/* Twilio */}
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
                   <PhoneCall size={14} />
@@ -234,12 +275,29 @@ function SidePanel({
                 </span>
                 <ConnectedBadge connected={ghl.twilioActive} labelYes="Activo" labelNo="Inactivo" />
               </div>
+              {/* Stripe */}
               <div className="flex gap-2 items-center">
                 <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
                   <CreditCard size={14} />
                   Stripe
                 </span>
                 <ConnectedBadge connected={ghl.stripeConnected} labelNo="No conectado" />
+              </div>
+              {/* SMS */}
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
+                  <Mail size={14} />
+                  SMS
+                </span>
+                <ConnectedBadge connected={ghl.smsSent} labelYes="Enviado" labelNo="Sin enviar" />
+              </div>
+              {/* Appointment */}
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5">
+                  <Calendar size={14} />
+                  Cita
+                </span>
+                <ConnectedBadge connected={ghl.appointmentBooked} labelYes="Agendada" labelNo="Sin agendar" />
               </div>
             </div>
           </section>
@@ -251,20 +309,32 @@ function SidePanel({
                 Datos del formulario
               </h3>
               <div className="grid gap-2 text-[13px]">
-                <Row icon={<Building2 size={14} />} label="Negocio" value={submission.businessName} />
+                <Row icon={<Building2 size={14} />} label="Negocio"      value={submission.businessName} />
                 <Row icon={<Building2 size={14} />} label="Nombre legal" value={submission.legalName} />
-                <Row icon={<Mail size={14} />} label="Email" value={submission.email} />
-                <Row icon={<Phone size={14} />} label="Teléfono" value={submission.phone} />
-                <Row icon={<MapPin size={14} />} label="Dirección" value={[submission.address, submission.city, submission.state, submission.zip, submission.country].filter(Boolean).join(", ")} />
+                <Row icon={<Mail size={14} />}      label="Email"        value={submission.email} />
+                <Row icon={<Phone size={14} />}     label="Teléfono"     value={submission.phone} />
+                <Row
+                  icon={<MapPin size={14} />}
+                  label="Dirección"
+                  value={[submission.address, submission.city, submission.state, submission.zip, submission.country].filter(Boolean).join(", ")}
+                />
                 {submission.ein && (
                   <Row icon={<Tag size={14} />} label="EIN" value={submission.ein} />
                 )}
 
                 <div className="pt-2 border-t border-slate-100">
                   <p className="text-slate-400 text-[11px] uppercase tracking-wider font-semibold mb-2">Dominio</p>
-                  <Row icon={<Globe size={14} />} label="Tipo" value={submission.domainType === "existing" ? "Dominio existente" : submission.domainType === "new" ? "Dominio nuevo" : "Sin dominio"} />
-                  {submission.domain && <Row icon={<Globe size={14} />} label="Dominio" value={submission.domain} />}
-                  {submission.domainRegistrar && <Row icon={<Globe size={14} />} label="Registrar" value={submission.domainRegistrar} />}
+                  <Row
+                    icon={<Globe size={14} />}
+                    label="Tipo"
+                    value={
+                      submission.domainType === "existing" ? "Dominio existente"
+                      : submission.domainType === "new"    ? "Dominio nuevo"
+                      : "Sin dominio"
+                    }
+                  />
+                  {submission.domain           && <Row icon={<Globe size={14} />} label="Dominio"    value={submission.domain} />}
+                  {submission.domainRegistrar  && <Row icon={<Globe size={14} />} label="Registrar"  value={submission.domainRegistrar} />}
                 </div>
 
                 <div className="pt-2 border-t border-slate-100">
@@ -273,8 +343,8 @@ function SidePanel({
                     <p className="text-slate-500 italic">PatronPro elige los colores</p>
                   ) : (
                     <div className="flex flex-wrap gap-3">
-                      <ColorSwatch label="Principal" color={submission.primaryColor} />
-                      <ColorSwatch label="Acento" color={submission.secondaryColor} />
+                      <ColorSwatch label="Principal"     color={submission.primaryColor} />
+                      <ColorSwatch label="Acento"        color={submission.secondaryColor} />
                       <ColorSwatch label="Complementario" color={submission.complementaryColor} />
                     </div>
                   )}
@@ -322,7 +392,7 @@ function SidePanel({
                   </div>
                 )}
 
-                <Row icon={<Calendar size={14} />} label="Enviado" value={formatDate(submission.submittedAt)} />
+                <Row icon={<Calendar size={14} />} label="Enviado" value={formatDateTime(submission.submittedAt)} />
               </div>
             </section>
           )}
@@ -356,7 +426,7 @@ function SidePanel({
                       <span
                         className="text-[13px] leading-snug transition-colors"
                         style={{
-                          color: checked ? "#94a3b8" : "#1E2C46",
+                          color:          checked ? "#94a3b8" : "#1E2C46",
                           textDecoration: checked ? "line-through" : "none",
                         }}
                       >
@@ -374,15 +444,7 @@ function SidePanel({
   );
 }
 
-function Row({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex gap-2 items-start">
       <span className="text-slate-400 w-[90px] shrink-0 flex items-center gap-1.5 pt-0.5">
@@ -398,17 +460,22 @@ function ColorSwatch({ label, color }: { label: string; color: string }) {
   if (!color) return null;
   return (
     <div className="flex items-center gap-1.5">
-      <div
-        className="w-5 h-5 rounded border border-slate-200 shrink-0"
-        style={{ background: color }}
-      />
+      <div className="w-5 h-5 rounded border border-slate-200 shrink-0" style={{ background: color }} />
       <span className="text-slate-500 text-[11px]">{label}</span>
       <span className="text-slate-400 text-[11px] font-mono">{color}</span>
     </div>
   );
 }
 
-function ConnectedBadge({ connected, labelYes = "Conectado", labelNo = "No conectado" }: { connected: boolean; labelYes?: string; labelNo?: string }) {
+function ConnectedBadge({
+  connected,
+  labelYes = "Conectado",
+  labelNo  = "No conectado",
+}: {
+  connected: boolean;
+  labelYes?: string;
+  labelNo?: string;
+}) {
   return connected ? (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-green-100 text-green-700">
       <BadgeCheck size={11} />
@@ -424,43 +491,31 @@ function ConnectedBadge({ connected, labelYes = "Conectado", labelNo = "No conec
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
 type FilterType = "all" | "active" | "inactive" | "no-onboarding";
-type SortType = "date-desc" | "date-asc" | "name" | "plan";
+type SortType   = "date-desc" | "date-asc" | "name" | "plan";
 
-export default function PanelClient({
-  accounts,
-}: {
-  accounts: EnrichedAccount[];
-}) {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterType>("all");
-  const [sort, setSort] = useState<SortType>("date-desc");
+export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] }) {
+  const [search,   setSearch]   = useState("");
+  const [filter,   setFilter]   = useState<FilterType>("all");
+  const [sort,     setSort]     = useState<SortType>("date-desc");
   const [selected, setSelected] = useState<EnrichedAccount | null>(null);
 
   // Stats
-  const total = accounts.length;
-  const active = accounts.filter(
-    (a) => a.ghl.planStatus.toLowerCase() === "active"
-  ).length;
-  const pendingSetup = accounts.filter(
-    (a) => !a.submission?.checklist.form
-  ).length;
-  const completed = accounts.filter(
-    (a) =>
-      a.submission &&
-      progressPct(a.submission.checklist) === 100
-  ).length;
+  const total        = accounts.length;
+  const active       = accounts.filter((a) => a.ghl.planStatus.toLowerCase() === "active").length;
+  const pendingSetup = accounts.filter((a) => !a.submission?.checklist.form).length;
+  const completed    = accounts.filter((a) => a.submission && progressPct(a.submission.checklist) === 100).length;
 
-  // Filter + search
+  // Filter + search + sort
   const visible = accounts
     .filter((a) => {
       const q = search.toLowerCase();
       if (q) {
-        const name = (a.submission?.businessName || a.ghl.name).toLowerCase();
-        const email = (a.submission?.email || a.ghl.email).toLowerCase();
+        const name  = (a.submission?.businessName || a.ghl.name).toLowerCase();
+        const email = (a.submission?.email        || a.ghl.email).toLowerCase();
         if (!name.includes(q) && !email.includes(q)) return false;
       }
-      if (filter === "active") return a.ghl.planStatus.toLowerCase() === "active";
-      if (filter === "inactive") return a.ghl.planStatus.toLowerCase() === "inactive";
+      if (filter === "active")       return a.ghl.planStatus.toLowerCase() === "active";
+      if (filter === "inactive")     return a.ghl.planStatus.toLowerCase() === "inactive";
       if (filter === "no-onboarding") return !a.submission?.checklist.form;
       return true;
     })
@@ -487,18 +542,12 @@ export default function PanelClient({
       {/* Header */}
       <header style={{ background: "#1E2C46" }}>
         <div className="max-w-[1250px] mx-auto px-6 py-4 flex items-center justify-between gap-6">
-          <Image
-            src="/assets/PatronPro-white.png"
-            width={140}
-            height={36}
-            alt="PatronPro"
-            priority
-          />
+          <Image src="/assets/PatronPro-white.png" width={140} height={36} alt="PatronPro" priority />
           <div className="flex items-center gap-3 flex-wrap justify-end">
-            <Chip label="cuentas totales" value={total} color="white" />
-            <Chip label="activas" value={active} color="#22c55e" />
+            <Chip label="cuentas totales"  value={total}        color="white" />
+            <Chip label="activas"          value={active}       color="#22c55e" />
             <Chip label="pendientes setup" value={pendingSetup} color="#F67D0A" />
-            <Chip label="completadas" value={completed} color="#60a5fa" />
+            <Chip label="completadas"      value={completed}    color="#60a5fa" />
           </div>
         </div>
       </header>
@@ -508,10 +557,7 @@ export default function PanelClient({
         <div className="max-w-[1250px] mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-            />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Buscar por nombre o email..."
@@ -560,36 +606,28 @@ export default function PanelClient({
             No se encontraron cuentas con esos filtros.
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm overflow-x-auto">
             <table className="w-full text-[13px]">
               <thead>
-                <tr
-                  className="text-left border-b border-slate-100"
-                  style={{ background: "#f8fafc" }}
-                >
+                <tr className="text-left border-b border-slate-100" style={{ background: "#f8fafc" }}>
                   <Th>#</Th>
                   <Th>Negocio</Th>
                   <Th>Email</Th>
-                  <Th>Dominio</Th>
-                  <Th>Plan</Th>
-                  <Th>Estado GHL</Th>
-                  <Th>Teléfonos</Th>
-                  <Th>Twilio</Th>
-                  <Th>Stripe</Th>
+                  <Th>Registro</Th>
+                  <Th>Señales</Th>
                   <Th>Onboarding</Th>
                   <Th>Acciones</Th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map((account, idx) => {
-                  const sub = account.submission;
-                  const name = sub?.businessName || account.ghl.name || "—";
-                  const email = sub?.email || account.ghl.email || "—";
-                  const domain = sub?.domain || account.ghl.website || "—";
+                  const sub       = account.submission;
+                  const name      = sub?.businessName || account.ghl.name || "—";
+                  const email     = sub?.email || account.ghl.email || "—";
+                  const regDate   = sub?.submittedAt || account.ghl.createdAt;
                   const checklist = sub?.checklist ?? ({} as Record<ChecklistItemId, boolean>);
-                  const done = countDone(checklist);
-                  const pct = progressPct(checklist);
-                  const isActive = account.ghl.planStatus.toLowerCase() === "active";
+                  const done      = countDone(checklist);
+                  const pct       = progressPct(checklist);
 
                   return (
                     <tr
@@ -599,48 +637,22 @@ export default function PanelClient({
                       style={{ background: idx % 2 === 0 ? "white" : "#fafafa" }}
                     >
                       <td className="px-4 py-3 text-slate-400 text-[12px] w-10">{idx + 1}</td>
+
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-[#1E2C46] leading-tight">{name}</p>
+                        <p className="font-semibold text-[#1E2C46] leading-tight whitespace-nowrap">{name}</p>
                         <p className="text-slate-400 text-[11px] mt-0.5 font-mono">{account.locationId}</p>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{email}</td>
-                      <td className="px-4 py-3 text-slate-500">
-                        {domain !== "—" ? (
-                          <span className="font-mono text-[12px]">{domain}</span>
-                        ) : "—"}
+
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{email}</td>
+
+                      <td className="px-4 py-3 text-slate-500 text-[12px] whitespace-nowrap">
+                        {formatDate(regDate)}
                       </td>
+
                       <td className="px-4 py-3">
-                        {account.ghl.planName !== "—" ? (
-                          <span
-                            className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold"
-                            style={{
-                              background: isActive ? "rgba(246,125,10,0.10)" : "#f1f5f9",
-                              color: isActive ? "#F67D0A" : "#94a3b8",
-                            }}
-                          >
-                            {account.ghl.planName}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
+                        <SignalDots account={account} />
                       </td>
-                      <td className="px-4 py-3">{statusBadge(account.ghl.planStatus)}</td>
-                      <td className="px-4 py-3">
-                        {account.ghl.phoneNumbers.length > 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-slate-700">
-                            <PhoneCall size={12} className="text-slate-400" />
-                            {account.ghl.phoneNumbers.length}
-                          </span>
-                        ) : (
-                          <span className="text-slate-300">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <ConnectedBadge connected={account.ghl.twilioActive} labelYes="Sí" labelNo="No" />
-                      </td>
-                      <td className="px-4 py-3">
-                        <ConnectedBadge connected={account.ghl.stripeConnected} labelYes="Sí" labelNo="No" />
-                      </td>
+
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <ProgressBar pct={pct} />
@@ -649,13 +661,11 @@ export default function PanelClient({
                           </span>
                         </div>
                       </td>
+
                       <td className="px-4 py-3">
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelected(account);
-                          }}
-                          className="px-3 py-1.5 text-[12px] font-semibold rounded-md border border-slate-200 text-slate-600 hover:border-[#1E2C46] hover:text-[#1E2C46] transition-colors"
+                          onClick={(e) => { e.stopPropagation(); setSelected(account); }}
+                          className="px-3 py-1.5 text-[12px] font-semibold rounded-md border border-slate-200 text-slate-600 hover:border-[#1E2C46] hover:text-[#1E2C46] transition-colors whitespace-nowrap"
                         >
                           Ver
                         </button>
@@ -685,20 +695,10 @@ function Th({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Chip({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
+function Chip({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-      <span className="font-bold text-[15px]" style={{ color }}>
-        {value}
-      </span>
+      <span className="font-bold text-[15px]" style={{ color }}>{value}</span>
       <span className="text-white/60 text-[12px]">{label}</span>
     </div>
   );

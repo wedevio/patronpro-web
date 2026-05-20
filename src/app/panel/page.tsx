@@ -24,10 +24,19 @@ export default async function PanelPage() {
   // All unique locationIds
   const allIds = Array.from(new Set([...submissionIds, ...ghlIds]));
 
-  // 4. Enrich all with GHL data
+  // 4. Build email map for PatronPro signal lookups
+  const emailMap = new Map<string, string>();
+  for (const loc of ghlLocations) {
+    if (loc.email) emailMap.set(loc.locationId, loc.email);
+  }
+  for (const sub of submissions) {
+    if (sub.email) emailMap.set(sub.locationId, sub.email);
+  }
+
+  // 5. Enrich all with GHL data
   let enriched = new Map<string, GHLLocationData>();
   try {
-    enriched = await enrichLocations(allIds);
+    enriched = await enrichLocations(allIds, emailMap);
   } catch (err) {
     console.error("[PanelPage] enrichLocations failed:", err);
   }
@@ -53,11 +62,13 @@ export default async function PanelPage() {
       planName:        "—",
       planStatus:      "—",
       mrr:             0,
-      phoneNumbers:    [],
-      stripeConnected: false,
-      twilioActive:    false,
-      customDomain:    "",
-      workflowsCount:  0,
+      phoneNumbers:      [],
+      stripeConnected:   false,
+      twilioActive:      false,
+      customDomain:      "",
+      workflowsCount:    0,
+      smsSent:           false,
+      appointmentBooked: false,
     };
 
     // If no Redis submission, build a minimal one from GHL data
