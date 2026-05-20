@@ -26,15 +26,24 @@ export async function GET(request: Request): Promise<Response> {
     getAgencyAccessToken(),
   ]);
 
-  const cases: { label: string; path: string; token: string }[] = [
-    { label: "users-search-loc",       path: `/users/search?locationId=${locationId}`,  token: loc },
-    { label: "users-search-agency",    path: `/users/search?locationId=${locationId}`,  token: agency },
-    { label: "users-search-no-filter", path: `/users/search`,                           token: loc },
-  ];
+  // Step 1: get companyId from location
+  const locationRes = await gh(`/locations/${locationId}`, loc);
+  let companyId: string | null = null;
+  try {
+    const parsed = JSON.parse(locationRes.body);
+    companyId = parsed?.location?.companyId ?? parsed?.companyId ?? null;
+  } catch {}
 
-  const results: Record<string, unknown> = {};
-  for (const c of cases) {
-    results[c.label] = await gh(c.path, c.token);
+  const results: Record<string, unknown> = { locationRes, companyId };
+
+  if (companyId) {
+    const cases: { label: string; path: string; token: string }[] = [
+      { label: "users-by-company-loc",    path: `/users/search?companyId=${companyId}&locationId=${locationId}`, token: loc },
+      { label: "users-by-company-agency", path: `/users/search?companyId=${companyId}&locationId=${locationId}`, token: agency },
+    ];
+    for (const c of cases) {
+      results[c.label] = await gh(c.path, c.token);
+    }
   }
 
   return NextResponse.json(results, { status: 200 });
