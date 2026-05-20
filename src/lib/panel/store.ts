@@ -204,13 +204,18 @@ export async function updateChecklist(
   const now = new Date().toISOString();
 
   // Upsert account (may not exist yet for GHL-only accounts)
-  const { data: acc, error: accErr } = await db
+  // NOTE: no ignoreDuplicates — we need the id back whether inserted or existing
+  await db
     .from("accounts")
     .upsert(
       { location_id: locationId, onboarding_at: now },
       { onConflict: "location_id", ignoreDuplicates: true }
-    )
+    );
+
+  const { data: acc, error: accErr } = await db
+    .from("accounts")
     .select("id")
+    .eq("location_id", locationId)
     .single();
 
   if (accErr || !acc) return null;
