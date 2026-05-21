@@ -19,6 +19,12 @@ export async function GET(request: Request): Promise<Response> {
     .replace(/^www\./, "")
     .split("/")[0];
 
+  // Must have a valid TLD (at least one dot, TLD 2–6 chars)
+  const validFormat = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z]{2,6})+$/.test(cleanDomain);
+  if (!validFormat) {
+    return NextResponse.json({ available: null, error: "invalid_format" });
+  }
+
   try {
     const res = await fetch(
       `https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=NS`,

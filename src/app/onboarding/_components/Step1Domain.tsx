@@ -24,7 +24,7 @@ const inputClass =
   "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A]";
 
 type DomainOption = "has" | "wants";
-type AvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error";
+type AvailabilityStatus = "idle" | "checking" | "available" | "taken" | "error" | "invalid_format";
 
 export default function Step1Domain({ data, errors, onChange }: Step1Props) {
   const [availabilityStatus, setAvailabilityStatus] =
@@ -44,13 +44,26 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
   async function checkAvailability() {
     const domain = data.desiredDomain?.trim();
     if (!domain) return;
+
+    // Client-side format check before hitting the API
+    const clean = domain.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+    const validFormat = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z]{2,6})+$/i.test(clean);
+    if (!validFormat) {
+      setAvailabilityStatus("invalid_format");
+      return;
+    }
+
     setAvailabilityStatus("checking");
     try {
       const res = await fetch(
         `/api/domain-check?domain=${encodeURIComponent(domain)}`
       );
-      const json = (await res.json()) as { available?: boolean };
-      setAvailabilityStatus(json.available ? "available" : "taken");
+      const json = (await res.json()) as { available?: boolean; error?: string };
+      if (json.error === "invalid_format") {
+        setAvailabilityStatus("invalid_format");
+      } else {
+        setAvailabilityStatus(json.available ? "available" : "taken");
+      }
     } catch {
       setAvailabilityStatus("error");
     }
@@ -189,6 +202,15 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
             )}
 
             {/* Availability feedback */}
+            {availabilityStatus === "invalid_format" && (
+              <div
+                className="rounded-[14px] px-4 py-3 text-sm"
+                style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
+              >
+                Ingresá un dominio válido, por ejemplo{" "}
+                <span className="font-mono">tunegocio.com</span>
+              </div>
+            )}
             {availabilityStatus === "available" && (
               <div
                 className="rounded-[14px] px-4 py-3 text-sm font-medium flex items-center gap-2"
