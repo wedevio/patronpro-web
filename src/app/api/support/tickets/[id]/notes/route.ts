@@ -38,9 +38,10 @@ async function notifyClientViaGHL(contactId: string, ticketNumber: number, noteB
         Version: "2021-07-28",
       },
       body: JSON.stringify({
-        type: "SMS",
+        type: "Email",
         contactId,
-        message: `PatronPro Support — Ticket #${ticketNumber}:\n\n${noteBody}`,
+        subject: `PatronPro Support — Ticket #${ticketNumber} respondido`,
+        html: `<p>${noteBody.replace(/\n/g, "<br>")}</p>`,
       }),
     });
   } catch (err) {
