@@ -292,10 +292,13 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 // Main GhlSupportClient
 // ---------------------------------------------------------------------------
 
+// PatronPro's own GHL location — used as fallback when form is opened without URL params
+const PATRONPRO_LOCATION_ID = "hHLZC7FaTtUINPf3cbHd";
+
 export default function GhlSupportClient({ contactId: propContactId, locationId: propLocationId }: Props) {
   const [authState, setAuthState] = useState<AuthState>({ status: "idle" });
   const [contactId, setContactId] = useState(propContactId ?? "");
-  const [locationId] = useState(propLocationId ?? "");
+  const [locationId] = useState(propLocationId ?? PATRONPRO_LOCATION_ID);
   const [searchInput, setSearchInput] = useState("");
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
@@ -543,10 +546,10 @@ export default function GhlSupportClient({ contactId: propContactId, locationId:
         </button>
       )}
 
-      {/* No location warning */}
-      {!locationId && !propLocationId && (
+      {/* Fallback mode indicator */}
+      {!propLocationId && (
         <div className="mt-4 rounded bg-yellow-50 px-4 py-3 text-xs text-yellow-700">
-          No se proporcionó un Location ID. Este formulario debe abrirse desde GHL.
+          Modo manual — usando location PatronPro por defecto. Para uso completo, abrir desde GHL.
         </div>
       )}
     </div>
