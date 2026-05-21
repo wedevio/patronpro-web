@@ -4,10 +4,10 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { number: 1, label: "Dominio" },
-  { number: 2, label: "Negocio" },
-  { number: 3, label: "Marca" },
-  { number: 4, label: "Horarios" },
+  { number: 1, label: "Negocio" },
+  { number: 2, label: "Marca" },
+  { number: 3, label: "Horarios" },
+  { number: 4, label: "Dominio" },
   { number: 5, label: "Revisar" },
 ];
 
