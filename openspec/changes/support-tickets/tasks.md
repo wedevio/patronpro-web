@@ -24,25 +24,25 @@
   - Can parallelize with: none
   - Notes: Implement all DAL functions with `getAdminClient()`, duplicate checks, note visibility rules, resolve timestamps, and fire-and-forget `notifyOnboarder()` calls.
 
-- [ ] TASK-05: Verify foundation batch
+- [x] TASK-05: Verify foundation batch
   - Files: package.json, src/lib/auth/session.ts, src/lib/support/types.ts, src/lib/support/tickets.ts, supabase/migrations/*
   - Depends on: TASK-01, TASK-02, TASK-03, TASK-04
   - Can parallelize with: none
   - Notes: Run `tsc --noEmit`; fix type issues before any route work.
 
-- [ ] TASK-06: Implement iframe auth and ticket collection APIs
+- [x] TASK-06: Implement iframe auth and ticket collection APIs
   - Files: src/app/api/auth/ghl-iframe/route.ts, src/app/api/support/tickets/route.ts
   - Depends on: TASK-04, TASK-05
   - Can parallelize with: TASK-07
   - Notes: Mark handlers `force-dynamic`; issue secure partitioned iframe cookie; validate location/company; implement GET list and POST create with duplicate 409 handling.
 
-- [ ] TASK-07: Implement ticket detail and note APIs
+- [x] TASK-07: Implement ticket detail and note APIs
   - Files: src/app/api/support/tickets/[id]/route.ts, src/app/api/support/tickets/[id]/notes/route.ts
   - Depends on: TASK-04, TASK-05
   - Can parallelize with: TASK-06
   - Notes: Enforce staff-only PATCH, client/staff note authorship, note visibility filtering, waiting-client reopen, and response envelope consistency.
 
-- [ ] TASK-08: Verify API batch
+- [x] TASK-08: Verify API batch
   - Files: src/app/api/auth/ghl-iframe/route.ts, src/app/api/support/tickets/**/*.ts
   - Depends on: TASK-06, TASK-07
   - Can parallelize with: none

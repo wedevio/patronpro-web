@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { updateChecklist } from "@/lib/panel/store";
 import type { ChecklistItemId } from "@/lib/panel/store";
-import { jwtDecode } from "jwt-decode";
+import { verifyPpSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +14,14 @@ export async function PATCH(request: Request): Promise<Response> {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Decode (not verify) to get user email for audit trail
+    // Verify pp-session JWT to get user email for audit trail
     let checkedBy = "unknown";
     try {
-      const payload = jwtDecode<{ email?: string; sub?: string }>(token);
+      const payload = await verifyPpSession(token);
       checkedBy = payload.email ?? payload.sub ?? "unknown";
-    } catch { /* leave default */ }
+    } catch {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
 
     const { locationId, itemId, checked } = await request.json() as {
       locationId: string;
