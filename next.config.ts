@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "ALLOWALL" },
           {
             key: "Content-Security-Policy",
-            value: "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com",
+            value: "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com https://app.getpatronpro.com https://*.leadconnectorhq.com",
           },
         ],
       },
