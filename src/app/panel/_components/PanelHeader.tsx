@@ -34,7 +34,7 @@ export default function PanelHeader() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-all ${
                   active
                     ? "bg-white/15 text-white"
-                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
                 }`}
               >
                 <Icon size={14} />
@@ -45,7 +45,7 @@ export default function PanelHeader() {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all ml-2 border-l border-white/10 pl-4"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all ml-2 border-l border-white/10 pl-4"
           >
             <LogOut size={14} />
             Salir
