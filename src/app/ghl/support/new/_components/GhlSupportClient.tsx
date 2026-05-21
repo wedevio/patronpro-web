@@ -71,7 +71,6 @@ function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TicketCategory>("general");
   const [priority, setPriority] = useState<TicketPriority>("normal");
-  const [submittedBy, setSubmittedBy] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +84,7 @@ function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ghl_location_id: locationId,
-          submitted_by: submittedBy,
+          submitted_by: "client",
           title,
           description,
           category,
@@ -170,20 +169,6 @@ function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
             <option value="urgent">Urgente</option>
           </select>
         </div>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-xs font-medium text-gray-700">
-          Tu nombre o email <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          required
-          value={submittedBy}
-          onChange={(e) => setSubmittedBy(e.target.value)}
-          placeholder="nombre@empresa.com"
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        />
       </div>
 
       <div className="flex gap-2 pt-1">
