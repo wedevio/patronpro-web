@@ -30,7 +30,7 @@ async function resolveContactFromUser(
 
     // 2. Search contact by email in the location
     const searchRes = await fetch(
-      `https://services.leadconnectorhq.com/contacts/search?locationId=${locationId}&email=${encodeURIComponent(email)}&limit=1`,
+      `https://services.leadconnectorhq.com/contacts/search?locationId=${locationId}&query=${encodeURIComponent(email)}&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${agencyToken}`,
