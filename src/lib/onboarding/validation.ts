@@ -36,6 +36,9 @@ export function validateStep2(
   if (!data.city?.trim()) errors.city = "La ciudad es requerida";
   if (!data.state?.trim()) errors.state = "El estado es requerido";
   if (!data.zip?.trim()) errors.zip = "El código postal es requerido";
+  if (data.ein?.trim() && !/^\d{9}$/.test(data.ein.trim())) {
+    errors.ein = "El EIN debe tener exactamente 9 dígitos";
+  }
 
   return errors;
 }
