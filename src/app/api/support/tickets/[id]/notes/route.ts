@@ -7,34 +7,41 @@ import { getLocationAccessToken } from "@/lib/ghl/oauth";
 
 export const dynamic = "force-dynamic";
 
-async function getAuth(): Promise<boolean> {
+type AuthResult = "staff" | "client" | null;
+
+async function getAuth(): Promise<AuthResult> {
   const cookieStore = await cookies();
-  const supportToken = cookieStore.get("support-session")?.value;
-  if (supportToken) {
-    try { await verifySupportSession(supportToken); return true; } catch { /* fall through */ }
-  }
   const ppToken = cookieStore.get("pp-session")?.value;
   if (ppToken) {
-    try { await verifyPpSession(ppToken); return true; } catch { /* fall through */ }
+    try { await verifyPpSession(ppToken); return "staff"; } catch { /* fall through */ }
   }
-  return false;
+  const supportToken = cookieStore.get("support-session")?.value;
+  if (supportToken) {
+    try { await verifySupportSession(supportToken); return "client"; } catch { /* fall through */ }
+  }
+  return null;
 }
 
-async function notifyClientViaGHL(locationId: string, contactId: string, message: string) {
+/**
+ * Sends an SMS notification to the client via GHL Conversations.
+ * The contact lives in PatronPro's own location — NOT the client's sub-account location.
+ */
+async function notifyClientViaGHL(contactId: string, ticketNumber: number, noteBody: string) {
   try {
-    const token = await getLocationAccessToken(locationId);
-    const searchRes = await fetch(
-      `https://services.leadconnectorhq.com/conversations/search?locationId=${locationId}&contactId=${contactId}&limit=1`,
-      { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28", Accept: "application/json" } }
-    );
-    if (!searchRes.ok) return;
-    const searchData = (await searchRes.json()) as { conversations?: { id: string }[] };
-    const conversationId = searchData.conversations?.[0]?.id;
-    if (!conversationId) return;
+    const patronproLocationId = process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
+    const token = await getLocationAccessToken(patronproLocationId);
     await fetch("https://services.leadconnectorhq.com/conversations/messages", {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Version: "2021-07-28" },
-      body: JSON.stringify({ type: "Email", conversationId, contactId, message }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Version: "2021-07-28",
+      },
+      body: JSON.stringify({
+        type: "SMS",
+        contactId,
+        message: `PatronPro Support — Ticket #${ticketNumber}:\n\n${noteBody}`,
+      }),
     });
   } catch (err) {
     console.error("[notes] GHL notification failed", err);
@@ -45,8 +52,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Response> {
-  const authorized = await getAuth();
-  if (!authorized) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const auth = await getAuth();
+  if (!auth) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const { id } = await params;
 
@@ -62,10 +69,11 @@ export async function POST(
   try {
     const note = await addNote(id, parsed.data);
 
-    if (parsed.data.is_public) {
+    // Only notify client when staff (pp session) posts a public note
+    if (auth === "staff" && parsed.data.is_public) {
       const ticket = await getTicket(id);
-      if (ticket?.ghl_contact_id && ticket.ghl_location_id) {
-        void notifyClientViaGHL(ticket.ghl_location_id, ticket.ghl_contact_id, parsed.data.body);
+      if (ticket?.ghl_contact_id && ticket.ticket_number) {
+        void notifyClientViaGHL(ticket.ghl_contact_id, ticket.ticket_number, parsed.data.body);
       }
     }
 
