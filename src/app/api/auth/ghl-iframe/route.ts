@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAgencyAccessToken } from "@/lib/ghl/oauth";
+import { getAgencyAccessToken, getLocationAccessToken } from "@/lib/ghl/oauth";
 import { signSupportSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +30,7 @@ async function resolveContactFromUser(
     if (!email) return { contactId: null, userName };
 
     // 2. Upsert contact in PatronPro's location — creates if not exists
-    const locationToken = await (async () => {
-      const { getLocationAccessToken } = await import("@/lib/ghl/oauth");
-      return getLocationAccessToken(patronproLocationId);
-    })();
+    const locationToken = await getLocationAccessToken(patronproLocationId);
 
     const upsertRes = await fetch(
       `https://services.leadconnectorhq.com/contacts/upsert`,
