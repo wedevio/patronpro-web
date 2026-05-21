@@ -46,7 +46,7 @@ export async function loginAction(
       secure:   true,
       sameSite: "lax",
       path:     "/",
-      maxAge:   data.expires_in ?? 3600,
+      maxAge:   60 * 60 * 24 * 7, // 7 days
     });
 
     return { success: true };
