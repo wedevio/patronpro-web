@@ -54,10 +54,10 @@ export default function OnboardingForm({
 
   function goNext() {
     let stepErrors: Partial<Record<keyof OnboardingFormData, string>> = {};
-    if (currentStep === 1) stepErrors = validateStep1(formData);
-    if (currentStep === 2) stepErrors = validateStep2(formData);
-    if (currentStep === 3) stepErrors = validateStep3(formData);
-    if (currentStep === 4) stepErrors = validateStep4(formData);
+    if (currentStep === 1) stepErrors = validateStep2(formData);
+    if (currentStep === 2) stepErrors = validateStep3(formData);
+    if (currentStep === 3) stepErrors = validateStep4(formData);
+    if (currentStep === 4) stepErrors = validateStep1(formData);
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -155,15 +155,6 @@ export default function OnboardingForm({
         style={{ border: "1px solid #e5e7eb" }}
       >
         {currentStep === 1 && (
-          <Step1Domain
-            data={formData}
-            errors={errors}
-            onChange={(field, value) =>
-              updateField(field as keyof OnboardingFormData, value as FieldValue)
-            }
-          />
-        )}
-        {currentStep === 2 && (
           <Step2Business
             data={formData}
             errors={errors}
@@ -172,7 +163,7 @@ export default function OnboardingForm({
             }
           />
         )}
-        {currentStep === 3 && (
+        {currentStep === 2 && (
           <Step3Brand
             data={formData}
             errors={errors}
@@ -181,9 +172,18 @@ export default function OnboardingForm({
             }
           />
         )}
-        {currentStep === 4 && (
+        {currentStep === 3 && (
           <Step4Hours
             data={formData}
+            onChange={(field, value) =>
+              updateField(field as keyof OnboardingFormData, value as FieldValue)
+            }
+          />
+        )}
+        {currentStep === 4 && (
+          <Step1Domain
+            data={formData}
+            errors={errors}
             onChange={(field, value) =>
               updateField(field as keyof OnboardingFormData, value as FieldValue)
             }
