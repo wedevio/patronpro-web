@@ -8,11 +8,15 @@ interface Props {
   onClose: () => void;
 }
 
-export default function CheckoutModal({ onClose }: Props) {
+export default function CheckoutModal({ plan, onClose }: Props) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
+
+  const formId = plan === "annual"
+    ? "ymVCkxugIO4xA1dVFfu4"
+    : "CEL74QjOfO6rg8jUFbos";
 
   return (
     <div
@@ -34,9 +38,9 @@ export default function CheckoutModal({ onClose }: Props) {
         </button>
 
         <iframe
-          src="https://api.getpatronpro.com/widget/form/CEL74QjOfO6rg8jUFbos"
+          src={`https://api.getpatronpro.com/widget/form/${formId}`}
           style={{ width: "100%", height: "662px", border: "none", borderRadius: "24px" }}
-          id="inline-CEL74QjOfO6rg8jUFbos"
+          id={`inline-${formId}`}
           data-layout='{"id":"INLINE"}'
           data-trigger-type="alwaysShow"
           data-trigger-value=""
@@ -44,11 +48,11 @@ export default function CheckoutModal({ onClose }: Props) {
           data-activation-value=""
           data-deactivation-type="neverDeactivate"
           data-deactivation-value=""
-          data-form-name="Home Form"
+          data-form-name={plan === "annual" ? "Home Form Checkout- Yearly" : "Home Form"}
           data-height="662"
-          data-layout-iframe-id="inline-CEL74QjOfO6rg8jUFbos"
-          data-form-id="CEL74QjOfO6rg8jUFbos"
-          title="Home Form"
+          data-layout-iframe-id={`inline-${formId}`}
+          data-form-id={formId}
+          title={plan === "annual" ? "Home Form Checkout- Yearly" : "Home Form"}
         />
       </div>
     </div>
