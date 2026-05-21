@@ -1,7 +1,5 @@
-import { cookies } from "next/headers";
-import { verifyPpSession } from "@/lib/auth/session";
 import { getTicket } from "@/lib/support/tickets";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import PanelTicketDetail from "./_components/PanelTicketDetail";
 
 export const dynamic = "force-dynamic";
@@ -12,24 +10,8 @@ interface Props {
 
 export default async function PanelTicketPage({ params }: Props) {
   const { id } = await params;
-
-  const cookieStore = await cookies();
-  const ppToken = cookieStore.get("pp-session")?.value;
-
-  if (!ppToken) {
-    redirect("/login");
-  }
-
-  try {
-    await verifyPpSession(ppToken);
-  } catch {
-    redirect("/login");
-  }
-
+  // Auth is handled by proxy.ts middleware
   const ticket = await getTicket(id);
-  if (!ticket) {
-    notFound();
-  }
-
+  if (!ticket) notFound();
   return <PanelTicketDetail ticket={ticket} />;
 }

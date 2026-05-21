@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -23,8 +21,6 @@ import {
   BadgeCheck,
   CheckCheck,
   CalendarClock,
-  LogOut,
-  TicketCheck,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -414,22 +410,30 @@ function ColorSwatch({ label, color }: { label: string; color: string }) {
   );
 }
 
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-sm flex items-center gap-3">
+      <div className="w-2 h-8 rounded-full shrink-0" style={{ background: color }} />
+      <div>
+        <p className="text-[22px] font-bold text-slate-800 leading-none">{value}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
 type FilterType = "all" | "active" | "inactive" | "no-onboarding";
 type SortType   = "date-desc" | "date-asc" | "name";
 
 export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] }) {
-  const router = useRouter();
   const [search,   setSearch]   = useState("");
   const [filter,   setFilter]   = useState<FilterType>("all");
   const [sort,     setSort]     = useState<SortType>("date-desc");
   const [selected, setSelected] = useState<EnrichedAccount | null>(null);
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
 
   const total        = accounts.length;
   const active       = accounts.filter((a) => a.ghl.planStatus.toLowerCase() === "active").length;
@@ -458,36 +462,19 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
     });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header style={{ background: "#1E2C46" }}>
-        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between gap-6">
-          <Image src="/assets/PatronPro-white.png" width={140} height={36} alt="PatronPro" priority />
-          <div className="flex items-center gap-3 flex-wrap justify-end">
-            <Chip label="cuentas totales"  value={total}        color="white" />
-            <Chip label="activas"          value={active}       color="#22c55e" />
-            <Chip label="pendientes setup" value={pendingSetup} color="#F67D0A" />
-            <Chip label="completadas"      value={completed}    color="#60a5fa" />
-            <Link
-              href="/panel/support"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
-            >
-              <TicketCheck size={14} />
-              Soporte
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
-            >
-              <LogOut size={14} />
-              Salir
-            </button>
-          </div>
+    <div>
+      {/* Stats */}
+      <div className="max-w-[1400px] mx-auto px-6 pt-6 pb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Cuentas totales"  value={total}        color="#1E2C46" />
+          <StatCard label="Activas"          value={active}       color="#22c55e" />
+          <StatCard label="Pendientes setup" value={pendingSetup} color="#F67A0A" />
+          <StatCard label="Completadas"      value={completed}    color="#60a5fa" />
         </div>
-      </header>
+      </div>
 
       {/* Toolbar */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white border-b border-slate-200 mt-4">
         <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />

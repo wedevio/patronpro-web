@@ -2,8 +2,20 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import type { SupportTicket, TicketStatus, TicketPriority } from "@/lib/support/types";
+
+function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-sm flex items-center gap-3">
+      <div className="w-2 h-8 rounded-full shrink-0" style={{ background: color }} />
+      <div>
+        <p className="text-[22px] font-bold text-slate-800 leading-none">{value}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5">{label}</p>
+      </div>
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -104,27 +116,25 @@ export default function PanelSupportClient({ tickets }: Props) {
     });
   }, [tickets, statusFilter, priorityFilter, search]);
 
+  const total    = tickets.length;
+  const open     = tickets.filter((t) => !["resolved","closed"].includes(t.status)).length;
+  const resolved = tickets.filter((t) => t.status === "resolved").length;
+  const urgent   = tickets.filter((t) => t.priority === "urgent").length;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-[#1E2C46] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-white">Tickets de Soporte</h1>
-            <p className="mt-0.5 text-sm text-blue-200">{tickets.length} tickets en total</p>
-          </div>
-          <a
-            href="/ghl/support/new"
-            className="flex items-center gap-1.5 rounded bg-[#F67A0A] px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
-          >
-            <Plus className="h-4 w-4" />
-            Crear ticket
-          </a>
+      {/* Stats */}
+      <div className="max-w-[1400px] mx-auto px-6 pt-6 pb-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Total tickets"  value={total}    color="#1E2C46" />
+          <StatCard label="Abiertos"       value={open}     color="#F67A0A" />
+          <StatCard label="Resueltos"      value={resolved} color="#22c55e" />
+          <StatCard label="Urgentes"       value={urgent}   color="#ef4444" />
         </div>
       </div>
 
       {/* Filters */}
-      <div className="border-b border-gray-200 bg-white px-6 py-3">
+      <div className="border-b border-gray-200 bg-white mt-4 px-6 py-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />

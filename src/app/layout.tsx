@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
+import ChatWidget from "@/components/ChatWidget";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,12 +28,7 @@ export default function RootLayout({
     <html lang="es" className={`${inter.variable}`}>
       <body>
         {children}
-        <Script
-          src="https://widgets.leadconnectorhq.com/loader.js"
-          data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-          data-widget-id="69eba589fa2b28ffe2cf48fa"
-          strategy="lazyOnload"
-        />
+        <ChatWidget />
       </body>
     </html>
   );
