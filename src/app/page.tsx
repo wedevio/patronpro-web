@@ -150,71 +150,26 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 // ─── Contact Form ───
 function ContactForm() {
-  const [legalChecked, setLegalChecked] = useState(false);
-  const [legalError, setLegalError] = useState(false);
-
-  const inputCls = "min-h-[52px] rounded-[16px] border px-4 text-[16px] font-medium bg-white outline-none transition-colors w-full";
-  const inputStyle = { borderColor: "rgba(30,44,70,0.10)", color: "#24324a" };
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!legalChecked) { setLegalError(true); return; }
-    setLegalError(false);
-    // TODO: wire to backend
-  }
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white rounded-[22px] p-8 grid gap-4 border"
-      style={{ boxShadow: "0 18px 60px rgba(20,35,58,0.10)", borderColor: "rgba(30,44,70,0.08)" }}
-    >
-      {/* Name row */}
-      <div className="grid grid-cols-2 gap-3">
-        <input required type="text" placeholder="Nombre *" className={inputCls} style={inputStyle} />
-        <input required type="text" placeholder="Apellido *" className={inputCls} style={inputStyle} />
-      </div>
-      <input required type="email" placeholder="Email *" className={inputCls} style={inputStyle} />
-      <input type="text" placeholder="Nombre de la empresa" className={inputCls} style={inputStyle} />
-      <textarea
-        required
-        placeholder="Mensaje *"
-        rows={5}
-        className="rounded-[16px] border px-4 py-3 text-[16px] font-medium bg-white outline-none transition-colors w-full resize-none"
-        style={inputStyle}
+    <div className="bg-white rounded-[22px] overflow-hidden border" style={{ boxShadow: "0 18px 60px rgba(20,35,58,0.10)", borderColor: "rgba(30,44,70,0.08)" }}>
+      <iframe
+        src="https://api.getpatronpro.com/widget/form/CEL74QjOfO6rg8jUFbos"
+        style={{ width: "100%", height: "662px", border: "none", borderRadius: "8px" }}
+        id="inline-CEL74QjOfO6rg8jUFbos"
+        data-layout='{"id":"INLINE"}'
+        data-trigger-type="alwaysShow"
+        data-trigger-value=""
+        data-activation-type="alwaysActivated"
+        data-activation-value=""
+        data-deactivation-type="neverDeactivate"
+        data-deactivation-value=""
+        data-form-name="Home Form"
+        data-height="662"
+        data-layout-iframe-id="inline-CEL74QjOfO6rg8jUFbos"
+        data-form-id="CEL74QjOfO6rg8jUFbos"
+        title="Home Form"
       />
-
-      {/* Required legal checkbox */}
-      <div className="flex items-start gap-3 pt-2">
-        <input
-          id="legal"
-          type="checkbox"
-          checked={legalChecked}
-          onChange={(e) => { setLegalChecked(e.target.checked); if (e.target.checked) setLegalError(false); }}
-          className="mt-[3px] w-4 h-4 flex-shrink-0 accent-[#F67D0A] cursor-pointer"
-        />
-        <label htmlFor="legal" className="text-[14px] leading-[1.55] cursor-pointer" style={{ color: "#3d4f68" }}>
-          Acepto los{" "}
-          <a href="/terms" className="font-semibold underline" style={{ color: "#F67D0A" }}>Términos</a>,{" "}
-          la <a href="/privacy" className="font-semibold underline" style={{ color: "#F67D0A" }}>Política de Privacidad</a>{" "}
-          y la <a href="/cookies" className="font-semibold underline" style={{ color: "#F67D0A" }}>Política de Cookies</a>{" "}
-          de PatronPro.
-        </label>
-      </div>
-      {legalError && (
-        <p className="text-[13px] -mt-2" style={{ color: "#e03131" }}>
-          Por favor, acepta los Términos, la Política de Privacidad y la Política de Cookies de PatronPro para continuar.
-        </p>
-      )}
-
-      <button
-        type="submit"
-        className="min-h-[56px] rounded-[18px] font-bold text-[16px] text-white w-full transition-all hover:-translate-y-0.5"
-        style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.28)" }}
-      >
-        Enviar mensaje
-      </button>
-    </form>
+    </div>
   );
 }
 
@@ -991,6 +946,11 @@ export default function HomePage() {
           onClose={() => setCheckoutPlan(null)}
         />
       )}
+      <Script
+        id="ghl-form-embed"
+        src="https://api.getpatronpro.com/js/form_embed.js"
+        strategy="afterInteractive"
+      />
       <Script
         id="affiliate-manager"
         strategy="afterInteractive"

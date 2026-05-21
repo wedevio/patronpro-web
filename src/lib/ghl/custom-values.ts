@@ -125,11 +125,6 @@ export async function syncCustomValues(
 
   const domain = deriveDomain(data);
 
-  // automation_sender_email: info@domain if domain known
-  const senderEmail = domain
-    ? `info@${domain.replace(/^https?:\/\//, "").replace(/^www\./, "")}`
-    : "";
-
   const hoursStr = data.hoursOfOperation
     ? formatHours(data.hoursOfOperation)
     : "";
@@ -138,7 +133,6 @@ export async function syncCustomValues(
     ["company_name", data.businessName ?? ""],
     ["company_address", fullAddress],
     ["dominio_web", domain],
-    ["automation_sender_email", senderEmail],
     ["logo", data.logoUrl ?? ""],
     ["logo_cuadrado", data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
