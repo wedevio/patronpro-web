@@ -12,5 +12,5 @@ export default async function GhlSupportNewPage({ searchParams }: Props) {
   const contactId = typeof params.contact_id === "string" ? params.contact_id : undefined;
   const locationId = typeof params.location_id === "string" ? params.location_id : undefined;
 
-  return <GhlSupportClient contactId={contactId} locationId={locationId} />;
+  return <GhlSupportClient locationId={locationId} />;
 }

@@ -1,26 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { AlertCircle, Plus, TicketCheck, Search, Loader2, X } from "lucide-react";
+import { AlertCircle, Plus, TicketCheck, Loader2, X, ChevronLeft } from "lucide-react";
 import type { SupportTicket, TicketStatus, TicketPriority, TicketCategory } from "@/lib/support/types";
 
 // ---------------------------------------------------------------------------
-// Types
+// Constants
 // ---------------------------------------------------------------------------
 
-interface Props {
-  contactId?: string;
-  locationId?: string;
-}
-
-interface AuthState {
-  status: "idle" | "loading" | "done" | "error";
-  error?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const PATRONPRO_LOCATION_ID = "hHLZC7FaTtUINPf3cbHd";
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   new: "Nuevo",
@@ -41,12 +29,7 @@ const PRIORITY_LABELS: Record<TicketPriority, string> = {
 };
 
 const OPEN_STATUSES: TicketStatus[] = [
-  "new",
-  "triage",
-  "assigned",
-  "waiting_client",
-  "waiting_internal",
-  "waiting_tech",
+  "new", "triage", "assigned", "waiting_client", "waiting_internal", "waiting_tech",
 ];
 
 function statusBadgeClass(status: TicketStatus): string {
@@ -74,75 +57,16 @@ function priorityBadgeClass(priority: TicketPriority): string {
 }
 
 // ---------------------------------------------------------------------------
-// DuplicateWarning
-// ---------------------------------------------------------------------------
-
-interface DuplicateWarningProps {
-  duplicates: SupportTicket[];
-  onContinue: () => void;
-  onCancel: () => void;
-}
-
-function DuplicateWarning({ duplicates, onContinue, onCancel }: DuplicateWarningProps) {
-  return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-      <div className="flex items-start gap-3">
-        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-orange-800">
-            Ya existe un ticket abierto similar:
-          </p>
-          <ul className="mt-2 space-y-2">
-            {duplicates.map((t) => (
-              <li key={t.id} className="rounded bg-white p-2 text-xs shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-gray-900">
-                    #{t.ticket_number} — {t.title}
-                  </span>
-                  <div className="flex gap-1">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(t.status)}`}>
-                      {STATUS_LABELS[t.status]}
-                    </span>
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(t.priority)}`}>
-                      {PRIORITY_LABELS[t.priority]}
-                    </span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={onCancel}
-              className="rounded border border-orange-300 bg-white px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-50"
-            >
-              Ver ticket existente
-            </button>
-            <button
-              onClick={onContinue}
-              className="rounded bg-orange-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-600"
-            >
-              Crear nuevo de todos modos
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // TicketForm
 // ---------------------------------------------------------------------------
 
 interface TicketFormProps {
-  contactId: string;
   locationId: string;
   onSuccess: (ticket: SupportTicket) => void;
   onCancel: () => void;
 }
 
-function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormProps) {
+function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TicketCategory>("general");
@@ -155,13 +79,11 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-
     try {
       const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ghl_contact_id: contactId,
           ghl_location_id: locationId,
           submitted_by: submittedBy,
           title,
@@ -171,12 +93,10 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
           source: "internal_ghl",
         }),
       });
-
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
         throw new Error(data.error ?? "Error al crear ticket");
       }
-
       const ticket = (await res.json()) as SupportTicket;
       onSuccess(ticket);
     } catch (err) {
@@ -194,7 +114,7 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 
       <div>
         <label className="mb-1 block text-xs font-medium text-gray-700">
-          Titulo <span className="text-red-500">*</span>
+          Título <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -208,7 +128,7 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 
       <div>
         <label className="mb-1 block text-xs font-medium text-gray-700">
-          Descripcion <span className="text-red-500">*</span>
+          Descripción <span className="text-red-500">*</span>
         </label>
         <textarea
           required
@@ -222,22 +142,21 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Categoria</label>
+          <label className="mb-1 block text-xs font-medium text-gray-700">Categoría</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as TicketCategory)}
             className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
           >
-            <option value="technical">Tecnico</option>
-            <option value="billing">Facturacion</option>
+            <option value="technical">Técnico</option>
+            <option value="billing">Facturación</option>
             <option value="onboarding">Onboarding</option>
             <option value="account">Cuenta</option>
-            <option value="feature_request">Nueva funcion</option>
+            <option value="feature_request">Nueva función</option>
             <option value="bug">Bug</option>
             <option value="general">General</option>
           </select>
         </div>
-
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-700">Prioridad</label>
           <select
@@ -255,7 +174,7 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 
       <div>
         <label className="mb-1 block text-xs font-medium text-gray-700">
-          Enviado por (tu nombre o email) <span className="text-red-500">*</span>
+          Tu nombre o email <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -274,7 +193,7 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
           className="flex items-center gap-1.5 rounded bg-[#F67A0A] px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-60"
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Crear ticket
+          Enviar ticket
         </button>
         <button
           type="button"
@@ -289,102 +208,77 @@ function TicketForm({ contactId, locationId, onSuccess, onCancel }: TicketFormPr
 }
 
 // ---------------------------------------------------------------------------
-// Main GhlSupportClient
+// Main
 // ---------------------------------------------------------------------------
 
-// PatronPro's own GHL location — used as fallback when form is opened without URL params
-const PATRONPRO_LOCATION_ID = "hHLZC7FaTtUINPf3cbHd";
+interface Props {
+  locationId?: string;
+}
 
-export default function GhlSupportClient({ contactId: propContactId, locationId: propLocationId }: Props) {
-  const [authState, setAuthState] = useState<AuthState>({ status: "idle" });
-  const [contactId, setContactId] = useState(propContactId ?? "");
-  const [locationId] = useState(propLocationId ?? PATRONPRO_LOCATION_ID);
-  const [searchInput, setSearchInput] = useState("");
+type View = "list" | "form" | "success";
+
+export default function GhlSupportClient({ locationId: propLocationId }: Props) {
+  const locationId = propLocationId ?? PATRONPRO_LOCATION_ID;
+
+  const [authed, setAuthed] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [loadingTickets, setLoadingTickets] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [duplicates, setDuplicates] = useState<SupportTicket[]>([]);
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<View>("list");
   const [createdTicket, setCreatedTicket] = useState<SupportTicket | null>(null);
 
-  // Step 1: establish auth session
+  // Auth on mount
   useEffect(() => {
-    if (!propLocationId) return; // no params provided, skip auth
-    setAuthState({ status: "loading" });
     fetch("/api/auth/ghl-iframe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location_id: propLocationId,
-        contact_id: propContactId,
-      }),
+      body: JSON.stringify({ location_id: locationId }),
     })
       .then(async (res) => {
         if (!res.ok) {
           const d = (await res.json()) as { error?: string };
           throw new Error(d.error ?? "Auth failed");
         }
-        setAuthState({ status: "done" });
+        setAuthed(true);
       })
       .catch((err: unknown) => {
-        setAuthState({ status: "error", error: err instanceof Error ? err.message : "Error de autenticacion" });
+        setAuthError(err instanceof Error ? err.message : "Error de autenticación");
+        setLoading(false);
       });
-  }, [propLocationId, propContactId]);
+  }, [locationId]);
 
-  // Step 2: load tickets once auth is done and we have a contactId
-  const loadTickets = useCallback(async (cid: string) => {
-    setLoadingTickets(true);
+  const loadTickets = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/support/tickets?ghlContactId=${encodeURIComponent(cid)}`);
+      const res = await fetch("/api/support/tickets");
       if (!res.ok) return;
       const data = (await res.json()) as { tickets: SupportTicket[] };
-      setTickets(data.tickets.filter((t) => OPEN_STATUSES.includes(t.status)));
+      setTickets(data.tickets);
     } catch {
       // silent
     } finally {
-      setLoadingTickets(false);
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (authState.status === "done" && contactId) {
-      void loadTickets(contactId);
-    }
-  }, [authState.status, contactId, loadTickets]);
+    if (authed) void loadTickets();
+  }, [authed, loadTickets]);
 
-  async function handleCreateClick() {
-    if (!contactId) return;
-    // Check for duplicates first
-    const res = await fetch(`/api/support/tickets?ghlContactId=${encodeURIComponent(contactId)}`);
-    if (res.ok) {
-      const data = (await res.json()) as { tickets: SupportTicket[] };
-      const open = data.tickets.filter((t) => OPEN_STATUSES.includes(t.status));
-      if (open.length > 0) {
-        setDuplicates(open);
-        setShowDuplicateWarning(true);
-        return;
-      }
-    }
-    setShowForm(true);
+  // --- Auth error ---
+  if (authError) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center gap-2 rounded bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{authError}</span>
+        </div>
+      </div>
+    );
   }
 
-  function handleTicketCreated(ticket: SupportTicket) {
-    setCreatedTicket(ticket);
-    setShowForm(false);
-    setShowDuplicateWarning(false);
-    void loadTickets(contactId);
-  }
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = searchInput.trim();
-    if (!trimmed) return;
-    setContactId(trimmed);
-    void loadTickets(trimmed);
-  }
-
-  // ----- Auth loading/error states -----
-  if (propLocationId && authState.status === "loading") {
+  // --- Loading ---
+  if (loading) {
     return (
       <div className="flex min-h-40 items-center justify-center p-6">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -392,19 +286,8 @@ export default function GhlSupportClient({ contactId: propContactId, locationId:
     );
   }
 
-  if (authState.status === "error") {
-    return (
-      <div className="p-6">
-        <div className="flex items-center gap-2 rounded bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{authState.error}</span>
-        </div>
-      </div>
-    );
-  }
-
-  // ----- Success: ticket created -----
-  if (createdTicket) {
+  // --- Success ---
+  if (view === "success" && createdTicket) {
     return (
       <div className="p-6">
         <div className="rounded-lg border border-green-200 bg-green-50 p-5 text-center">
@@ -414,144 +297,115 @@ export default function GhlSupportClient({ contactId: propContactId, locationId:
           </p>
           <p className="mt-1 text-sm text-green-700">{createdTicket.title}</p>
           <button
-            onClick={() => setCreatedTicket(null)}
+            onClick={() => { setView("list"); setCreatedTicket(null); }}
             className="mt-4 rounded border border-green-300 px-4 py-2 text-sm text-green-700 hover:bg-green-100"
           >
-            Ver tickets
+            Ver todos los tickets
           </button>
         </div>
       </div>
     );
   }
 
+  // --- Form ---
+  if (view === "form") {
+    return (
+      <div className="p-4">
+        <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-3">
+          <button
+            onClick={() => setView("list")}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <h1 className="text-base font-semibold text-[#1E2C46]">Nuevo ticket</h1>
+        </div>
+        <TicketForm
+          locationId={locationId}
+          onSuccess={(t) => { setCreatedTicket(t); setView("success"); void loadTickets(); }}
+          onCancel={() => setView("list")}
+        />
+      </div>
+    );
+  }
+
+  // --- List ---
+  const open = tickets.filter((t) => OPEN_STATUSES.includes(t.status));
+  const closed = tickets.filter((t) => !OPEN_STATUSES.includes(t.status));
+
   return (
     <div className="p-4">
       {/* Header */}
-      <div className="mb-4 border-b border-gray-100 pb-3">
+      <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
         <h1 className="text-base font-semibold text-[#1E2C46]">Soporte PatronPro</h1>
-        {locationId && (
-          <p className="mt-0.5 text-xs text-gray-500">Location: {locationId}</p>
+        <button
+          onClick={() => setView("form")}
+          className="flex items-center gap-1.5 rounded bg-[#F67A0A] px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-600"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Nuevo ticket
+        </button>
+      </div>
+
+      {/* Open tickets */}
+      <div className="mb-4">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          Abiertos ({open.length})
+        </h2>
+        {open.length === 0 ? (
+          <p className="rounded bg-gray-50 py-4 text-center text-xs text-gray-400">
+            No hay tickets abiertos.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {open.map((t) => <TicketRow key={t.id} ticket={t} />)}
+          </ul>
         )}
       </div>
 
-      {/* Contact search (no contactId from URL) */}
-      {!propContactId && (
-        <form onSubmit={handleSearchSubmit} className="mb-4">
-          <label className="mb-1 block text-xs font-medium text-gray-700">
-            Buscar cliente por nombre o GHL Contact ID
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="ID o nombre del contacto"
-              className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-            />
-            <button
-              type="submit"
-              className="flex items-center gap-1 rounded bg-[#1E2C46] px-3 py-2 text-sm font-medium text-white hover:bg-blue-900"
-            >
-              <Search className="h-4 w-4" />
-              Buscar
-            </button>
-          </div>
-        </form>
-      )}
-
-      {/* Existing open tickets */}
-      {contactId && (
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-700">Tickets abiertos</h2>
-            {loadingTickets && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-          </div>
-
-          {!loadingTickets && tickets.length === 0 && (
-            <p className="rounded bg-gray-50 py-3 text-center text-xs text-gray-500">
-              No hay tickets abiertos para este contacto.
-            </p>
-          )}
-
-          {tickets.length > 0 && (
-            <ul className="space-y-2">
-              {tickets.map((t) => (
-                <li key={t.id} className="rounded border border-gray-200 bg-white p-3 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-gray-900">
-                        #{t.ticket_number} — {t.title}
-                      </p>
-                      <p className="mt-0.5 truncate text-xs text-gray-500">{t.description.slice(0, 80)}…</p>
-                    </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(t.status)}`}>
-                        {STATUS_LABELS[t.status]}
-                      </span>
-                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(t.priority)}`}>
-                        {PRIORITY_LABELS[t.priority]}
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* Duplicate warning */}
-      {showDuplicateWarning && (
-        <div className="mb-4">
-          <DuplicateWarning
-            duplicates={duplicates}
-            onContinue={() => {
-              setShowDuplicateWarning(false);
-              setShowForm(true);
-            }}
-            onCancel={() => setShowDuplicateWarning(false)}
-          />
-        </div>
-      )}
-
-      {/* New ticket form */}
-      {showForm && contactId && locationId && (
-        <div className="mb-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-[#1E2C46]">Nuevo ticket</h2>
-            <button
-              onClick={() => setShowForm(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <TicketForm
-            contactId={contactId}
-            locationId={locationId}
-            onSuccess={handleTicketCreated}
-            onCancel={() => setShowForm(false)}
-          />
-        </div>
-      )}
-
-      {/* Create button */}
-      {!showForm && !showDuplicateWarning && contactId && locationId && (
-        <button
-          onClick={handleCreateClick}
-          className="flex w-full items-center justify-center gap-2 rounded bg-[#F67A0A] py-2.5 text-sm font-medium text-white hover:bg-orange-600"
-        >
-          <Plus className="h-4 w-4" />
-          Crear nuevo ticket
-        </button>
-      )}
-
-      {/* Fallback mode indicator */}
-      {!propLocationId && (
-        <div className="mt-4 rounded bg-yellow-50 px-4 py-3 text-xs text-yellow-700">
-          Modo manual — usando location PatronPro por defecto. Para uso completo, abrir desde GHL.
+      {/* Closed tickets */}
+      {closed.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Cerrados ({closed.length})
+          </h2>
+          <ul className="space-y-2">
+            {closed.map((t) => <TicketRow key={t.id} ticket={t} />)}
+          </ul>
         </div>
       )}
     </div>
+  );
+}
+
+function TicketRow({ ticket: t }: { ticket: SupportTicket }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li
+      className="cursor-pointer rounded border border-gray-200 bg-white p-3 shadow-sm hover:border-gray-300"
+      onClick={() => setOpen((v) => !v)}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-gray-900">
+            #{t.ticket_number} — {t.title}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-400">{t.submitted_by}</p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(t.status)}`}>
+            {STATUS_LABELS[t.status]}
+          </span>
+          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(t.priority)}`}>
+            {PRIORITY_LABELS[t.priority]}
+          </span>
+        </div>
+      </div>
+      {open && (
+        <p className="mt-2 border-t border-gray-100 pt-2 text-xs text-gray-600 whitespace-pre-wrap">
+          {t.description}
+        </p>
+      )}
+    </li>
   );
 }

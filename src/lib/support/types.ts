@@ -49,7 +49,7 @@ export interface TicketNote {
 export interface SupportTicket {
   id: string;
   ticket_number: number;
-  ghl_contact_id: string;
+  ghl_contact_id: string | null;
   ghl_location_id: string;
   account_id: string | null;
   submitted_by: string;
@@ -74,7 +74,7 @@ export interface SupportTicket {
 // ---------------------------------------------------------------------------
 
 export const CreateTicketSchema = z.object({
-  ghl_contact_id: z.string().min(1),
+  ghl_contact_id: z.string().optional(),
   ghl_location_id: z.string().min(1),
   submitted_by: z.string().min(1),
   title: z.string().min(3).max(200),

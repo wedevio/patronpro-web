@@ -94,7 +94,7 @@ export default function PanelSupportClient({ tickets }: Props) {
         const q = search.toLowerCase();
         if (
           !t.title.toLowerCase().includes(q) &&
-          !t.ghl_contact_id.toLowerCase().includes(q) &&
+          !(t.ghl_contact_id ?? "").toLowerCase().includes(q) &&
           !(t.assignee ?? "").toLowerCase().includes(q)
         ) {
           return false;
