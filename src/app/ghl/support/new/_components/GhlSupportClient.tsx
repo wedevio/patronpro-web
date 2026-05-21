@@ -103,14 +103,33 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TicketCategory>("general");
   const [priority, setPriority] = useState<TicketPriority>("normal");
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
+      let attachmentUrl: string | null = null;
+
+      if (attachment) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", attachment);
+        const upRes = await fetch("/api/support/upload", { method: "POST", body: formData });
+        setUploading(false);
+        if (!upRes.ok) {
+          const d = (await upRes.json()) as { error?: string };
+          throw new Error(d.error ?? "Error al subir imagen");
+        }
+        const upData = (await upRes.json()) as { url: string };
+        attachmentUrl = upData.url;
+      }
+
       const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,6 +141,7 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
           category,
           priority,
           source: "internal_ghl",
+          attachments: attachmentUrl ? [attachmentUrl] : [],
         }),
       });
       if (!res.ok) {
@@ -135,6 +155,7 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
       setError(err instanceof Error ? err.message : "Error al crear ticket");
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   }
 
@@ -204,14 +225,44 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
         </div>
       </div>
 
+      {/* Attachment */}
+      <div>
+        <label className="mb-1 block text-xs font-medium text-gray-700">Captura o imagen (opcional)</label>
+        {attachment ? (
+          <div className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            <ImageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+            <span className="min-w-0 flex-1 truncate">{attachment.name}</span>
+            <button type="button" onClick={() => setAttachment(null)} className="shrink-0 text-gray-400 hover:text-gray-600">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 rounded border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-500 hover:border-gray-400 hover:text-gray-700"
+          >
+            <Paperclip className="h-3.5 w-3.5" />
+            Adjuntar imagen
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => { setAttachment(e.target.files?.[0] ?? null); e.target.value = ""; }}
+        />
+      </div>
+
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || uploading}
           className="flex items-center gap-1.5 rounded bg-[#F67A0A] px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-60"
         >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Enviar ticket
+          {submitting || uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          {uploading ? "Subiendo..." : "Enviar ticket"}
         </button>
         <button
           type="button"
