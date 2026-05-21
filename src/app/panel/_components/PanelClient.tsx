@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import {
   CheckCircle2,
   Circle,
@@ -23,6 +24,7 @@ import {
   CheckCheck,
   CalendarClock,
   LogOut,
+  TicketCheck,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -466,6 +468,13 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
             <Chip label="activas"          value={active}       color="#22c55e" />
             <Chip label="pendientes setup" value={pendingSetup} color="#F67D0A" />
             <Chip label="completadas"      value={completed}    color="#60a5fa" />
+            <Link
+              href="/panel/support"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <TicketCheck size={14} />
+              Soporte
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-all"
