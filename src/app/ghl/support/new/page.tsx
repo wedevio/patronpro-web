@@ -9,8 +9,8 @@ interface Props {
 
 export default async function GhlSupportNewPage({ searchParams }: Props) {
   const params = await searchParams;
-  const contactId = typeof params.contact_id === "string" ? params.contact_id : undefined;
   const locationId = typeof params.location_id === "string" ? params.location_id : undefined;
+  const userId = typeof params.user_id === "string" ? params.user_id : undefined;
 
-  return <GhlSupportClient locationId={locationId} />;
+  return <GhlSupportClient locationId={locationId} userId={userId} />;
 }

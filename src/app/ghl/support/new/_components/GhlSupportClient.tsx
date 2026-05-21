@@ -513,40 +513,19 @@ function NoteBody({ body }: { body: string }) {
 // ---------------------------------------------------------------------------
 
 /**
- * Two-way handshake with GHL Custom JS:
- * 1. We send PP_READY to the parent → triggers Custom JS to send PP_USER_CTX back
- * 2. Custom JS may also push proactively on MutationObserver (race condition safety)
- * Returns the encrypted payload or null on timeout (3s).
+ * Two-way handshake replaced with URL param approach.
+ * GHL passes {{user.id}} in the Custom Menu URL.
+ * The server resolves contact_id from user_id via GHL API.
  */
-function requestGhlUserData(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => resolve(null), 10000);
-    const handler = ({ data }: MessageEvent) => {
-      if (
-        data &&
-        typeof data === "object" &&
-        (data as Record<string, unknown>)["type"] === "PP_USER_CTX"
-      ) {
-        clearTimeout(timeout);
-        window.removeEventListener("message", handler);
-        const payload = (data as Record<string, unknown>)["payload"];
-        resolve(typeof payload === "string" ? payload : null);
-      }
-    };
-    window.addEventListener("message", handler);
-    // Ping the parent — Custom JS is listening and will respond with PP_USER_CTX
-    console.log("[PP] sending PP_READY to parent");
-    window.top?.postMessage({ type: "PP_READY" }, "*");
-  });
-}
 
 interface Props {
   locationId?: string;
+  userId?: string;
 }
 
 type View = "list" | "form" | "success" | "detail";
 
-export default function GhlSupportClient({ locationId: propLocationId }: Props) {
+export default function GhlSupportClient({ locationId: propLocationId, userId }: Props) {
   const locationId = propLocationId ?? PATRONPRO_LOCATION_ID;
 
   const [authed, setAuthed] = useState(false);
@@ -562,51 +541,21 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
   // Auth on mount
   useEffect(() => {
     async function authenticate() {
-      // 1. Try to get GHL user context via postMessage
-      let contactId: string | undefined;
-      let resolvedUserName: string | undefined;
-
-      const encryptedData = await requestGhlUserData();
-      console.log("[PP] encryptedData received:", encryptedData ? `YES (${encryptedData.length} chars)` : "NULL (timeout)");
-
-      if (encryptedData) {
-        try {
-          const ctxRes = await fetch("/api/auth/ghl-user-context", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ encryptedData, location_id: locationId }),
-          });
-          if (ctxRes.ok) {
-            const ctx = (await ctxRes.json()) as {
-              contact_id: string | null;
-              email: string | null;
-              userName: string | null;
-            };
-            console.log("[PP] ghl-user-context result:", ctx);
-            contactId = ctx.contact_id ?? undefined;
-            resolvedUserName = ctx.userName ?? undefined;
-            if (resolvedUserName) setUserName(resolvedUserName);
-          }
-        } catch {
-          // Non-fatal — proceed without context
-        }
-      }
-
-      // 2. Authenticate the iframe session
       try {
         const res = await fetch("/api/auth/ghl-iframe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             location_id: locationId,
-            contact_id: contactId,
-            user_name: resolvedUserName,
+            user_id: userId,
           }),
         });
         if (!res.ok) {
           const d = (await res.json()) as { error?: string };
           throw new Error(d.error ?? "Auth failed");
         }
+        const data = (await res.json()) as { userName?: string };
+        if (data.userName) setUserName(data.userName);
         setAuthed(true);
       } catch (err: unknown) {
         setAuthError(err instanceof Error ? err.message : "Error de autenticación");
@@ -615,7 +564,7 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
     }
 
     void authenticate();
-  }, [locationId]);
+  }, [locationId, userId]);
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
