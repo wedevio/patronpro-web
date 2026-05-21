@@ -572,8 +572,8 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
     try {
       const res = await fetch(`/api/support/tickets/${ticketId}`);
       if (!res.ok) throw new Error("No se pudo cargar el ticket");
-      const data = (await res.json()) as { ticket: SupportTicket };
-      setSelectedTicket(data.ticket);
+      const data = (await res.json()) as SupportTicket;
+      setSelectedTicket(data);
     } catch {
       setView("list");
     } finally {
