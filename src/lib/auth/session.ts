@@ -21,8 +21,13 @@ function getNextAuthSecret(): Uint8Array {
 export async function signSupportSession(payload: {
   locationId: string;
   contactId?: string;
+  userName?: string;
 }): Promise<string> {
-  return new SignJWT({ locationId: payload.locationId, contactId: payload.contactId })
+  return new SignJWT({
+    locationId: payload.locationId,
+    contactId: payload.contactId,
+    userName: payload.userName,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SUPPORT_TTL_SECONDS}s`)
@@ -34,11 +39,12 @@ export async function signSupportSession(payload: {
  */
 export async function verifySupportSession(
   token: string
-): Promise<{ locationId: string; contactId?: string }> {
+): Promise<{ locationId: string; contactId?: string; userName?: string }> {
   const { payload } = await jwtVerify(token, getSupportSecret());
 
   const locationId = payload["locationId"];
   const contactId = payload["contactId"];
+  const userName = payload["userName"];
 
   if (typeof locationId !== "string" || !locationId) {
     throw new Error("Invalid support session: missing locationId");
@@ -47,6 +53,7 @@ export async function verifySupportSession(
   return {
     locationId,
     contactId: typeof contactId === "string" ? contactId : undefined,
+    userName: typeof userName === "string" ? userName : undefined,
   };
 }
 

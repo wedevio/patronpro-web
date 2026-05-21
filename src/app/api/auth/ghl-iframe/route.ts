@@ -5,14 +5,14 @@ import { signSupportSession } from "@/lib/auth/session";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<Response> {
-  let body: { location_id?: string; contact_id?: string };
+  let body: { location_id?: string; contact_id?: string; user_name?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { location_id, contact_id } = body;
+  const { location_id, contact_id, user_name } = body;
 
   if (!location_id) {
     return NextResponse.json({ error: "Missing location_id" }, { status: 400 });
@@ -57,6 +57,7 @@ export async function POST(request: Request): Promise<Response> {
   const token = await signSupportSession({
     locationId: location_id,
     contactId: contact_id,
+    userName: user_name,
   });
 
   const response = NextResponse.json({ success: true, locationId: location_id });

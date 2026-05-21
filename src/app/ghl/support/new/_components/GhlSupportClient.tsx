@@ -93,11 +93,12 @@ function formatDate(iso: string): string {
 
 interface TicketFormProps {
   locationId: string;
+  submittedBy?: string;
   onSuccess: (ticket: SupportTicket) => void;
   onCancel: () => void;
 }
 
-function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
+function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<TicketCategory>("general");
@@ -115,7 +116,7 @@ function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ghl_location_id: locationId,
-          submitted_by: "client",
+          submitted_by: submittedBy ?? "client",
           title,
           description,
           category,
@@ -510,6 +511,30 @@ function NoteBody({ body }: { body: string }) {
 // Main
 // ---------------------------------------------------------------------------
 
+/**
+ * Requests the logged-in GHL user's encrypted data via postMessage.
+ * Returns the encrypted payload string or null if not inside GHL (timeout).
+ */
+function requestGhlUserData(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(null), 3000);
+    const handler = ({ data }: MessageEvent) => {
+      if (
+        data &&
+        typeof data === "object" &&
+        (data as Record<string, unknown>)["message"] === "REQUEST_USER_DATA_RESPONSE"
+      ) {
+        clearTimeout(timeout);
+        window.removeEventListener("message", handler);
+        const payload = (data as Record<string, unknown>)["payload"];
+        resolve(typeof payload === "string" ? payload : null);
+      }
+    };
+    window.addEventListener("message", handler);
+    window.parent.postMessage({ message: "REQUEST_USER_DATA" }, "*");
+  });
+}
+
 interface Props {
   locationId?: string;
 }
@@ -527,25 +552,62 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
   const [createdTicket, setCreatedTicket] = useState<SupportTicket | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [userName, setUserName] = useState<string | undefined>(undefined);
 
   // Auth on mount
   useEffect(() => {
-    fetch("/api/auth/ghl-iframe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ location_id: locationId }),
-    })
-      .then(async (res) => {
+    async function authenticate() {
+      // 1. Try to get GHL user context via postMessage
+      let contactId: string | undefined;
+      let resolvedUserName: string | undefined;
+
+      const encryptedData = await requestGhlUserData();
+
+      if (encryptedData) {
+        try {
+          const ctxRes = await fetch("/api/auth/ghl-user-context", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ encryptedData, location_id: locationId }),
+          });
+          if (ctxRes.ok) {
+            const ctx = (await ctxRes.json()) as {
+              contact_id: string | null;
+              email: string | null;
+              userName: string | null;
+            };
+            contactId = ctx.contact_id ?? undefined;
+            resolvedUserName = ctx.userName ?? undefined;
+            if (resolvedUserName) setUserName(resolvedUserName);
+          }
+        } catch {
+          // Non-fatal — proceed without context
+        }
+      }
+
+      // 2. Authenticate the iframe session
+      try {
+        const res = await fetch("/api/auth/ghl-iframe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location_id: locationId,
+            contact_id: contactId,
+            user_name: resolvedUserName,
+          }),
+        });
         if (!res.ok) {
           const d = (await res.json()) as { error?: string };
           throw new Error(d.error ?? "Auth failed");
         }
         setAuthed(true);
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         setAuthError(err instanceof Error ? err.message : "Error de autenticación");
         setLoading(false);
-      });
+      }
+    }
+
+    void authenticate();
   }, [locationId]);
 
   const loadTickets = useCallback(async () => {
@@ -641,6 +703,7 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
         </div>
         <TicketForm
           locationId={locationId}
+          submittedBy={userName}
           onSuccess={(t) => {
             setCreatedTicket(t);
             setView("success");
