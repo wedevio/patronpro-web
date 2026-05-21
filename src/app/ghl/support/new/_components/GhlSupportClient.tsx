@@ -520,7 +520,7 @@ function NoteBody({ body }: { body: string }) {
  */
 function requestGhlUserData(): Promise<string | null> {
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => resolve(null), 3000);
+    const timeout = setTimeout(() => resolve(null), 10000);
     const handler = ({ data }: MessageEvent) => {
       if (
         data &&
