@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Loader2, ExternalLink, Send, Paperclip, X } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
 import type { SupportTicket, TicketNote, TicketStatus, TicketPriority } from "@/lib/support/types";
 
 // ---------------------------------------------------------------------------
@@ -93,17 +92,18 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
     if (!file) return;
     setUploading(true);
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
-      const path = `tickets/${ticket.id}/${Date.now()}-${file.name}`;
-      const { error } = await supabase.storage.from("support-attachments").upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from("support-attachments").getPublicUrl(path);
-      setAttachments((prev) => [...prev, data.publicUrl]);
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("ticket_id", ticket.id);
+      const res = await fetch("/api/support/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const d = (await res.json()) as { error?: string };
+        throw new Error(d.error ?? "Error al subir imagen");
+      }
+      const { url } = (await res.json()) as { url: string };
+      setAttachments((prev) => [...prev, url]);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Error al subir imagen");
+      setReplyError(err instanceof Error ? err.message : "Error al subir imagen");
     } finally {
       setUploading(false);
       e.target.value = "";
