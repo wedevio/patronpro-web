@@ -29,20 +29,32 @@ async function resolveContactFromUser(
 
     if (!email) return { contactId: null, userName };
 
-    // 2. Search contact by email in PatronPro's location
-    const searchRes = await fetch(
-      `https://services.leadconnectorhq.com/contacts/search?locationId=${patronproLocationId}&query=${encodeURIComponent(email)}&limit=1`,
+    // 2. Upsert contact in PatronPro's location — creates if not exists
+    const locationToken = await (async () => {
+      const { getLocationAccessToken } = await import("@/lib/ghl/oauth");
+      return getLocationAccessToken(patronproLocationId);
+    })();
+
+    const upsertRes = await fetch(
+      `https://services.leadconnectorhq.com/contacts/upsert`,
       {
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${agencyToken}`,
+          Authorization: `Bearer ${locationToken}`,
+          "Content-Type": "application/json",
           Version: "2021-07-28",
-          Accept: "application/json",
         },
+        body: JSON.stringify({
+          locationId: patronproLocationId,
+          email,
+          name: userName ?? undefined,
+          source: "patronpro-support",
+        }),
       }
     );
-    if (!searchRes.ok) return { contactId: null, userName };
-    const searchData = (await searchRes.json()) as { contacts?: { id: string }[] };
-    const contactId = searchData.contacts?.[0]?.id ?? null;
+    if (!upsertRes.ok) return { contactId: null, userName };
+    const upsertData = (await upsertRes.json()) as { contact?: { id: string } };
+    const contactId = upsertData.contact?.id ?? null;
 
     return { contactId, userName };
   } catch {
