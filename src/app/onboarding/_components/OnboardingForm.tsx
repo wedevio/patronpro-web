@@ -35,6 +35,9 @@ export default function OnboardingForm({
     hasDomain: false,
     wantNewDomain: false,
     hoursOfOperation: DEFAULT_HOURS,
+    primaryColor: "#1E2C46",
+    secondaryColor: "#F67D0A",
+    complementaryColor: "#FFFFFF",
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof OnboardingFormData, string>>
