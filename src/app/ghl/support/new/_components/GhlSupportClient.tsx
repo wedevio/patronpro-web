@@ -512,8 +512,10 @@ function NoteBody({ body }: { body: string }) {
 // ---------------------------------------------------------------------------
 
 /**
- * Requests the logged-in GHL user's encrypted data via postMessage.
- * Returns the encrypted payload string or null if not inside GHL (timeout).
+ * Two-way handshake with GHL Custom JS:
+ * 1. We send PP_READY to the parent → triggers Custom JS to send PP_USER_CTX back
+ * 2. Custom JS may also push proactively on MutationObserver (race condition safety)
+ * Returns the encrypted payload or null on timeout (3s).
  */
 function requestGhlUserData(): Promise<string | null> {
   return new Promise((resolve) => {
@@ -522,7 +524,7 @@ function requestGhlUserData(): Promise<string | null> {
       if (
         data &&
         typeof data === "object" &&
-        (data as Record<string, unknown>)["message"] === "REQUEST_USER_DATA_RESPONSE"
+        (data as Record<string, unknown>)["type"] === "PP_USER_CTX"
       ) {
         clearTimeout(timeout);
         window.removeEventListener("message", handler);
@@ -531,7 +533,8 @@ function requestGhlUserData(): Promise<string | null> {
       }
     };
     window.addEventListener("message", handler);
-    window.parent.postMessage({ message: "REQUEST_USER_DATA" }, "*");
+    // Ping the parent — Custom JS is listening and will respond with PP_USER_CTX
+    window.parent.postMessage({ type: "PP_READY" }, "*");
   });
 }
 
