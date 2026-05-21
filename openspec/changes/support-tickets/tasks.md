@@ -48,13 +48,13 @@
   - Can parallelize with: none
   - Notes: Run `tsc --noEmit`; confirm auth helper imports, route signatures, and handler typing all pass.
 
-- [ ] TASK-09: Build GHL iframe support UI
+- [x] TASK-09: Build GHL iframe support UI
   - Files: src/app/ghl/layout.tsx, src/app/ghl/support/new/page.tsx, src/app/ghl/support/_components/*
   - Depends on: TASK-06, TASK-08
   - Can parallelize with: TASK-10
   - Notes: Use a bare iframe layout, redirect through iframe auth flow, and ship a client form plus existing-ticket list for the current location/contact.
 
-- [ ] TASK-10: Build panel support list and detail UI
+- [x] TASK-10: Build panel support list and detail UI
   - Files: src/app/panel/support/page.tsx, src/app/panel/support/[id]/page.tsx, src/app/panel/support/_components/*
   - Depends on: TASK-07, TASK-08
   - Can parallelize with: TASK-09

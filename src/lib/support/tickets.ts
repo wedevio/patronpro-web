@@ -70,9 +70,12 @@ export async function listTickets(
   let query = db
     .from("support_tickets")
     .select("*")
-    .eq("ghl_location_id", filters.locationId)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(200);
+
+  if (filters.locationId) {
+    query = query.eq("ghl_location_id", filters.locationId);
+  }
 
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.priority) query = query.eq("priority", filters.priority);

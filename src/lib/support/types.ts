@@ -108,7 +108,7 @@ export type AddNoteInput = z.infer<typeof AddNoteSchema>;
 // ---------------------------------------------------------------------------
 
 export interface ListTicketsFilters {
-  locationId: string;
+  locationId?: string; // omit to list all locations (staff/admin only)
   status?: TicketStatus;
   priority?: TicketPriority;
   ghlContactId?: string;
