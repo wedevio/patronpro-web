@@ -536,7 +536,7 @@ function requestGhlUserData(): Promise<string | null> {
     window.addEventListener("message", handler);
     // Ping the parent — Custom JS is listening and will respond with PP_USER_CTX
     console.log("[PP] sending PP_READY to parent");
-    window.parent.postMessage({ type: "PP_READY" }, "*");
+    window.top?.postMessage({ type: "PP_READY" }, "*");
   });
 }
 
