@@ -137,7 +137,6 @@ export async function syncCustomValues(
   const mappings: Array<[string, string]> = [
     ["company_name", data.businessName ?? ""],
     ["company_address", fullAddress],
-    ["company_phone", data.phone ?? ""],
     ["dominio_web", domain],
     ["automation_sender_email", senderEmail],
     ["logo", data.logoUrl ?? ""],

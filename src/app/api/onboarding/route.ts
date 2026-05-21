@@ -60,7 +60,7 @@ export async function POST(request: Request): Promise<Response> {
       hoursOfOperation,
     };
 
-    if (!data.businessName || !data.phone || !data.email) {
+    if (!data.businessName) {
       return NextResponse.json(
         { error: "Faltan campos requeridos" },
         { status: 400 }
@@ -145,8 +145,6 @@ export async function POST(request: Request): Promise<Response> {
     const summary = [
       `✅ Onboarding completado`,
       `Negocio:  ${data.businessName}`,
-      `Email:    ${data.email}`,
-      `Teléfono: ${data.phone}`,
       `Dominio:  ${domain}`,
       ``,
       colorLines,
@@ -176,8 +174,8 @@ export async function POST(request: Request): Promise<Response> {
         contactId,
         businessName:       data.businessName ?? "",
         legalName:          data.legalName ?? "",
-        email:              data.email ?? "",
-        phone:              data.phone ?? "",
+        email:              "",
+        phone:              "",
         address:            data.address ?? "",
         city:               data.city ?? "",
         state:              data.state ?? "",
