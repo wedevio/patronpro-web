@@ -125,8 +125,9 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
         }),
       });
       if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Error al crear ticket");
+        const data = (await res.json()) as { error?: string; issues?: { message: string }[] };
+        const detail = data.issues?.map((i) => i.message).join(", ");
+        throw new Error(detail ?? data.error ?? "Error al crear ticket");
       }
       const ticket = (await res.json()) as SupportTicket;
       onSuccess(ticket);
@@ -534,6 +535,7 @@ function requestGhlUserData(): Promise<string | null> {
     };
     window.addEventListener("message", handler);
     // Ping the parent — Custom JS is listening and will respond with PP_USER_CTX
+    console.log("[PP] sending PP_READY to parent");
     window.parent.postMessage({ type: "PP_READY" }, "*");
   });
 }
@@ -565,6 +567,7 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
       let resolvedUserName: string | undefined;
 
       const encryptedData = await requestGhlUserData();
+      console.log("[PP] encryptedData received:", encryptedData ? `YES (${encryptedData.length} chars)` : "NULL (timeout)");
 
       if (encryptedData) {
         try {
@@ -579,6 +582,7 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
               email: string | null;
               userName: string | null;
             };
+            console.log("[PP] ghl-user-context result:", ctx);
             contactId = ctx.contact_id ?? undefined;
             resolvedUserName = ctx.userName ?? undefined;
             if (resolvedUserName) setUserName(resolvedUserName);
