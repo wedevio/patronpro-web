@@ -94,7 +94,14 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const ticket = await createTicket(parsed.data);
+    // Inject contactId from session — client never sends it (server-side concern)
+    const ticketData = {
+      ...parsed.data,
+      ghl_contact_id:
+        parsed.data.ghl_contact_id ??
+        (auth.type === "support" ? (auth.contactId ?? undefined) : undefined),
+    };
+    const ticket = await createTicket(ticketData);
 
     // Fire-and-forget GHL contact note
     void (async () => {
