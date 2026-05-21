@@ -79,12 +79,45 @@ function deriveDomain(data: Partial<OnboardingFormData>): string {
   return "";
 }
 
+async function fetchCalendarLinks(
+  locationId: string,
+  token: string
+): Promise<{ onSiteVisit: string; freeConsultation: string }> {
+  const result = { onSiteVisit: "", freeConsultation: "" };
+  try {
+    const res = await ghlFetch(`/calendars/?locationId=${locationId}`, {
+      method: "GET",
+      token,
+    });
+    if (!res.ok) return result;
+    const json = (await res.json()) as { calendars?: Array<{ id: string; name: string }> };
+    const calendars = json.calendars ?? [];
+
+    const BASE = "https://api.getpatronpro.com/widget/booking";
+
+    for (const cal of calendars) {
+      const name = cal.name.toLowerCase();
+      if (name.includes("on site") || name.includes("on-site")) {
+        result.onSiteVisit = `${BASE}/${cal.id}`;
+      } else if (name.includes("consultation") || name.includes("consulta")) {
+        result.freeConsultation = `${BASE}/${cal.id}`;
+      }
+    }
+  } catch (err) {
+    console.error("[customValues] fetchCalendarLinks failed:", err);
+  }
+  return result;
+}
+
 export async function syncCustomValues(
   locationId: string,
   data: Partial<OnboardingFormData> & { logoUrl?: string },
   token: string
 ): Promise<void> {
-  const existingValues = await listCustomValues(locationId, token);
+  const [existingValues, calendarLinks] = await Promise.all([
+    listCustomValues(locationId, token),
+    fetchCalendarLinks(locationId, token),
+  ]);
 
   const fullAddress = [data.address, data.city, data.state, data.zip, data.country]
     .filter(Boolean)
@@ -115,6 +148,9 @@ export async function syncCustomValues(
     ["brand_color_main", (!data.letUsChooseColors && data.primaryColor) ? data.primaryColor : ""],
     ["brand_color_accent", (!data.letUsChooseColors && data.secondaryColor) ? data.secondaryColor : ""],
     ["brand_color_complementary", (!data.letUsChooseColors && data.complementaryColor) ? data.complementaryColor : ""],
+    // Calendar booking links — auto-detected from location calendars
+    ["on_site_visit_calendar", calendarLinks.onSiteVisit],
+    ["free_consultation_calendar", calendarLinks.freeConsultation],
   ].filter(([, value]) => value !== "") as Array<[string, string]>;
 
   await Promise.all(
