@@ -18,6 +18,9 @@ export default function CheckoutModal({ plan, onClose }: Props) {
     ? "ymVCkxugIO4xA1dVFfu4"
     : "CEL74QjOfO6rg8jUFbos";
 
+  const selectedPlan = plan === "annual" ? "anual" : "monthly";
+  const iframeSrc = `https://api.getpatronpro.com/widget/form/${formId}?selected_plan=${selectedPlan}`;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -38,7 +41,7 @@ export default function CheckoutModal({ plan, onClose }: Props) {
         </button>
 
         <iframe
-          src={`https://api.getpatronpro.com/widget/form/${formId}`}
+          src={iframeSrc}
           style={{ width: "100%", height: "662px", border: "none", borderRadius: "24px" }}
           id={`inline-${formId}`}
           data-layout='{"id":"INLINE"}'
