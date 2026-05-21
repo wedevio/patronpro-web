@@ -6,9 +6,10 @@ export const dynamic = "force-dynamic";
 
 async function resolveContactFromUser(
   userId: string,
-  locationId: string,
   agencyToken: string
 ): Promise<{ contactId: string | null; userName: string | null }> {
+  // We always search in PatronPro's own location — that's where client contacts live
+  const patronproLocationId = process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
   try {
     // 1. Get GHL user info (name + email)
     const userRes = await fetch(
@@ -28,9 +29,9 @@ async function resolveContactFromUser(
 
     if (!email) return { contactId: null, userName };
 
-    // 2. Search contact by email in the location
+    // 2. Search contact by email in PatronPro's location
     const searchRes = await fetch(
-      `https://services.leadconnectorhq.com/contacts/search?locationId=${locationId}&query=${encodeURIComponent(email)}&limit=1`,
+      `https://services.leadconnectorhq.com/contacts/search?locationId=${patronproLocationId}&query=${encodeURIComponent(email)}&limit=1`,
       {
         headers: {
           Authorization: `Bearer ${agencyToken}`,
@@ -101,7 +102,7 @@ export async function POST(request: Request): Promise<Response> {
   let contactId: string | undefined;
   let userName: string | undefined;
   if (user_id) {
-    const resolved = await resolveContactFromUser(user_id, location_id, agencyToken);
+    const resolved = await resolveContactFromUser(user_id, agencyToken);
     contactId = resolved.contactId ?? undefined;
     userName = resolved.userName ?? undefined;
   }
