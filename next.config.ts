@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async headers() {
+    return [
+      {
+        // Allow GHL to embed /ghl/* routes in an iframe
+        source: "/ghl/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "ALLOWALL" },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors https://app.gohighlevel.com https://*.gohighlevel.com",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
