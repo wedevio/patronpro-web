@@ -83,8 +83,10 @@ async function fetchPatronProSignals(
     ]);
 
     if (smsRes.status === "fulfilled" && smsRes.value) {
-      const convs = (smsRes.value as Record<string, unknown>).conversations as unknown[];
-      result.smsSent = Array.isArray(convs) && convs.length > 0;
+      const convs = (smsRes.value as Record<string, unknown>).conversations as Record<string, unknown>[];
+      result.smsSent = Array.isArray(convs) && convs.some(
+        (c) => c.type === "TYPE_SMS" || c.lastMessageType === "TYPE_SMS"
+      );
     }
 
     if (apptRes.status === "fulfilled" && apptRes.value) {
