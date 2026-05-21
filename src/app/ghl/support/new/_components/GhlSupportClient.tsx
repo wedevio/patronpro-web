@@ -1,8 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { AlertCircle, Plus, TicketCheck, Loader2, X, ChevronLeft } from "lucide-react";
-import type { SupportTicket, TicketStatus, TicketPriority, TicketCategory } from "@/lib/support/types";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  AlertCircle,
+  Plus,
+  TicketCheck,
+  Loader2,
+  ChevronLeft,
+  Paperclip,
+  Send,
+  X,
+  ImageIcon,
+} from "lucide-react";
+import type {
+  SupportTicket,
+  TicketNote,
+  TicketStatus,
+  TicketPriority,
+  TicketCategory,
+} from "@/lib/support/types";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -29,7 +45,12 @@ const PRIORITY_LABELS: Record<TicketPriority, string> = {
 };
 
 const OPEN_STATUSES: TicketStatus[] = [
-  "new", "triage", "assigned", "waiting_client", "waiting_internal", "waiting_tech",
+  "new",
+  "triage",
+  "assigned",
+  "waiting_client",
+  "waiting_internal",
+  "waiting_tech",
 ];
 
 function statusBadgeClass(status: TicketStatus): string {
@@ -54,6 +75,16 @@ function priorityBadgeClass(priority: TicketPriority): string {
     urgent: "bg-red-100 text-red-800",
   };
   return map[priority] ?? "bg-gray-100 text-gray-700";
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -193,6 +224,289 @@ function TicketForm({ locationId, onSuccess, onCancel }: TicketFormProps) {
 }
 
 // ---------------------------------------------------------------------------
+// TicketDetail
+// ---------------------------------------------------------------------------
+
+interface TicketDetailProps {
+  ticket: SupportTicket;
+  onBack: () => void;
+}
+
+function TicketDetail({ ticket, onBack }: TicketDetailProps) {
+  const [notes, setNotes] = useState<TicketNote[]>(
+    (ticket.notes ?? []).filter((n) => n.is_public)
+  );
+  const [replyBody, setReplyBody] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom when notes change
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [notes]);
+
+  async function handleReply(e: React.FormEvent) {
+    e.preventDefault();
+    if (!replyBody.trim() && !attachment) return;
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      let attachmentUrl: string | null = null;
+
+      // Upload image if present
+      if (attachment) {
+        setUploading(true);
+        const formData = new FormData();
+        formData.append("file", attachment);
+        formData.append("ticket_id", ticket.id);
+        const upRes = await fetch("/api/support/upload", {
+          method: "POST",
+          body: formData,
+        });
+        setUploading(false);
+        if (!upRes.ok) {
+          const d = (await upRes.json()) as { error?: string };
+          throw new Error(d.error ?? "Error al subir imagen");
+        }
+        const upData = (await upRes.json()) as { url: string };
+        attachmentUrl = upData.url;
+      }
+
+      const body = attachmentUrl
+        ? `${replyBody.trim()}\n\n![adjunto](${attachmentUrl})`
+        : replyBody.trim();
+
+      const res = await fetch(`/api/support/tickets/${ticket.id}/notes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          author: "Cliente",
+          body,
+          is_public: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const d = (await res.json()) as { error?: string };
+        throw new Error(d.error ?? "Error al enviar respuesta");
+      }
+
+      const newNote = (await res.json()) as TicketNote;
+      setNotes((prev) => [...prev, newNote]);
+      setReplyBody("");
+      setAttachment(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al enviar respuesta");
+    } finally {
+      setSubmitting(false);
+      setUploading(false);
+    }
+  }
+
+  const publicNotes = notes.filter((n) => n.is_public);
+  const isResolved = ticket.status === "resolved" || ticket.status === "closed";
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
+        <button onClick={onBack} className="text-gray-400 hover:text-gray-600">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-[#1E2C46]">
+            #{ticket.ticket_number} — {ticket.title}
+          </p>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(ticket.status)}`}>
+              {STATUS_LABELS[ticket.status]}
+            </span>
+            <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(ticket.priority)}`}>
+              {PRIORITY_LABELS[ticket.priority]}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Thread */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {/* Original description */}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700">Vos</span>
+            <span className="text-[10px] text-gray-400">{formatDate(ticket.created_at)}</span>
+          </div>
+          <p className="text-xs text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+          {ticket.attachments.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {ticket.attachments.map((url, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
+                >
+                  <ImageIcon className="h-3 w-3" />
+                  Adjunto {i + 1}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Notes */}
+        {publicNotes.map((note) => {
+          const isClient = note.author === "Cliente";
+          return (
+            <div
+              key={note.id}
+              className={`rounded-lg border p-3 ${
+                isClient
+                  ? "border-orange-200 bg-orange-50 ml-6"
+                  : "border-blue-200 bg-blue-50 mr-6"
+              }`}
+            >
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-700">
+                  {isClient ? "Vos" : "PatronPro"}
+                </span>
+                <span className="text-[10px] text-gray-400">{formatDate(note.created_at)}</span>
+              </div>
+              <NoteBody body={note.body} />
+            </div>
+          );
+        })}
+
+        {publicNotes.length === 0 && (
+          <p className="py-4 text-center text-xs text-gray-400">
+            Aún no hay respuestas. Te contestamos pronto.
+          </p>
+        )}
+
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Reply form */}
+      {!isResolved ? (
+        <div className="border-t border-gray-100 px-4 py-3">
+          {error && (
+            <p className="mb-2 rounded bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>
+          )}
+
+          {attachment && (
+            <div className="mb-2 flex items-center gap-2 rounded bg-gray-50 px-3 py-2 text-xs text-gray-600">
+              <ImageIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+              <span className="min-w-0 flex-1 truncate">{attachment.name}</span>
+              <button
+                type="button"
+                onClick={() => setAttachment(null)}
+                className="shrink-0 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleReply} className="flex items-end gap-2">
+            <textarea
+              rows={2}
+              value={replyBody}
+              onChange={(e) => setReplyBody(e.target.value)}
+              placeholder="Escribí tu respuesta..."
+              className="flex-1 resize-none rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            />
+            <div className="flex flex-col gap-1.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded border border-gray-300 p-2 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                title="Adjuntar imagen"
+              >
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <button
+                type="submit"
+                disabled={submitting || uploading || (!replyBody.trim() && !attachment)}
+                className="rounded bg-[#F67A0A] p-2 text-white hover:bg-orange-600 disabled:opacity-60"
+                title="Enviar respuesta"
+              >
+                {submitting || uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </form>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              setAttachment(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
+      ) : (
+        <div className="border-t border-gray-100 px-4 py-3">
+          <p className="text-center text-xs text-gray-400">
+            Este ticket está {STATUS_LABELS[ticket.status].toLowerCase()}.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Renders note body — handles markdown image syntax
+function NoteBody({ body }: { body: string }) {
+  const imgRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = imgRegex.exec(body)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(
+        <p key={lastIndex} className="text-xs text-gray-700 whitespace-pre-wrap">
+          {body.slice(lastIndex, match.index).trim()}
+        </p>
+      );
+    }
+    parts.push(
+      <a key={match.index} href={match[1]} target="_blank" rel="noopener noreferrer">
+        <img
+          src={match[1]}
+          alt="adjunto"
+          className="mt-1.5 max-h-48 rounded border border-gray-200 object-contain"
+        />
+      </a>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < body.length) {
+    parts.push(
+      <p key={lastIndex} className="text-xs text-gray-700 whitespace-pre-wrap">
+        {body.slice(lastIndex).trim()}
+      </p>
+    );
+  }
+
+  return <>{parts.length > 0 ? parts : <p className="text-xs text-gray-700 whitespace-pre-wrap">{body}</p>}</>;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -200,7 +514,7 @@ interface Props {
   locationId?: string;
 }
 
-type View = "list" | "form" | "success";
+type View = "list" | "form" | "success" | "detail";
 
 export default function GhlSupportClient({ locationId: propLocationId }: Props) {
   const locationId = propLocationId ?? PATRONPRO_LOCATION_ID;
@@ -211,6 +525,8 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [createdTicket, setCreatedTicket] = useState<SupportTicket | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Auth on mount
   useEffect(() => {
@@ -250,6 +566,21 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
     if (authed) void loadTickets();
   }, [authed, loadTickets]);
 
+  async function openDetail(ticketId: string) {
+    setDetailLoading(true);
+    setView("detail");
+    try {
+      const res = await fetch(`/api/support/tickets/${ticketId}`);
+      if (!res.ok) throw new Error("No se pudo cargar el ticket");
+      const data = (await res.json()) as { ticket: SupportTicket };
+      setSelectedTicket(data.ticket);
+    } catch {
+      setView("list");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   // --- Auth error ---
   if (authError) {
     return (
@@ -282,7 +613,10 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
           </p>
           <p className="mt-1 text-sm text-green-700">{createdTicket.title}</p>
           <button
-            onClick={() => { setView("list"); setCreatedTicket(null); }}
+            onClick={() => {
+              setView("list");
+              setCreatedTicket(null);
+            }}
             className="mt-4 rounded border border-green-300 px-4 py-2 text-sm text-green-700 hover:bg-green-100"
           >
             Ver todos los tickets
@@ -307,8 +641,34 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
         </div>
         <TicketForm
           locationId={locationId}
-          onSuccess={(t) => { setCreatedTicket(t); setView("success"); void loadTickets(); }}
+          onSuccess={(t) => {
+            setCreatedTicket(t);
+            setView("success");
+            void loadTickets();
+          }}
           onCancel={() => setView("list")}
+        />
+      </div>
+    );
+  }
+
+  // --- Detail ---
+  if (view === "detail") {
+    if (detailLoading || !selectedTicket) {
+      return (
+        <div className="flex min-h-40 items-center justify-center p-6">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      );
+    }
+    return (
+      <div className="flex h-full flex-col">
+        <TicketDetail
+          ticket={selectedTicket}
+          onBack={() => {
+            setView("list");
+            setSelectedTicket(null);
+          }}
         />
       </div>
     );
@@ -343,7 +703,9 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
           </p>
         ) : (
           <ul className="space-y-2">
-            {open.map((t) => <TicketRow key={t.id} ticket={t} />)}
+            {open.map((t) => (
+              <TicketRow key={t.id} ticket={t} onClick={() => void openDetail(t.id)} />
+            ))}
           </ul>
         )}
       </div>
@@ -355,7 +717,9 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
             Cerrados ({closed.length})
           </h2>
           <ul className="space-y-2">
-            {closed.map((t) => <TicketRow key={t.id} ticket={t} />)}
+            {closed.map((t) => (
+              <TicketRow key={t.id} ticket={t} onClick={() => void openDetail(t.id)} />
+            ))}
           </ul>
         </div>
       )}
@@ -363,34 +727,32 @@ export default function GhlSupportClient({ locationId: propLocationId }: Props) 
   );
 }
 
-function TicketRow({ ticket: t }: { ticket: SupportTicket }) {
-  const [open, setOpen] = useState(false);
+function TicketRow({ ticket: t, onClick }: { ticket: SupportTicket; onClick: () => void }) {
   return (
     <li
       className="cursor-pointer rounded border border-gray-200 bg-white p-3 shadow-sm hover:border-gray-300"
-      onClick={() => setOpen((v) => !v)}
+      onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-gray-900">
             #{t.ticket_number} — {t.title}
           </p>
-          <p className="mt-0.5 text-xs text-gray-400">{t.submitted_by}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{formatDate(t.created_at)}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(t.status)}`}>
+          <span
+            className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${statusBadgeClass(t.status)}`}
+          >
             {STATUS_LABELS[t.status]}
           </span>
-          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(t.priority)}`}>
+          <span
+            className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${priorityBadgeClass(t.priority)}`}
+          >
             {PRIORITY_LABELS[t.priority]}
           </span>
         </div>
       </div>
-      {open && (
-        <p className="mt-2 border-t border-gray-100 pt-2 text-xs text-gray-600 whitespace-pre-wrap">
-          {t.description}
-        </p>
-      )}
     </li>
   );
 }
