@@ -271,6 +271,11 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                 mi cuenta
               </span>
             </label>
+            {errors.authorizeDomainPurchase && (
+              <p className="text-xs" style={{ color: "#ef4444" }}>
+                {errors.authorizeDomainPurchase}
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -2,10 +2,6 @@ import type { OnboardingFormData } from "./types";
 
 type ValidationErrors = Partial<Record<keyof OnboardingFormData, string>>;
 
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
 // Step 1: Domain
 export function validateStep1(
   data: Partial<OnboardingFormData>
@@ -17,6 +13,10 @@ export function validateStep1(
   }
   if (data.wantNewDomain && !data.desiredDomain?.trim()) {
     errors.desiredDomain = "Ingresá el dominio que te gustaría";
+  }
+  if (data.wantNewDomain && !data.authorizeDomainPurchase) {
+    errors.authorizeDomainPurchase =
+      "Tenés que autorizar la compra del dominio para continuar";
   }
 
   return errors;
@@ -36,12 +36,6 @@ export function validateStep2(
   if (!data.city?.trim()) errors.city = "La ciudad es requerida";
   if (!data.state?.trim()) errors.state = "El estado es requerido";
   if (!data.zip?.trim()) errors.zip = "El código postal es requerido";
-  if (!data.phone?.trim()) errors.phone = "El teléfono es requerido";
-  if (!data.email?.trim()) {
-    errors.email = "El email es requerido";
-  } else if (!isValidEmail(data.email)) {
-    errors.email = "El email no es válido";
-  }
 
   return errors;
 }

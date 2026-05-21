@@ -11,8 +11,6 @@ type Step2Data = Pick<
   | "state"
   | "zip"
   | "country"
-  | "phone"
-  | "email"
   | "ein"
 >;
 
@@ -88,7 +86,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
         </Field>
       </div>
 
-      <Field label="Dirección" required error={errors.address}>
+      <Field label="Dirección del Negocio" required error={errors.address}>
         <input
           className={inputClass}
           style={{ borderColor: errors.address ? "#ef4444" : "#e5e7eb" }}
@@ -133,29 +131,6 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
             value={data.country ?? "US"}
             onChange={(e) => onChange("country", e.target.value)}
             placeholder="US"
-          />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Field label="Teléfono" required error={errors.phone}>
-          <input
-            className={inputClass}
-            style={{ borderColor: errors.phone ? "#ef4444" : "#e5e7eb" }}
-            value={data.phone ?? ""}
-            onChange={(e) => onChange("phone", e.target.value)}
-            placeholder="+1 (210) 555-0100"
-            type="tel"
-          />
-        </Field>
-        <Field label="Email de contacto" required error={errors.email}>
-          <input
-            className={inputClass}
-            style={{ borderColor: errors.email ? "#ef4444" : "#e5e7eb" }}
-            value={data.email ?? ""}
-            onChange={(e) => onChange("email", e.target.value)}
-            placeholder="info@tunegocio.com"
-            type="email"
           />
         </Field>
       </div>
