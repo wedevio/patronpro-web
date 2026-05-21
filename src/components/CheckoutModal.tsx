@@ -28,7 +28,7 @@ export default function CheckoutModal({ plan, onClose }: Props) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="relative w-full max-w-[520px] max-h-[90vh] overflow-y-auto rounded-[24px] bg-white shadow-2xl"
+        className="relative w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-[24px] bg-white shadow-2xl"
         style={{ boxShadow: "0 32px 80px rgba(15,25,45,0.28)" }}
       >
         <button
