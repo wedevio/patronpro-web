@@ -124,7 +124,12 @@ Estas secciones en este orden — varía el layout interno, no la estructura:
 7. TESTIMONIOS: 3 reseñas realistas con nombre, ciudad y estrellitas ★★★★★
 8. CTA DE URGENCIA: fondo oscuro, teléfono grande y visible, llamado a la acción
 9. CONTACTO: dirección, teléfono, email, horarios + formulario {{custom_values.landing_form}}
-10. FOOTER: logo cuadrado del cliente, descripción breve, links /privacy-policy y /terms, teléfono
+10. FOOTER: logo cuadrado del cliente, descripción breve, links {{custom_values.dominio_web}}/privacy-policy y {{custom_values.dominio_web}}/terms-conditions, teléfono
+
+CRÍTICO — privacy y terms: SIEMPRE usa estos links exactos, sin hardcodear dominios:
+<a href="{{custom_values.dominio_web}}/privacy-policy">Privacy Policy</a>
+<a href="{{custom_values.dominio_web}}/terms-conditions">Terms & Conditions</a>
+NUNCA uses dominios de GoHighLevel (.myshopify, .gohighlevel.com, ni ningún otro hardcodeado).
 
 =================================================================
 DISEÑO — ESTILO CONTRACTOR LOCAL
