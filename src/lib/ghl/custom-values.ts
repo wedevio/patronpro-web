@@ -40,7 +40,7 @@ export async function upsertCustomValue(
     const res = await ghlFetch(`/locations/${locationId}/customValues`, {
       method: "POST",
       token,
-      body: JSON.stringify({ name: fieldKey, fieldKey, value }),
+      body: JSON.stringify({ name: fieldKey, value }),
     });
     if (!res.ok) {
       console.error(`[customValues] POST ${fieldKey} failed:`, res.status, await res.text());

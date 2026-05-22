@@ -175,7 +175,8 @@ export async function POST(request: Request): Promise<Response> {
                 { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
               ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
               await upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
-              console.info(`[generate-images] GHL custom value set: ${customValueKey} = ${ghlUrl}`);
+            } else {
+              console.error(`[generate-images] GHL media upload failed for ${filename}`);
             }
           };
 
