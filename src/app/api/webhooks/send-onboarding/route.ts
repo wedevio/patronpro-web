@@ -194,7 +194,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // ── Parse ─────────────────────────────────────────────────────────────────
-    const payload      = (await request.json()) as WebhookPayload;
+    const raw    = await request.text();
+    console.info("[send-onboarding] raw payload:", raw);
+    const payload      = JSON.parse(raw) as WebhookPayload;
     const email        = payload.email?.toLowerCase().trim() ?? "";
     const phone        = payload.phone        ?? "";
     const businessName = payload.businessName?.trim() || "";
