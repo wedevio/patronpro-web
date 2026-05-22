@@ -43,9 +43,12 @@ export async function POST(
   try {
     const note = await addNote(id, parsed.data);
 
+    console.log(`[notes] auth=${auth} is_public=${parsed.data.is_public}`);
+
     // Notify client when staff posts a public note
     if (auth === "staff" && parsed.data.is_public) {
       const ticket = await getTicket(id);
+      console.log(`[notes] ticket found=${!!ticket} ghl_contact_id=${ticket?.ghl_contact_id}`);
       if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number) {
         await notifyClientNote({
           ghlLocationId: ticket.ghl_location_id,
