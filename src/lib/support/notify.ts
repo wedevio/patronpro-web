@@ -7,6 +7,10 @@
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { ghlFetch } from "@/lib/ghl/client";
 
+// PatronPro's own GHL location — all support contacts are upserted here
+const PATRONPRO_LOCATION_ID =
+  process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NotifyNoteParams {
@@ -73,7 +77,7 @@ async function sendEmail(
  * Notify client when staff posts a public note on their ticket.
  */
 export async function notifyClientNote({
-  ghlLocationId,
+  ghlLocationId: _ghlLocationId,
   ghlContactId,
   creatorEmail,
   ticketNumber,
@@ -81,7 +85,7 @@ export async function notifyClientNote({
   noteBody,
 }: NotifyNoteParams): Promise<void> {
   try {
-    const token     = await getLocationAccessToken(ghlLocationId);
+    const token     = await getLocationAccessToken(PATRONPRO_LOCATION_ID);
     const truncated = noteBody.length > 300 ? noteBody.slice(0, 297) + "..." : noteBody;
 
     await sendEmail(ghlContactId, token, {
@@ -106,7 +110,7 @@ export async function notifyClientNote({
  * Notify client when their ticket status changes (resolved, closed, etc.).
  */
 export async function notifyClientStatus({
-  ghlLocationId,
+  ghlLocationId: _ghlLocationId,
   ghlContactId,
   creatorEmail,
   ticketNumber,
@@ -114,7 +118,7 @@ export async function notifyClientStatus({
   newStatus,
 }: NotifyStatusParams): Promise<void> {
   try {
-    const token       = await getLocationAccessToken(ghlLocationId);
+    const token       = await getLocationAccessToken(PATRONPRO_LOCATION_ID);
     const statusLabel = STATUS_LABELS[newStatus] ?? newStatus;
 
     await sendEmail(ghlContactId, token, {
