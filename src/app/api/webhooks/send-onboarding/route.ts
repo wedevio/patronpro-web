@@ -49,9 +49,14 @@ export const dynamic = "force-dynamic";
 interface WebhookPayload {
   email?:        string;
   phone?:        string;
+  // GHL sends the full contact payload with snake_case keys
+  first_name?:   string;
+  last_name?:    string;
+  full_name?:    string;
+  company_name?: string;
+  // Legacy: custom body fields (kept for backwards compat)
   firstName?:    string;
-  lastName?:     string;
-  name?:         string; // fallback if firstName is empty
+  name?:         string;
   businessName?: string;
 }
 
@@ -199,12 +204,10 @@ export async function POST(request: Request): Promise<Response> {
     const payload      = JSON.parse(raw) as WebhookPayload;
     const email        = payload.email?.toLowerCase().trim() ?? "";
     const phone        = payload.phone        ?? "";
-    const businessName = payload.businessName?.trim() || "";
 
-    // firstName: use explicit field, fallback to parsing full name
-    const rawFirst = payload.firstName?.trim() || "";
-    const rawName  = payload.name?.trim() || "";
-    const firstName = rawFirst || rawName.split(" ")[0] || "";
+    // GHL sends snake_case keys in the full contact payload
+    const firstName    = (payload.first_name  || payload.firstName || payload.full_name?.split(" ")[0] || "").trim();
+    const businessName = (payload.company_name || payload.businessName || "").trim();
 
     console.info("[send-onboarding] payload received:", { email, phone, firstName, businessName });
 
