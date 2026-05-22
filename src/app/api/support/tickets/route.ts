@@ -11,8 +11,8 @@ import { getLocationAccessToken } from "@/lib/ghl/oauth";
 
 export const dynamic = "force-dynamic";
 
-type AuthResult =
-  | { type: "support"; locationId: string; contactId?: string }
+  type AuthResult =
+  | { type: "support"; locationId: string; contactId?: string; email?: string }
   | { type: "pp"; email: string; sub: string };
 
 async function getAuth(): Promise<AuthResult | null> {
@@ -22,7 +22,7 @@ async function getAuth(): Promise<AuthResult | null> {
   if (supportToken) {
     try {
       const session = await verifySupportSession(supportToken);
-      return { type: "support", locationId: session.locationId, contactId: session.contactId };
+      return { type: "support", locationId: session.locationId, contactId: session.contactId, email: session.email };
     } catch {
       // fall through
     }
@@ -94,12 +94,15 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    // Inject contactId from session — client never sends it (server-side concern)
+    // Inject contactId and creator_email from session — client never sends these (server-side concern)
     const ticketData = {
       ...parsed.data,
       ghl_contact_id:
         parsed.data.ghl_contact_id ??
         (auth.type === "support" ? (auth.contactId ?? undefined) : undefined),
+      creator_email:
+        parsed.data.creator_email ??
+        (auth.type === "support" ? auth.email : auth.email) ?? undefined,
     };
     const ticket = await createTicket(ticketData);
 

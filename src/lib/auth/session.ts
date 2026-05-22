@@ -22,11 +22,13 @@ export async function signSupportSession(payload: {
   locationId: string;
   contactId?: string;
   userName?: string;
+  email?: string;
 }): Promise<string> {
   return new SignJWT({
     locationId: payload.locationId,
     contactId: payload.contactId,
     userName: payload.userName,
+    email: payload.email,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -39,12 +41,13 @@ export async function signSupportSession(payload: {
  */
 export async function verifySupportSession(
   token: string
-): Promise<{ locationId: string; contactId?: string; userName?: string }> {
+): Promise<{ locationId: string; contactId?: string; userName?: string; email?: string }> {
   const { payload } = await jwtVerify(token, getSupportSecret());
 
   const locationId = payload["locationId"];
   const contactId = payload["contactId"];
   const userName = payload["userName"];
+  const email = payload["email"];
 
   if (typeof locationId !== "string" || !locationId) {
     throw new Error("Invalid support session: missing locationId");
@@ -54,6 +57,7 @@ export async function verifySupportSession(
     locationId,
     contactId: typeof contactId === "string" ? contactId : undefined,
     userName: typeof userName === "string" ? userName : undefined,
+    email: typeof email === "string" ? email : undefined,
   };
 }
 

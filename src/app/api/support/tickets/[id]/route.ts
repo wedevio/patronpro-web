@@ -96,10 +96,11 @@ export async function PATCH(
 
     // Notify client on relevant status changes
     const NOTIFY_STATUSES = new Set(["resolved", "closed", "waiting_client"]);
-    if (parsed.data.status && NOTIFY_STATUSES.has(parsed.data.status) && ticket.ghl_contact_id) {
+    if (parsed.data.status && NOTIFY_STATUSES.has(parsed.data.status) && ticket.ghl_contact_id && ticket.creator_email) {
       await notifyClientStatus({
         ghlLocationId: ticket.ghl_location_id,
         ghlContactId:  ticket.ghl_contact_id,
+        creatorEmail:  ticket.creator_email,
         ticketNumber:  ticket.ticket_number,
         ticketTitle:   ticket.title,
         newStatus:     parsed.data.status,

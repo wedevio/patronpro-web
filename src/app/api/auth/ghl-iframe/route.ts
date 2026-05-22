@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 async function resolveContactFromUser(
   userId: string,
   agencyToken: string
-): Promise<{ contactId: string | null; userName: string | null }> {
+): Promise<{ contactId: string | null; userName: string | null; email: string | null }> {
   // We always search in PatronPro's own location — that's where client contacts live
   const patronproLocationId = process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
   try {
@@ -22,12 +22,12 @@ async function resolveContactFromUser(
         },
       }
     );
-    if (!userRes.ok) return { contactId: null, userName: null };
+    if (!userRes.ok) return { contactId: null, userName: null, email: null };
     const userData = (await userRes.json()) as { name?: string; email?: string };
     const email = userData.email ?? null;
     const userName = userData.name ?? null;
 
-    if (!email) return { contactId: null, userName };
+    if (!email) return { contactId: null, userName, email: null };
 
     // 2. Upsert contact in PatronPro's location — creates if not exists
     const locationToken = await getLocationAccessToken(patronproLocationId);
@@ -49,13 +49,13 @@ async function resolveContactFromUser(
         }),
       }
     );
-    if (!upsertRes.ok) return { contactId: null, userName };
+    if (!upsertRes.ok) return { contactId: null, userName, email };
     const upsertData = (await upsertRes.json()) as { contact?: { id: string } };
     const contactId = upsertData.contact?.id ?? null;
 
-    return { contactId, userName };
+    return { contactId, userName, email };
   } catch {
-    return { contactId: null, userName: null };
+    return { contactId: null, userName: null, email: null };
   }
 }
 
@@ -110,16 +110,19 @@ export async function POST(request: Request): Promise<Response> {
   // Resolve contact from GHL user ID
   let contactId: string | undefined;
   let userName: string | undefined;
+  let creatorEmail: string | undefined;
   if (user_id) {
     const resolved = await resolveContactFromUser(user_id, agencyToken);
     contactId = resolved.contactId ?? undefined;
     userName = resolved.userName ?? undefined;
+    creatorEmail = resolved.email ?? undefined;
   }
 
   const token = await signSupportSession({
     locationId: location_id,
     contactId,
     userName,
+    email: creatorEmail,
   });
 
   const response = NextResponse.json({ success: true, locationId: location_id, userName: userName ?? null });

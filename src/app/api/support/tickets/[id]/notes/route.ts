@@ -46,10 +46,11 @@ export async function POST(
     // Notify client when a public note is posted (staff reply)
     if (parsed.data.is_public && auth !== null) {
       const ticket = await getTicket(id);
-      if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number) {
+      if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number && ticket.creator_email) {
         await notifyClientNote({
           ghlLocationId: ticket.ghl_location_id,
           ghlContactId:  ticket.ghl_contact_id,
+          creatorEmail:  ticket.creator_email,
           ticketNumber:  ticket.ticket_number,
           ticketTitle:   ticket.title,
           noteBody:      parsed.data.body,

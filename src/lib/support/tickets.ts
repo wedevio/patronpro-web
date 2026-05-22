@@ -43,6 +43,7 @@ export async function createTicket(
       ghl_contact_id: data.ghl_contact_id,
       ghl_location_id: data.ghl_location_id,
       account_id: accountId,
+      creator_email: data.creator_email,
       submitted_by: data.submitted_by,
       title: data.title,
       description: data.description,

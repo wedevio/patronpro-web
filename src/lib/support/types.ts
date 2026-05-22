@@ -52,6 +52,7 @@ export interface SupportTicket {
   ghl_contact_id: string | null;
   ghl_location_id: string;
   account_id: string | null;
+  creator_email: string | null;
   submitted_by: string;
   title: string;
   description: string;
@@ -76,6 +77,7 @@ export interface SupportTicket {
 export const CreateTicketSchema = z.object({
   ghl_contact_id: z.string().optional(),
   ghl_location_id: z.string().min(1),
+  creator_email: z.string().email().optional(),
   submitted_by: z.string().min(1),
   title: z.string().min(3).max(200),
   description: z.string().min(10).max(5000),
