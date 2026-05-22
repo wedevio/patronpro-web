@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyPpSession } from "@/lib/auth/session";
+import { requirePpSession } from "@/lib/auth/require-session";
 import { getAdminClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
@@ -10,17 +9,8 @@ export async function PATCH(
   { params }: { params: Promise<{ locationId: string }> }
 ): Promise<Response> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("pp-session")?.value;
-    if (!token) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    try {
-      await verifyPpSession(token);
-    } catch {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
+    const auth = await requirePpSession();
+    if (auth instanceof NextResponse) return auth;
 
     const { locationId } = await params;
     if (!locationId) {

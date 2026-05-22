@@ -153,7 +153,8 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       account_submissions ( * ),
       account_checklist ( item_id, checked )
     `)
-    .order("onboarding_at", { ascending: false });
+    .order("onboarding_at", { ascending: false })
+    .limit(200);
 
   if (error) throw new Error(`getAllSubmissions failed: ${error.message}`);
   if (!accounts?.length) return [];

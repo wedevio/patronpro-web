@@ -50,8 +50,8 @@ async function saveRefreshToken(token: string): Promise<void> {
 }
 
 export async function getAgencyAccessToken(): Promise<string> {
-  // Return cached token if still valid (with 5 min buffer)
-  if (cachedAgencyToken && Date.now() < cachedAgencyToken.expiresAt - 5 * 60 * 1000) {
+  // Return cached token if still valid (with 60s buffer to avoid race on cold starts)
+  if (cachedAgencyToken && Date.now() < cachedAgencyToken.expiresAt - 60 * 1000) {
     return cachedAgencyToken.token;
   }
 

@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifyPpSession } from "@/lib/auth/session";
+import { requirePpSession } from "@/lib/auth/require-session";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(): Promise<Response> {
-  const cookieStore = await cookies();
-  const ppToken = cookieStore.get("pp-session")?.value;
-  if (!ppToken) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  try {
-    await verifyPpSession(ppToken);
-  } catch {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
+  const auth = await requirePpSession();
+  if (auth instanceof NextResponse) return auth;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
