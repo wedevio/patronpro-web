@@ -528,15 +528,18 @@ export async function POST(request: Request): Promise<Response> {
       contactImageUrl,
     });
 
-    const chatRes = await fetch("https://api.openai.com/v1/completions", {
+    const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${openaiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5.3-codex",
-        prompt: `${SYSTEM_PROMPT}\n\n${userPrompt}`,
+        model: "gpt-5.4",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
         max_tokens: 16000,
         temperature: 0.7,
       }),
@@ -553,10 +556,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const chatJson = (await chatRes.json()) as {
-      choices?: Array<{ text?: string; message?: { content?: string } }>;
+      choices?: Array<{ message?: { content?: string } }>;
     };
 
-    const rawHtml = chatJson.choices?.[0]?.text ?? chatJson.choices?.[0]?.message?.content ?? "";
+    const rawHtml = chatJson.choices?.[0]?.message?.content ?? "";
     const html = rawHtml.replace(/^```html\s*/i, "").replace(/\s*```$/, "").trim();
 
     if (!html) {
