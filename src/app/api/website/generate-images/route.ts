@@ -42,7 +42,7 @@ function buildImagePrompt(subject: "hero" | "about" | "contact", p: GenerateImag
 async function generateImage(
   prompt: string,
   openaiKey: string,
-): Promise<string | null> {
+): Promise<{ type: "b64"; data: string } | { type: "url"; data: string } | null> {
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
@@ -54,7 +54,6 @@ async function generateImage(
       prompt,
       n: 1,
       size: "1536x1024",
-      response_format: "b64_json",
     }),
   });
 
@@ -65,7 +64,11 @@ async function generateImage(
   }
 
   const json = (await res.json()) as OpenAIImageResponse;
-  return json.data?.[0]?.b64_json ?? null;
+  const item = json.data?.[0];
+  if (!item) return null;
+  if (item.b64_json) return { type: "b64", data: item.b64_json };
+  if (item.url)     return { type: "url", data: item.url };
+  return null;
 }
 
 async function uploadImageToSupabase(
@@ -125,11 +128,26 @@ export async function POST(request: Request): Promise<Response> {
     const subjects = ["hero", "about", "contact"] as const;
     for (const subject of subjects) {
       const prompt = buildImagePrompt(subject, body);
-      const b64 = await generateImage(prompt, openaiKey);
+      const result = await generateImage(prompt, openaiKey);
 
-      if (b64) {
-        const path = `${locationId}/${subject}.png`;
-        const url = await uploadImageToSupabase(b64, path);
+      if (result) {
+        let url: string | null = null;
+        if (result.type === "b64") {
+          const path = `${locationId}/${subject}.png`;
+          url = await uploadImageToSupabase(result.data, path);
+        } else {
+          // URL response — re-upload to Supabase for permanence
+          try {
+            const imgRes = await fetch(result.data);
+            const buffer = Buffer.from(await imgRes.arrayBuffer());
+            const path = `${locationId}/${subject}.png`;
+            await db.storage.from("website-assets").upload(path, buffer, { contentType: "image/png", upsert: true });
+            const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
+            url = urlData.publicUrl;
+          } catch {
+            url = result.data; // fallback: use OpenAI URL directly (expires)
+          }
+        }
         results[subject] = url;
       }
     }
