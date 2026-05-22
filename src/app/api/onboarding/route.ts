@@ -222,12 +222,13 @@ export async function POST(request: Request): Promise<Response> {
           city:             data.city ?? "",
           state:            data.state ?? "",
           zip:              data.zip ?? "",
-          tagline:          data.websiteTagline ?? "",
-          services:         data.websiteServices ?? [],
-          primaryColor:     data.primaryColor ?? "#1E2C46",
-          secondaryColor:   data.secondaryColor ?? "#F67D0A",
+          tagline:            data.websiteTagline ?? "",
+          services:           data.websiteServices ?? [],
+          primaryColor:       data.primaryColor ?? "#1E2C46",
+          secondaryColor:     data.secondaryColor ?? "#F67D0A",
+          complementaryColor: data.complementaryColor ?? "#FFFFFF",
           domain,
-          hoursOfOperation: data.hoursOfOperation ?? null,
+          hoursOfOperation:   data.hoursOfOperation ?? null,
         }),
       }).catch((err) => console.error("[onboarding] website generation trigger failed:", err));
     }

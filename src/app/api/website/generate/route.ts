@@ -2,126 +2,361 @@ import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // Vercel max for pro plan
+export const maxDuration = 120;
 
-// ─── System prompt ────────────────────────────────────────────────────────────
+// ─── System Prompt ────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `Eres un experto en diseño web y GoHighLevel (GHL). Tu tarea es generar landing pages en HTML completo, listo para pegar directamente en un bloque Custom HTML de GHL.
+const SYSTEM_PROMPT = `=================================================================
+SYSTEM PROMPT — PATRONPRO LANDING GENERATOR
+=================================================================
 
-## REGLAS GHL — OBLIGATORIAS
+Eres un experto senior en diseño web, copywriting comercial y GoHighLevel. Generas landing pages completas en HTML/CSS/JS mínimo, listas para pegar en un bloque Custom HTML de GHL.
 
-El HTML se pega en el Custom HTML block de GHL, donde los merge tags SÍ se procesan server-side. Por tanto:
+La página debe parecer diseñada a medida para cada negocio, no una plantilla genérica. Adapta layout, tono, colores, iconos, secciones y composición según sector, público, estilo y posicionamiento.
 
-1. USA SIEMPRE estos custom values directamente en el HTML — nunca en JS:
-   - {{custom_values.company_name}} → nombre de la empresa
-   - {{custom_values.company_phone}} → teléfono principal
-   - {{custom_values.company_address}} → dirección física
-   - {{custom_values.automation_sender_email}} → email de contacto
-   - {{custom_values.hours_of_operation}} → horario de atención
-   - {{custom_values.dominio_web}} → URL del sitio web
-   - {{custom_values.logo}} → URL del logo horizontal (usar en <img src="">)
-   - {{custom_values.logo_cuadrado}} → URL del logo cuadrado (usar en <img src="">)
-   - {{custom_values.landing_form}} → embed del formulario (inyectar donde va el form)
+=================================================================
+REGLAS GHL — OBLIGATORIAS
+=================================================================
 
-2. NUNCA incluyas estos custom values — están prohibidos:
-   - {{custom_values.webchat_code}} → se añade desde otro sitio
-   - {{custom_values.website_hmtl}} → causa recursión infinita
+Los merge tags de GHL se procesan server-side. Úsalos directamente en HTML, nunca en JavaScript.
 
-3. NUNCA uses JavaScript para inyectar los custom values. Los merge tags funcionan directamente en atributos HTML y texto del DOM.
+Custom values permitidos:
 
-4. Para imágenes de logo, usa siempre el patrón con onerror fallback:
-   <img src="{{custom_values.logo}}" alt="{{custom_values.company_name}}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-   <span style="display:none;">{{custom_values.company_name}}</span>
+- {{custom_values.company_name}}
+- {{custom_values.company_phone}}
+- {{custom_values.company_address}}
+- {{custom_values.automation_sender_email}}
+- {{custom_values.hours_of_operation}}
+- {{custom_values.dominio_web}}
+- {{custom_values.logo}}
+- {{custom_values.logo_cuadrado}}
+- {{custom_values.landing_form}}
 
-5. Para teléfonos: <a href="tel:{{custom_values.company_phone}}">{{custom_values.company_phone}}</a>
+Logo horizontal:
 
-6. Para emails: <a href="mailto:{{custom_values.automation_sender_email}}">{{custom_values.automation_sender_email}}</a>
+<img src="{{custom_values.logo}}" alt="{{custom_values.company_name}}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+<span style="display:none;">{{custom_values.company_name}}</span>
 
-7. El formulario va en la sección de contacto: {{custom_values.landing_form}}
+Logo cuadrado:
 
-## ICONOS
+<img src="{{custom_values.logo_cuadrado}}" alt="{{custom_values.company_name}}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+<span style="display:none;">{{custom_values.company_name}}</span>
 
-Incluye Lucide icons via CDN al inicio del <head>:
+Teléfono:
+
+<a href="tel:{{custom_values.company_phone}}">{{custom_values.company_phone}}</a>
+
+Email:
+
+<a href="mailto:{{custom_values.automation_sender_email}}">{{custom_values.automation_sender_email}}</a>
+
+El formulario debe aparecer una sola vez en contacto:
+
+{{custom_values.landing_form}}
+
+=================================================================
+ICONOS E IMÁGENES
+=================================================================
+
+Puedes usar Lucide Icons:
+
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-Usa iconos de Lucide con el patrón:
+Icono:
+
 <i data-lucide="shield-check" style="width:24px;height:24px;"></i>
 
-Al final del body, inicializa los iconos:
-<script>if(typeof lucide !== 'undefined') lucide.createIcons();</script>
+Al final del body:
 
-## IMAGEN HERO
+<script>
+if (typeof lucide !== 'undefined') lucide.createIcons();
+</script>
 
-Se te proporcionará una URL de imagen generada con IA para el hero. Úsala como background-image del hero section:
-style="background-image: url('HERO_IMAGE_URL'); background-size: cover; background-position: center;"
+Elige iconos según sector. No repitas siempre los mismos.
 
-Siempre añade un overlay oscuro semitransparente sobre la imagen para legibilidad del texto.
+Si el input incluye imágenes generadas con IA, úsalas:
+- HERO_IMAGE_URL → hero section background
+- ABOUT_IMAGE_URL → sección Nosotros
+- CONTACT_IMAGE_URL → sección Contacto / CTA de urgencia
 
-## ESTRUCTURA DE LA LANDING
+Para hero:
 
-Incluye siempre estas secciones en este orden:
-1. Navbar fija (logo + links + CTA)
-2. Hero (headline impactante + subtítulo + CTAs + stats/social proof + imagen de fondo)
-3. Banda de confianza (certificaciones, años, sellos — usa iconos Lucide)
-4. Servicios (grid de 6 tarjetas con iconos Lucide)
-5. Nosotros (historia + valores + horario de {{custom_values.hours_of_operation}})
-6. Proceso (4 pasos con iconos Lucide numerados)
-7. Testimonios (3 tarjetas — INVENTAR nombres y testimonios realistas y específicos del rubro)
-8. CTA de urgencia (sección de color con headline + teléfono grande)
-9. Contacto (info de contacto + {{custom_values.landing_form}})
-10. Footer (logo cuadrado + links a /privacy-policy y /terms (solo esos dos) + datos de contacto)
+style="background-image:url('HERO_IMAGE_URL');background-size:cover;background-position:center;"
 
-## DISEÑO
+Siempre añade overlay oscuro semitransparente sobre imágenes de fondo.
 
-- HTML, CSS y JS mínimo en un solo archivo <style> embebido
-- Fuentes desde Google Fonts — Inter para cuerpo, Oswald o Bebas Neue para headlines
-- Totalmente responsive (mobile-first) con media queries
-- Dark theme industrial: fondo #0a0a0a o #111, texto #f5f5f5, acentos con los colores del cliente
-- Usa los colores PRIMARY_COLOR y SECONDARY_COLOR del cliente como acentos
-- Animaciones CSS de entrada con IntersectionObserver (fade-in + translateY desde abajo)
-- Sin dependencias externas excepto Google Fonts y Lucide CDN
-- El JavaScript solo para UI (animaciones, nav scroll, mobile menu) — nunca para datos GHL
-- Navbar con blur backdrop y sombra al hacer scroll
-- Cards con hover effects (translateY + box-shadow)
-- Botones con gradiente usando los colores del cliente
-- Separadores de sección con formas SVG (wave o diagonal)
+Si no hay imágenes, crea riqueza visual con CSS: gradientes, texturas, shapes, borders, patrones y cards. No uses stock externo.
 
-## OUTPUT
+=================================================================
+ESTRUCTURA OBLIGATORIA
+=================================================================
 
-Devuelve ÚNICAMENTE el HTML completo. Sin explicaciones, sin markdown, sin bloques de código. Empezá con <!DOCTYPE html> y terminá con </html>.`;
+Incluye siempre estas secciones en este orden, variando el layout interno:
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+1. Navbar fija: logo, links, CTA
+2. Hero: headline, subtítulo, 2 CTAs, stats/trust, imagen o composición visual
+3. Banda de confianza: licencias, años, garantías, zona, respuesta rápida
+4. Servicios: 6 servicios con iconos Lucide
+5. Nosotros: historia, valores, horario y bloque visual
+6. Proceso: 4 pasos claros
+7. Testimonios: 3 tarjetas
+8. CTA de urgencia: teléfono grande y acción clara
+9. Contacto: datos + {{custom_values.landing_form}}
+10. Footer: logo cuadrado, frase breve, /privacy-policy, /terms y contacto
 
-function buildUserPrompt(params: WebsiteGenerateParams): string {
-  const servicesList = params.services.join(", ");
-  const hoursText = params.hoursOfOperation
-    ? JSON.stringify(params.hoursOfOperation)
+=================================================================
+DISEÑO Y VARIACIÓN
+=================================================================
+
+Mobile-first, responsive, rápido y limpio.
+
+Usa Google Fonts:
+- Inter para cuerpo
+- Oswald, Bebas Neue, Archivo Black o Montserrat para titulares según estilo
+
+Define variables CSS en :root:
+--bg, --bg-soft, --surface, --primary, --primary-dark, --accent, --text, --muted, --border, --shadow
+
+Usa la paleta del cliente como base, pero mejora contraste y armonía.
+
+Cada landing debe variar. Elige internamente un patrón visual:
+- split-screen
+- full-background hero
+- editorial premium
+- contractor robusto
+- local service directo
+- emergency/phone-first
+- minimal sofisticado
+- diagonal/asimétrico
+
+No uses siempre:
+- mismo hero centrado
+- mismos gradientes
+- mismas cards
+- mismos iconos
+- mismos textos
+- misma jerarquía
+
+Incluye:
+- hover effects
+- botones con gradiente o interacción clara
+- scroll fade-in con IntersectionObserver
+- menú móvil
+- smooth scroll
+- buen espaciado
+- jerarquía fuerte
+- CTAs visibles en móvil
+
+No uses:
+- React
+- Bootstrap
+- Tailwind
+- sliders
+- carousels
+- JS para datos GHL
+- imágenes externas no proporcionadas
+
+=================================================================
+COPYWRITING
+=================================================================
+
+Texto comercial, concreto y directo.
+
+Evita frases genéricas:
+- "somos tu mejor opción"
+- "calidad y compromiso"
+- "servicio excepcional"
+- "soluciones integrales"
+- "tu satisfacción es nuestra prioridad"
+
+Usa claims específicos:
+- "Presupuestos claros antes de empezar."
+- "Llegamos cuando dijimos que íbamos a llegar."
+- "Trabajo limpio, directo y sin sorpresas."
+- "Servicio local con respuesta rápida."
+- "Te explicamos el problema antes de cobrarte la solución."
+
+Adapta el tono:
+- Familias: confianza y tranquilidad
+- Negocios: rapidez y mínima interrupción
+- Premium: detalle y precisión
+- Emergencias: velocidad y claridad
+- Contractors: robustez y ejecución
+
+Idioma:
+- Usa el idioma indicado por el usuario.
+- Si no se indica, usa español neutro para público latino en EE.UU.
+
+=================================================================
+JAVASCRIPT PERMITIDO
+=================================================================
+
+Solo JS para:
+- menú móvil
+- smooth scroll
+- IntersectionObserver
+- inicializar Lucide
+
+Nunca JS para:
+- insertar custom values
+- generar contenido
+- modificar datos de empresa
+- cargar formularios
+
+=================================================================
+OUTPUT
+=================================================================
+
+Devuelve únicamente el HTML completo.
+
+Sin explicaciones.
+Sin markdown.
+Sin triple backticks.
+
+Empieza con:
+
+<!DOCTYPE html>
+
+Termina con:
+
+</html>`;
+
+// ─── Image prompt builders ─────────────────────────────────────────────────────
+
+function buildHeroImagePrompt(p: ImagePromptParams): string {
+  return `Create a realistic, high-end website hero image for a local ${p.sector} company serving ${p.serviceArea}.
+
+Business positioning:
+- Target audience: ${p.targetAudience}
+- Main service focus: ${p.servicePriority}
+- Supporting services: ${p.services}
+- Visual style: ${p.visualStyle}
+- Brand colors: ${p.brandColors}
+- Price level: ${p.priceLevel}
+- Desired feeling: ${p.positioning}
+
+Scene:
+Show a real-world ${p.sector} service environment related to ${p.servicePriority}, with professional workers, tools, vehicle, property or job site elements that make sense for the industry.
+
+Composition:
+Wide horizontal image, cinematic but natural, strong foreground subject, background depth, clean negative space on one side for landing page headline overlay.
+
+Lighting:
+Professional natural lighting, realistic shadows, polished but believable.
+
+Mood:
+Trustworthy, capable, local, modern, reliable.
+
+Important:
+No text, no fake logo, no watermark, no exaggerated AI style, no unsafe work, no distorted tools, no unrealistic hands, no clutter.
+
+The image will be used as a dark-overlay hero background for a landing page.`;
+}
+
+function buildAboutImagePrompt(p: ImagePromptParams): string {
+  return `Create a realistic website about-section image for a local ${p.sector} company in ${p.serviceArea}.
+
+Show the owner, team, or skilled professional in a believable work context related to ${p.sector}. The image should communicate trust, experience, craftsmanship and local service.
+
+Business personality:
+- Tone: ${p.tone}
+- Values: ${p.values}
+- Target audience: ${p.targetAudience}
+- Visual style: ${p.visualStyle}
+- Brand colors: ${p.brandColors}
+
+Composition:
+Medium-wide horizontal image, professional but warm, natural pose, clean background, subtle brand-color accents if possible.
+
+Avoid:
+No fake text, no logo, no watermark, no generic handshake, no stock-photo office scene, no distorted tools or hands.
+
+Use:
+Realistic lighting, human trust, practical work environment, subtle depth of field.`;
+}
+
+function buildContactImagePrompt(p: ImagePromptParams): string {
+  return `Create a realistic background image for the contact or urgent CTA section of a ${p.sector} landing page serving ${p.serviceArea}.
+
+The image should support the main action: ${p.mainCta}.
+Urgency level: ${p.urgencyLevel}.
+Service priority: ${p.servicePriority}.
+
+Scene:
+Show a practical moment of action: worker arriving, service vehicle near property, professional inspecting the issue, tools prepared, or final clean result depending on the sector.
+
+Composition:
+Wide background image, darker edges, clear center or side negative space for overlay text and contact form.
+
+Mood:
+Fast response, trust, clarity, local availability.
+
+Avoid:
+No readable text, no fake logos, no exaggerated emergency drama, no messy clutter, no unrealistic AI artifacts.
+
+The image must work behind a dark overlay and contact form.`;
+}
+
+// ─── User prompt builder ──────────────────────────────────────────────────────
+
+function buildUserPrompt(p: WebsiteGenerateParams & {
+  heroImageUrl: string;
+  aboutImageUrl: string;
+  contactImageUrl: string;
+}): string {
+  const servicesList = p.services.join(", ");
+  const hoursText = p.hoursOfOperation
+    ? JSON.stringify(p.hoursOfOperation)
     : "Lunes a Viernes 8:00 AM - 5:00 PM";
 
-  return `Genera una landing page completa para la siguiente empresa de construcción:
+  return `Genera una landing page completa para la siguiente empresa:
 
 DATOS DE LA EMPRESA:
-- Nombre: ${params.businessName}
-- Dirección: ${params.address}, ${params.city}, ${params.state} ${params.zip}
-- Tagline: ${params.tagline}
+- Nombre: ${p.businessName}
+- Dirección: ${p.address}, ${p.city}, ${p.state} ${p.zip}
+- Tagline: ${p.tagline}
 - Servicios principales: ${servicesList}
 - Horarios: ${hoursText}
-- Dominio: ${params.domain || "por definir"}
+- Dominio: ${p.domain || "por definir"}
 
 COLORES DE MARCA:
-- PRIMARY_COLOR: ${params.primaryColor}
-- SECONDARY_COLOR: ${params.secondaryColor}
+- PRIMARY_COLOR: ${p.primaryColor}
+- SECONDARY_COLOR: ${p.secondaryColor}
+- COMPLEMENTARY_COLOR: ${p.complementaryColor}
 
-IMAGEN HERO:
-- URL: ${params.heroImageUrl}
-- Úsala como background del hero section
+IMÁGENES GENERADAS CON IA:
+- HERO_IMAGE_URL: ${p.heroImageUrl}
+- ABOUT_IMAGE_URL: ${p.aboutImageUrl}
+- CONTACT_IMAGE_URL: ${p.contactImageUrl}
 
-INSTRUCCIONES ADICIONALES:
-- Inventa 3 testimonios realistas y específicos del rubro de construcción/contratación
+INSTRUCCIONES:
+- Usa HERO_IMAGE_URL como background del hero section con overlay oscuro
+- Usa ABOUT_IMAGE_URL en la sección Nosotros
+- Usa CONTACT_IMAGE_URL como background de la sección CTA de urgencia o contacto
+- Inventa 3 testimonios realistas y específicos del rubro
 - El CTA principal debe ser llamar al teléfono {{custom_values.company_phone}}
-- Incluye los servicios listados arriba en la sección de servicios (puedes expandir a 6 si hay menos)
-- Usa el tagline en el hero como subtítulo
-- Usa iconos de Lucide apropiados para cada servicio y sección`;
+- Incluye los servicios listados en la sección de servicios (expande a 6 si hay menos)
+- Usa el tagline como referencia para crear el subtítulo del hero
+- Usa iconos de Lucide apropiados para cada servicio y sección
+- Adapta el tono y estilo visual según el sector y los colores de marca`;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ImagePromptParams {
+  sector: string;
+  serviceArea: string;
+  targetAudience: string;
+  servicePriority: string;
+  services: string;
+  visualStyle: string;
+  brandColors: string;
+  priceLevel: string;
+  positioning: string;
+  tone: string;
+  values: string;
+  mainCta: string;
+  urgencyLevel: string;
 }
 
 interface WebsiteGenerateParams {
@@ -136,30 +371,76 @@ interface WebsiteGenerateParams {
   services: string[];
   primaryColor: string;
   secondaryColor: string;
+  complementaryColor: string;
   domain: string;
-  heroImageUrl: string;
   hoursOfOperation?: unknown;
 }
 
-// ─── Route ───────────────────────────────────────────────────────────────────
+// ─── Image upload helper ──────────────────────────────────────────────────────
+
+async function generateAndUploadImage(
+  prompt: string,
+  storagePath: string,
+  openaiKey: string,
+  db: ReturnType<typeof import("@/lib/supabase/client").getAdminClient>
+): Promise<string> {
+  const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openaiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-image-2",
+      prompt,
+      n: 1,
+      size: "1536x1024",
+      output_format: "webp",
+    }),
+  });
+
+  if (!imgRes.ok) {
+    throw new Error(`Image API error: ${imgRes.status}`);
+  }
+
+  const imgJson = (await imgRes.json()) as {
+    data?: Array<{ url?: string; b64_json?: string }>;
+  };
+  const imgData = imgJson.data?.[0];
+  if (!imgData) throw new Error("No image data returned");
+
+  let buffer: Buffer;
+  if (imgData.b64_json) {
+    buffer = Buffer.from(imgData.b64_json, "base64");
+  } else if (imgData.url) {
+    const r = await fetch(imgData.url);
+    if (!r.ok) throw new Error("Failed to fetch image URL");
+    buffer = Buffer.from(await r.arrayBuffer());
+  } else {
+    throw new Error("No image URL or b64_json in response");
+  }
+
+  const { error: uploadErr } = await db.storage
+    .from("website-assets")
+    .upload(storagePath, buffer, { contentType: "image/webp", upsert: true });
+
+  if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`);
+
+  const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
+  return urlData.publicUrl;
+}
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
   try {
     const body = (await request.json()) as WebsiteGenerateParams;
     const {
-      accountId,
-      locationId,
-      businessName,
-      address,
-      city,
-      state,
-      zip,
-      tagline,
-      services,
-      primaryColor,
-      secondaryColor,
-      domain,
-      hoursOfOperation,
+      accountId, locationId, businessName,
+      address, city, state, zip,
+      tagline, services,
+      primaryColor, secondaryColor, complementaryColor,
+      domain, hoursOfOperation,
     } = body;
 
     if (!accountId || !businessName) {
@@ -168,9 +449,16 @@ export async function POST(request: Request): Promise<Response> {
 
     const db = getAdminClient();
 
-    // Mark as generating
     await db.from("account_websites").upsert(
-      { account_id: accountId, status: "generating", html: null, hero_image_url: null, error_message: null },
+      {
+        account_id: accountId,
+        status: "generating",
+        html: null,
+        hero_image_url: null,
+        about_image_url: null,
+        contact_image_url: null,
+        error_message: null,
+      },
       { onConflict: "account_id" }
     );
 
@@ -183,81 +471,61 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "OpenAI not configured" }, { status: 500 });
     }
 
-    // ── Step 1: Generate hero image with gpt-image-1 ─────────────────────────
-    let heroImageUrl = "";
-    try {
-      const imagePrompt = `Professional aerial or ground-level photo of a ${services[0] ?? "construction"} project in ${city}, ${state}. High quality, cinematic lighting, dramatic sky, ultra realistic. The image will be used as a dark background for a construction company landing page hero section.`;
+    // ── Build image prompt params ─────────────────────────────────────────────
+    const sector = services.slice(0, 2).join(" / ") || "construction";
+    const serviceArea = `${city}, ${state}`;
+    const imageParams: ImagePromptParams = {
+      sector,
+      serviceArea,
+      targetAudience: "homeowners and property managers",
+      servicePriority: services[0] ?? "general construction",
+      services: services.join(", "),
+      visualStyle: "professional, industrial, modern",
+      brandColors: `${primaryColor}, ${secondaryColor}`,
+      priceLevel: "mid-range professional",
+      positioning: tagline || "reliable local service",
+      tone: "professional, trustworthy, direct",
+      values: "quality, reliability, local expertise",
+      mainCta: "call now for a free estimate",
+      urgencyLevel: "medium",
+    };
 
-      const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gpt-image-1",
-          prompt: imagePrompt,
-          n: 1,
-          size: "1792x1024",
-          output_format: "webp",
-        }),
-      });
+    // ── Generate 3 images in parallel ────────────────────────────────────────
+    const FALLBACK = "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80";
 
-      if (imgRes.ok) {
-        const imgJson = (await imgRes.json()) as {
-          data?: Array<{ url?: string; b64_json?: string }>;
-        };
-        const imgData = imgJson.data?.[0];
+    const [heroImageUrl, aboutImageUrl, contactImageUrl] = await Promise.all([
+      generateAndUploadImage(
+        buildHeroImagePrompt(imageParams),
+        `heroes/${locationId}/hero.webp`,
+        openaiKey,
+        db
+      ).catch((e) => { console.error("[website/generate] hero image failed:", e); return FALLBACK; }),
 
-        if (imgData?.b64_json) {
-          // Upload base64 image to Supabase Storage
-          const buffer = Buffer.from(imgData.b64_json, "base64");
-          const path = `heroes/${locationId}/hero.webp`;
-          const { error: uploadErr } = await db.storage
-            .from("website-assets")
-            .upload(path, buffer, { contentType: "image/webp", upsert: true });
+      generateAndUploadImage(
+        buildAboutImagePrompt(imageParams),
+        `heroes/${locationId}/about.webp`,
+        openaiKey,
+        db
+      ).catch((e) => { console.error("[website/generate] about image failed:", e); return ""; }),
 
-          if (!uploadErr) {
-            const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
-            heroImageUrl = urlData.publicUrl;
-          }
-        } else if (imgData?.url) {
-          // Fetch the URL and re-upload to Supabase (avoid expiring OpenAI URLs)
-          const imgFetch = await fetch(imgData.url);
-          if (imgFetch.ok) {
-            const imgBuffer = Buffer.from(await imgFetch.arrayBuffer());
-            const path = `heroes/${locationId}/hero.webp`;
-            const { error: uploadErr } = await db.storage
-              .from("website-assets")
-              .upload(path, imgBuffer, { contentType: "image/webp", upsert: true });
-            if (!uploadErr) {
-              const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
-              heroImageUrl = urlData.publicUrl;
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.error("[website/generate] Image generation failed:", err);
-      // Non-fatal — continue without hero image
-    }
+      generateAndUploadImage(
+        buildContactImagePrompt(imageParams),
+        `heroes/${locationId}/contact.webp`,
+        openaiKey,
+        db
+      ).catch((e) => { console.error("[website/generate] contact image failed:", e); return ""; }),
+    ]);
 
-    // ── Step 2: Generate HTML with gpt-4o ────────────────────────────────────
+    // ── Generate HTML ─────────────────────────────────────────────────────────
     const userPrompt = buildUserPrompt({
-      accountId,
-      locationId,
-      businessName,
-      address,
-      city,
-      state,
-      zip,
-      tagline,
-      services,
-      primaryColor,
-      secondaryColor,
-      domain,
-      heroImageUrl: heroImageUrl || "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80",
-      hoursOfOperation,
+      accountId, locationId, businessName,
+      address, city, state, zip,
+      tagline, services,
+      primaryColor, secondaryColor, complementaryColor,
+      domain, hoursOfOperation,
+      heroImageUrl,
+      aboutImageUrl,
+      contactImageUrl,
     });
 
     const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -267,7 +535,7 @@ export async function POST(request: Request): Promise<Response> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-5.3-codex",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
@@ -281,7 +549,7 @@ export async function POST(request: Request): Promise<Response> {
       const errText = await chatRes.text();
       console.error("[website/generate] OpenAI chat error:", errText);
       await db.from("account_websites").upsert(
-        { account_id: accountId, status: "error", error_message: `OpenAI error: ${chatRes.status}` },
+        { account_id: accountId, status: "error", error_message: `OpenAI error ${chatRes.status}: ${errText.slice(0, 200)}` },
         { onConflict: "account_id" }
       );
       return NextResponse.json({ error: "OpenAI generation failed" }, { status: 502 });
@@ -292,7 +560,6 @@ export async function POST(request: Request): Promise<Response> {
     };
 
     const rawHtml = chatJson.choices?.[0]?.message?.content ?? "";
-    // Strip markdown code fences if model added them
     const html = rawHtml.replace(/^```html\s*/i, "").replace(/\s*```$/, "").trim();
 
     if (!html) {
@@ -303,20 +570,22 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "Empty HTML response" }, { status: 502 });
     }
 
-    // ── Step 3: Save to Supabase ──────────────────────────────────────────────
+    // ── Save ──────────────────────────────────────────────────────────────────
     await db.from("account_websites").upsert(
       {
-        account_id:     accountId,
-        status:         "ready",
+        account_id:        accountId,
+        status:            "ready",
         html,
-        hero_image_url: heroImageUrl || null,
-        generated_at:   new Date().toISOString(),
-        error_message:  null,
+        hero_image_url:    heroImageUrl || null,
+        about_image_url:   aboutImageUrl || null,
+        contact_image_url: contactImageUrl || null,
+        generated_at:      new Date().toISOString(),
+        error_message:     null,
       },
       { onConflict: "account_id" }
     );
 
-    return NextResponse.json({ success: true, heroImageUrl }, { status: 200 });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
     console.error("[POST /api/website/generate]", err);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

@@ -137,6 +137,8 @@ interface WebsiteData {
   status: "pending" | "generating" | "ready" | "error";
   html: string | null;
   hero_image_url: string | null;
+  about_image_url: string | null;
+  contact_image_url: string | null;
   generated_at: string | null;
   error_message: string | null;
 }
@@ -219,13 +221,28 @@ function WebsiteSection({ locationId }: { locationId: string }) {
       )}
 
       {/* Hero image preview */}
-      {data.hero_image_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={data.hero_image_url}
-          alt="Hero"
-          className="w-full h-24 object-cover rounded-lg border border-slate-200"
-        />
+      {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
+        <div className="grid grid-cols-3 gap-1.5">
+          {[
+            { url: data.hero_image_url,    label: "Hero" },
+            { url: data.about_image_url,   label: "Nosotros" },
+            { url: data.contact_image_url, label: "Contacto" },
+          ].map(({ url, label }) =>
+            url ? (
+              <div key={label} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={label}
+                  className="w-full h-16 object-cover rounded-lg border border-slate-200"
+                />
+                <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
+                  {label}
+                </span>
+              </div>
+            ) : null
+          )}
+        </div>
       )}
 
       {/* Copy HTML button */}

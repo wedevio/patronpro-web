@@ -17,7 +17,7 @@ export async function GET(
 
   const { data, error } = await db
     .from("accounts")
-    .select("id, account_websites ( status, html, hero_image_url, generated_at, error_message )")
+    .select("id, account_websites ( status, html, hero_image_url, about_image_url, contact_image_url, generated_at, error_message )")
     .eq("location_id", locationId)
     .single();
 
