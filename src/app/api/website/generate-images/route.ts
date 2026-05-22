@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,41 +118,40 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
-    // Generate 3 images sequentially to avoid rate limits
-    const results: { hero: string | null; about: string | null; contact: string | null } = {
-      hero: null,
-      about: null,
-      contact: null,
-    };
-
+    // Generate 3 images in parallel
     const subjects = ["hero", "about", "contact"] as const;
-    for (const subject of subjects) {
-      const prompt = buildImagePrompt(subject, body);
-      const result = await generateImage(prompt, openaiKey);
 
-      if (result) {
-        let url: string | null = null;
-        if (result.type === "b64") {
-          const path = `${locationId}/${subject}.png`;
-          url = await uploadImageToSupabase(result.data, path);
-        } else {
-          // URL response — re-upload to Supabase for permanence
-          try {
-            const imgRes = await fetch(result.data);
-            const buffer = Buffer.from(await imgRes.arrayBuffer());
-            const path = `${locationId}/${subject}.png`;
-            await db.storage.from("website-assets").upload(path, buffer, { contentType: "image/png", upsert: true });
-            const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
-            url = urlData.publicUrl;
-          } catch {
-            url = result.data; // fallback: use OpenAI URL directly (expires)
-          }
-        }
-        results[subject] = url;
+    async function processSubject(subject: typeof subjects[number]): Promise<string | null> {
+      const prompt = buildImagePrompt(subject, body);
+      const result = await generateImage(prompt, openaiKey!);
+      if (!result) return null;
+
+      if (result.type === "b64") {
+        const path = `${locationId}/${subject}.png`;
+        return uploadImageToSupabase(result.data, path);
+      }
+
+      // URL response — re-upload to Supabase for permanence
+      try {
+        const imgRes = await fetch(result.data);
+        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        const path = `${locationId}/${subject}.png`;
+        await db.storage.from("website-assets").upload(path, buffer, { contentType: "image/png", upsert: true });
+        const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
+        return urlData.publicUrl;
+      } catch {
+        return result.data; // fallback: use OpenAI URL (expires)
       }
     }
 
-    const anyGenerated = results.hero || results.about || results.contact;
+    const [heroUrl, aboutUrl, contactUrl] = await Promise.all([
+      processSubject("hero"),
+      processSubject("about"),
+      processSubject("contact"),
+    ]);
+
+    const results = { hero: heroUrl, about: aboutUrl, contact: contactUrl };
+    const anyGenerated = heroUrl || aboutUrl || contactUrl;
 
     // Save URLs to DB
     await db.from("account_websites").upsert(
