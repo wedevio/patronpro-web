@@ -47,7 +47,7 @@ export async function POST(
     if (auth === "staff" && parsed.data.is_public) {
       const ticket = await getTicket(id);
       if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number) {
-        void notifyClientNote({
+        await notifyClientNote({
           ghlLocationId: ticket.ghl_location_id,
           ghlContactId:  ticket.ghl_contact_id,
           ticketNumber:  ticket.ticket_number,
