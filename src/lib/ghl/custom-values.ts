@@ -14,7 +14,7 @@ async function listCustomValues(
   return json.customValues ?? [];
 }
 
-async function upsertCustomValue(
+export async function upsertCustomValue(
   locationId: string,
   fieldKey: string,
   value: string,

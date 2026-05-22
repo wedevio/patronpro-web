@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase/client";
+import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { uploadMediaFromBuffer } from "@/lib/ghl/media";
+import { upsertCustomValue } from "@/lib/ghl/custom-values";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -14,14 +17,6 @@ interface GenerateImagesBody {
   city: string;
   state: string;
   primaryColor?: string;
-  // Optional fields needed for auto HTML re-generation
-  address?: string;
-  zip?: string;
-  tagline?: string;
-  secondaryColor?: string;
-  complementaryColor?: string;
-  domain?: string;
-  hoursOfOperation?: unknown;
 }
 
 interface OpenAIImageResponse {
@@ -50,7 +45,7 @@ function buildImagePrompt(subject: "hero" | "about" | "contact", p: GenerateImag
 async function generateImage(
   prompt: string,
   openaiKey: string,
-): Promise<{ type: "b64"; data: string } | { type: "url"; data: string } | null> {
+): Promise<Buffer | null> {
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
@@ -67,39 +62,24 @@ async function generateImage(
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("[generate-images] OpenAI images error:", res.status, text.slice(0, 200));
+    console.error("[generate-images] OpenAI error:", res.status, text.slice(0, 200));
     return null;
   }
 
   const json = (await res.json()) as OpenAIImageResponse;
   const item = json.data?.[0];
   if (!item) return null;
-  if (item.b64_json) return { type: "b64", data: item.b64_json };
-  if (item.url)     return { type: "url", data: item.url };
-  return null;
-}
 
-async function uploadImageToSupabase(
-  b64: string,
-  path: string,
-): Promise<string | null> {
-  const db = getAdminClient();
-  const buffer = Buffer.from(b64, "base64");
+  // b64_json → Buffer directly
+  if (item.b64_json) return Buffer.from(item.b64_json, "base64");
 
-  const { error } = await db.storage
-    .from("website-assets")
-    .upload(path, buffer, {
-      contentType: "image/png",
-      upsert: true,
-    });
-
-  if (error) {
-    console.error("[generate-images] Supabase upload error:", error.message);
-    return null;
+  // url → fetch and convert to Buffer
+  if (item.url) {
+    const imgRes = await fetch(item.url);
+    return Buffer.from(await imgRes.arrayBuffer());
   }
 
-  const { data } = db.storage.from("website-assets").getPublicUrl(path);
-  return data.publicUrl;
+  return null;
 }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -131,25 +111,22 @@ export async function POST(request: Request): Promise<Response> {
 
     async function processSubject(subject: typeof subjects[number]): Promise<string | null> {
       const prompt = buildImagePrompt(subject, body);
-      const result = await generateImage(prompt, openaiKey!);
-      if (!result) return null;
+      const buffer = await generateImage(prompt, openaiKey!);
+      if (!buffer) return null;
 
-      if (result.type === "b64") {
-        const path = `${locationId}/${subject}.png`;
-        return uploadImageToSupabase(result.data, path);
+      // Upload to Supabase Storage (our copy)
+      const storagePath = `${locationId}/${subject}.png`;
+      const { error } = await db.storage
+        .from("website-assets")
+        .upload(storagePath, buffer, { contentType: "image/png", upsert: true });
+
+      if (error) {
+        console.error(`[generate-images] Supabase upload error (${subject}):`, error.message);
+        return null;
       }
 
-      // URL response — re-upload to Supabase for permanence
-      try {
-        const imgRes = await fetch(result.data);
-        const buffer = Buffer.from(await imgRes.arrayBuffer());
-        const path = `${locationId}/${subject}.png`;
-        await db.storage.from("website-assets").upload(path, buffer, { contentType: "image/png", upsert: true });
-        const { data: urlData } = db.storage.from("website-assets").getPublicUrl(path);
-        return urlData.publicUrl;
-      } catch {
-        return result.data; // fallback: use OpenAI URL (expires)
-      }
+      const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
+      return urlData.publicUrl;
     }
 
     const [heroUrl, aboutUrl, contactUrl] = await Promise.all([
@@ -161,7 +138,7 @@ export async function POST(request: Request): Promise<Response> {
     const results = { hero: heroUrl, about: aboutUrl, contact: contactUrl };
     const anyGenerated = heroUrl || aboutUrl || contactUrl;
 
-    // Save URLs to DB
+    // Save URLs to our DB
     await db.from("account_websites").upsert(
       {
         account_id:        accountId,
@@ -173,41 +150,47 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
-    // Auto-regenerate HTML with the new images (non-blocking)
+    // Upload to GHL Media + set custom values (non-blocking)
     if (anyGenerated) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://patronpro-web.vercel.app";
-      fetch(`${baseUrl}/api/website/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accountId,
-          locationId,
-          businessName,
-          address:            body.address            ?? "",
-          city:               body.city               ?? "",
-          state:              body.state              ?? "",
-          zip:                body.zip                ?? "",
-          tagline:            body.tagline            ?? "",
-          services:           body.services           ?? [],
-          primaryColor:       body.primaryColor       ?? "#1E2C46",
-          secondaryColor:     body.secondaryColor     ?? "#F67D0A",
-          complementaryColor: body.complementaryColor ?? "#FFFFFF",
-          domain:             body.domain             ?? "",
-          hoursOfOperation:   body.hoursOfOperation   ?? null,
-          heroImageUrl:       results.hero    ?? "",
-          aboutImageUrl:      results.about   ?? "",
-          contactImageUrl:    results.contact ?? "",
-        }),
-      }).catch((err) => console.error("[generate-images] HTML re-gen trigger failed:", err));
+      (async () => {
+        try {
+          const token = await getLocationAccessToken(locationId);
+
+          // Re-generate buffers from Supabase URLs to upload to GHL
+          // (we already have the URLs, fetch them back as buffers)
+          const downloadAndUpload = async (
+            supabaseUrl: string | null,
+            filename: string,
+            customValueKey: string,
+          ): Promise<void> => {
+            if (!supabaseUrl) return;
+            const res = await fetch(supabaseUrl);
+            const buffer = Buffer.from(await res.arrayBuffer());
+            const ghlUrl = await uploadMediaFromBuffer(
+              locationId, buffer, filename, "image/png", token
+            );
+            if (ghlUrl) {
+              const existing = await fetch(
+                `https://services.leadconnectorhq.com/locations/${locationId}/customValues`,
+                { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
+              ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
+              await upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
+              console.info(`[generate-images] GHL custom value set: ${customValueKey} = ${ghlUrl}`);
+            }
+          };
+
+          await Promise.all([
+            downloadAndUpload(results.hero,    "website_hero_image.png",    "website_hero_image"),
+            downloadAndUpload(results.about,   "website_about_image.png",   "website_about_image"),
+            downloadAndUpload(results.contact, "website_contact_image.png", "website_contact_image"),
+          ]);
+        } catch (err) {
+          console.error("[generate-images] GHL upload/custom-values failed:", err);
+        }
+      })();
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        images: results,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, images: results }, { status: 200 });
 
   } catch (err) {
     console.error("[POST /api/website/generate-images]", err);

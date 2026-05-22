@@ -91,13 +91,21 @@ Al final del body, antes de </body>:
 
 Elige iconos apropiados al sector. Para construcción: hard-hat, hammer, wrench, drill, home, building-2, shield-check, truck, etc.
 
-IMÁGENES:
-Si se proporcionan URLs (HERO_IMAGE_URL, ABOUT_IMAGE_URL, CONTACT_IMAGE_URL), úsalas:
-- HERO como background del hero section con overlay oscuro semitransparente (rgba(0,0,0,0.5) como mínimo para legibilidad)
-- ABOUT como imagen en la sección Nosotros (dentro de un <img> o background)
-- CONTACT como imagen de fondo en el CTA de urgencia
+IMÁGENES — siempre usa estos tres custom values como fuentes de imagen:
+- Hero background:   {{custom_values.website_hero_image}}
+- Sección Nosotros:  {{custom_values.website_about_image}}
+- CTA de urgencia:   {{custom_values.website_contact_image}}
 
-Si NO hay imágenes: crea composiciones visuales con CSS puro. Para construcción: fondos con textura de concreto usando CSS gradients, formas geométricas angulares, patrones de puntos/líneas. Evita fondos blancos planos y gradientes de colores neón.
+Hero con imagen y overlay:
+
+<section style="background-image:url('{{custom_values.website_hero_image}}');background-size:cover;background-position:center;position:relative;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);"></div>
+  <div style="position:relative;z-index:1;"><!-- contenido --></div>
+</section>
+
+Si el custom value está vacío (imagen aún no generada), el overlay sobre fondo de color se ve igual de bien — no rompas el diseño por imágenes ausentes. Usa siempre el overlay y un color de fondo sólido como fallback:
+
+background-color: var(--primary); /* fallback si la imagen no carga */
 
 =================================================================
 ESTRUCTURA OBLIGATORIA
@@ -208,10 +216,6 @@ export interface WebsiteGenerateParams {
   complementaryColor: string;
   domain: string;
   hoursOfOperation?: unknown;
-  // Optional: pre-generated image URLs
-  heroImageUrl?: string;
-  aboutImageUrl?: string;
-  contactImageUrl?: string;
 }
 
 // ─── User prompt ─────────────────────────────────────────────────────────────
@@ -221,17 +225,6 @@ function buildUserPrompt(p: WebsiteGenerateParams): string {
   const hoursText = p.hoursOfOperation
     ? JSON.stringify(p.hoursOfOperation)
     : "Lunes a Viernes 8:00 AM - 5:00 PM";
-
-  const imageBlock = (p.heroImageUrl || p.aboutImageUrl || p.contactImageUrl)
-    ? `
-IMÁGENES GENERADAS CON IA (úsalas como backgrounds con overlay oscuro):
-- HERO_IMAGE_URL: ${p.heroImageUrl || ""}
-- ABOUT_IMAGE_URL: ${p.aboutImageUrl || ""}
-- CONTACT_IMAGE_URL: ${p.contactImageUrl || ""}
-`
-    : `
-IMÁGENES: No se proporcionan imágenes. Crea composiciones visuales ricas usando solo CSS: gradientes, shapes geométricos, patrones y texturas. El resultado debe ser visualmente impactante sin depender de imágenes externas.
-`;
 
   return `Genera una landing page completa para la siguiente empresa:
 
@@ -247,7 +240,7 @@ COLORES DE MARCA:
 - PRIMARY_COLOR: ${p.primaryColor}
 - SECONDARY_COLOR: ${p.secondaryColor}
 - COMPLEMENTARY_COLOR: ${p.complementaryColor}
-${imageBlock}
+
 INSTRUCCIONES:
 - Inventa 3 testimonios realistas y específicos del rubro
 - El CTA principal debe ser llamar al teléfono {{custom_values.company_phone}}

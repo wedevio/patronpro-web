@@ -33,3 +33,39 @@ export async function uploadMedia(
     return null;
   }
 }
+
+export async function uploadMediaFromBuffer(
+  locationId: string,
+  buffer: Buffer,
+  filename: string,
+  mimeType: string,
+  token: string
+): Promise<string | null> {
+  try {
+    const blob = new Blob([new Uint8Array(buffer)], { type: mimeType });
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+    formData.append("locationId", locationId);
+    formData.append("name", filename);
+
+    const res = await fetch(GHL_MEDIA_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Version: "2021-07-28",
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      console.error("[uploadMediaFromBuffer] failed:", res.status, await res.text());
+      return null;
+    }
+
+    const json = (await res.json()) as { url?: string; fileUrl?: string };
+    return json.url ?? json.fileUrl ?? null;
+  } catch (err) {
+    console.error("[uploadMediaFromBuffer] error:", err);
+    return null;
+  }
+}
