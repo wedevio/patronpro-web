@@ -17,7 +17,7 @@ export async function GET(
 
   const { data, error } = await db
     .from("accounts")
-    .select("id, account_websites ( status, html, hero_image_url, about_image_url, contact_image_url, generated_at, error_message )")
+    .select("id, account_websites ( status, html, hero_image_url, about_image_url, contact_image_url, generated_at, updated_at, error_message )")
     .eq("location_id", locationId)
     .single();
 
@@ -26,7 +26,20 @@ export async function GET(
   }
 
   const websites = (data.account_websites as unknown[]) ?? [];
-  const website = Array.isArray(websites) ? websites[0] : websites;
+  let website = (Array.isArray(websites) ? websites[0] : websites) as Record<string, unknown> | null ?? null;
+
+  // Auto-reset stalled generations (stuck in "generating" for >4 minutes)
+  if (website?.status === "generating" && website?.updated_at) {
+    const updatedAt = new Date(website.updated_at as string).getTime();
+    const stalledMs = 4 * 60 * 1000; // 4 minutes
+    if (Date.now() - updatedAt > stalledMs) {
+      await db.from("account_websites").upsert(
+        { account_id: data.id as string, status: "error", error_message: "Tiempo agotado — la generación tardó demasiado. Intentá de nuevo." },
+        { onConflict: "account_id" }
+      );
+      website = { ...website, status: "error", error_message: "Tiempo agotado — la generación tardó demasiado. Intentá de nuevo." };
+    }
+  }
 
   return NextResponse.json({ website: website ?? null, accountId: data.id as string }, { status: 200 });
 }

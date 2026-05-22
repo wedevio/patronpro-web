@@ -384,50 +384,58 @@ async function generateAndUploadImage(
   openaiKey: string,
   db: ReturnType<typeof import("@/lib/supabase/client").getAdminClient>
 ): Promise<string> {
-  const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${openaiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-image-2",
-      prompt,
-      n: 1,
-      size: "1536x1024",
-      output_format: "webp",
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45_000); // 45s per image
 
-  if (!imgRes.ok) {
-    throw new Error(`Image API error: ${imgRes.status}`);
+  try {
+    const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${openaiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-image-2",
+        prompt,
+        n: 1,
+        size: "1536x1024",
+        output_format: "webp",
+      }),
+    });
+
+    if (!imgRes.ok) {
+      throw new Error(`Image API error: ${imgRes.status}`);
+    }
+
+    const imgJson = (await imgRes.json()) as {
+      data?: Array<{ url?: string; b64_json?: string }>;
+    };
+    const imgData = imgJson.data?.[0];
+    if (!imgData) throw new Error("No image data returned");
+
+    let buffer: Buffer;
+    if (imgData.b64_json) {
+      buffer = Buffer.from(imgData.b64_json, "base64");
+    } else if (imgData.url) {
+      const r = await fetch(imgData.url);
+      if (!r.ok) throw new Error("Failed to fetch image URL");
+      buffer = Buffer.from(await r.arrayBuffer());
+    } else {
+      throw new Error("No image URL or b64_json in response");
+    }
+
+    const { error: uploadErr } = await db.storage
+      .from("website-assets")
+      .upload(storagePath, buffer, { contentType: "image/webp", upsert: true });
+
+    if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`);
+
+    const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
+    return urlData.publicUrl;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const imgJson = (await imgRes.json()) as {
-    data?: Array<{ url?: string; b64_json?: string }>;
-  };
-  const imgData = imgJson.data?.[0];
-  if (!imgData) throw new Error("No image data returned");
-
-  let buffer: Buffer;
-  if (imgData.b64_json) {
-    buffer = Buffer.from(imgData.b64_json, "base64");
-  } else if (imgData.url) {
-    const r = await fetch(imgData.url);
-    if (!r.ok) throw new Error("Failed to fetch image URL");
-    buffer = Buffer.from(await r.arrayBuffer());
-  } else {
-    throw new Error("No image URL or b64_json in response");
-  }
-
-  const { error: uploadErr } = await db.storage
-    .from("website-assets")
-    .upload(storagePath, buffer, { contentType: "image/webp", upsert: true });
-
-  if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`);
-
-  const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
-  return urlData.publicUrl;
 }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
@@ -528,8 +536,12 @@ export async function POST(request: Request): Promise<Response> {
       contactImageUrl,
     });
 
+    const htmlController = new AbortController();
+    const htmlTimeout = setTimeout(() => htmlController.abort(), 60_000);
+
     const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
+      signal: htmlController.signal,
       headers: {
         Authorization: `Bearer ${openaiKey}`,
         "Content-Type": "application/json",
@@ -544,6 +556,7 @@ export async function POST(request: Request): Promise<Response> {
         temperature: 0.7,
       }),
     });
+    clearTimeout(htmlTimeout);
 
     if (!chatRes.ok) {
       const errText = await chatRes.text();
@@ -587,7 +600,14 @@ export async function POST(request: Request): Promise<Response> {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    const msg = isAbort ? "Tiempo agotado — la generación tardó demasiado. Intentá de nuevo." : "Error interno del servidor";
     console.error("[POST /api/website/generate]", err);
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+    try {
+      const db = getAdminClient();
+      const body = (err as { body?: { accountId?: string } })?.body;
+      void body; // accountId not available here — stale detection in GET handles it
+    } catch { /* ignore */ }
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
