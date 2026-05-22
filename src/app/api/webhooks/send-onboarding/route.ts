@@ -98,9 +98,9 @@ async function findOrCreateContact(
     body: JSON.stringify({
       locationId,
       email:       data.email,
-      phone:       data.phone       || undefined,
-      firstName:   data.firstName   || undefined,
-      companyName: data.businessName || undefined,
+      ...(data.phone        && { phone:       data.phone }),
+      ...(data.firstName    && { firstName:   data.firstName }),
+      ...(data.businessName && { companyName: data.businessName }),
     }),
   });
 
@@ -126,9 +126,9 @@ async function upsertInPatronPro(
     body: JSON.stringify({
       locationId:  ppLocationId,
       email:       data.email,
-      phone:       data.phone       || undefined,
-      firstName:   data.firstName   || undefined,
-      companyName: data.businessName || undefined,
+      ...(data.phone        && { phone:       data.phone }),
+      ...(data.firstName    && { firstName:   data.firstName }),
+      ...(data.businessName && { companyName: data.businessName }),
     }),
   });
 
@@ -195,8 +195,10 @@ export async function POST(request: Request): Promise<Response> {
     const payload      = (await request.json()) as WebhookPayload;
     const email        = payload.email?.toLowerCase().trim() ?? "";
     const phone        = payload.phone        ?? "";
-    const firstName    = payload.firstName    ?? "ahí";
-    const businessName = payload.businessName ?? "";
+    const firstName    = payload.firstName?.trim() || "";
+    const businessName = payload.businessName?.trim() || "";
+
+    console.info("[send-onboarding] payload received:", { email, phone, firstName, businessName });
 
     if (!email) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
@@ -238,7 +240,7 @@ export async function POST(request: Request): Promise<Response> {
       ppToken
     );
 
-    const vars = { firstName, businessName, link: onboardingLink };
+    const vars = { firstName: firstName || "ahí", businessName, link: onboardingLink };
 
     // ── Send email ────────────────────────────────────────────────────────────
     await sendMessage(
