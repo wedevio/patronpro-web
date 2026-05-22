@@ -74,7 +74,7 @@ if (typeof lucide !== 'undefined') lucide.createIcons();
 
 Elige iconos según sector. No repitas siempre los mismos.
 
-Si el input incluye imágenes generadas con IA, úsalas:
+Si el input incluye URLs de imágenes generadas con IA, úsalas:
 - HERO_IMAGE_URL → hero section background
 - ABOUT_IMAGE_URL → sección Nosotros
 - CONTACT_IMAGE_URL → sección Contacto / CTA de urgencia
@@ -85,7 +85,8 @@ style="background-image:url('HERO_IMAGE_URL');background-size:cover;background-p
 
 Siempre añade overlay oscuro semitransparente sobre imágenes de fondo.
 
-Si no hay imágenes, crea riqueza visual con CSS: gradientes, texturas, shapes, borders, patrones y cards. No uses stock externo.
+Si no se proporcionan imágenes (o el valor es vacío), crea riqueza visual con CSS puro:
+gradientes, texturas geométricas, shapes SVG inline, borders, patrones y cards. No uses imágenes externas no proporcionadas.
 
 =================================================================
 ESTRUCTURA OBLIGATORIA
@@ -94,7 +95,7 @@ ESTRUCTURA OBLIGATORIA
 Incluye siempre estas secciones en este orden, variando el layout interno:
 
 1. Navbar fija: logo, links, CTA
-2. Hero: headline, subtítulo, 2 CTAs, stats/trust, imagen o composición visual
+2. Hero: headline, subtítulo, 2 CTAs, stats/trust, imagen o composición visual CSS
 3. Banda de confianza: licencias, años, garantías, zona, respuesta rápida
 4. Servicios: 6 servicios con iconos Lucide
 5. Nosotros: historia, valores, horario y bloque visual
@@ -148,11 +149,8 @@ Incluye:
 - CTAs visibles en móvil
 
 No uses:
-- React
-- Bootstrap
-- Tailwind
-- sliders
-- carousels
+- React, Bootstrap, Tailwind
+- sliders o carousels
 - JS para datos GHL
 - imágenes externas no proporcionadas
 
@@ -162,152 +160,73 @@ COPYWRITING
 
 Texto comercial, concreto y directo.
 
-Evita frases genéricas:
-- "somos tu mejor opción"
-- "calidad y compromiso"
-- "servicio excepcional"
-- "soluciones integrales"
-- "tu satisfacción es nuestra prioridad"
+Evita frases genéricas como "somos tu mejor opción", "calidad y compromiso", "soluciones integrales".
 
 Usa claims específicos:
 - "Presupuestos claros antes de empezar."
 - "Llegamos cuando dijimos que íbamos a llegar."
 - "Trabajo limpio, directo y sin sorpresas."
 - "Servicio local con respuesta rápida."
-- "Te explicamos el problema antes de cobrarte la solución."
 
-Adapta el tono:
-- Familias: confianza y tranquilidad
-- Negocios: rapidez y mínima interrupción
-- Premium: detalle y precisión
-- Emergencias: velocidad y claridad
-- Contractors: robustez y ejecución
+Adapta el tono según audiencia: familias, negocios, premium, emergencias o contractors.
 
-Idioma:
-- Usa el idioma indicado por el usuario.
-- Si no se indica, usa español neutro para público latino en EE.UU.
+Idioma: español neutro para público latino en EE.UU. salvo que se indique otro.
 
 =================================================================
 JAVASCRIPT PERMITIDO
 =================================================================
 
-Solo JS para:
-- menú móvil
-- smooth scroll
-- IntersectionObserver
-- inicializar Lucide
-
-Nunca JS para:
-- insertar custom values
-- generar contenido
-- modificar datos de empresa
-- cargar formularios
+Solo JS para: menú móvil, smooth scroll, IntersectionObserver, inicializar Lucide.
+Nunca JS para: custom values, contenido dinámico, formularios.
 
 =================================================================
 OUTPUT
 =================================================================
 
-Devuelve únicamente el HTML completo.
+Devuelve únicamente el HTML completo. Sin explicaciones, sin markdown, sin backticks.
+Empieza con <!DOCTYPE html> y termina con </html>.`;
 
-Sin explicaciones.
-Sin markdown.
-Sin triple backticks.
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-Empieza con:
-
-<!DOCTYPE html>
-
-Termina con:
-
-</html>`;
-
-// ─── Image prompt builders ─────────────────────────────────────────────────────
-
-function buildHeroImagePrompt(p: ImagePromptParams): string {
-  return `Create a realistic, high-end website hero image for a local ${p.sector} company serving ${p.serviceArea}.
-
-Business positioning:
-- Target audience: ${p.targetAudience}
-- Main service focus: ${p.servicePriority}
-- Supporting services: ${p.services}
-- Visual style: ${p.visualStyle}
-- Brand colors: ${p.brandColors}
-- Price level: ${p.priceLevel}
-- Desired feeling: ${p.positioning}
-
-Scene:
-Show a real-world ${p.sector} service environment related to ${p.servicePriority}, with professional workers, tools, vehicle, property or job site elements that make sense for the industry.
-
-Composition:
-Wide horizontal image, cinematic but natural, strong foreground subject, background depth, clean negative space on one side for landing page headline overlay.
-
-Lighting:
-Professional natural lighting, realistic shadows, polished but believable.
-
-Mood:
-Trustworthy, capable, local, modern, reliable.
-
-Important:
-No text, no fake logo, no watermark, no exaggerated AI style, no unsafe work, no distorted tools, no unrealistic hands, no clutter.
-
-The image will be used as a dark-overlay hero background for a landing page.`;
+export interface WebsiteGenerateParams {
+  accountId: string;
+  locationId: string;
+  businessName: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  tagline: string;
+  services: string[];
+  primaryColor: string;
+  secondaryColor: string;
+  complementaryColor: string;
+  domain: string;
+  hoursOfOperation?: unknown;
+  // Optional: pre-generated image URLs
+  heroImageUrl?: string;
+  aboutImageUrl?: string;
+  contactImageUrl?: string;
 }
 
-function buildAboutImagePrompt(p: ImagePromptParams): string {
-  return `Create a realistic website about-section image for a local ${p.sector} company in ${p.serviceArea}.
+// ─── User prompt ─────────────────────────────────────────────────────────────
 
-Show the owner, team, or skilled professional in a believable work context related to ${p.sector}. The image should communicate trust, experience, craftsmanship and local service.
-
-Business personality:
-- Tone: ${p.tone}
-- Values: ${p.values}
-- Target audience: ${p.targetAudience}
-- Visual style: ${p.visualStyle}
-- Brand colors: ${p.brandColors}
-
-Composition:
-Medium-wide horizontal image, professional but warm, natural pose, clean background, subtle brand-color accents if possible.
-
-Avoid:
-No fake text, no logo, no watermark, no generic handshake, no stock-photo office scene, no distorted tools or hands.
-
-Use:
-Realistic lighting, human trust, practical work environment, subtle depth of field.`;
-}
-
-function buildContactImagePrompt(p: ImagePromptParams): string {
-  return `Create a realistic background image for the contact or urgent CTA section of a ${p.sector} landing page serving ${p.serviceArea}.
-
-The image should support the main action: ${p.mainCta}.
-Urgency level: ${p.urgencyLevel}.
-Service priority: ${p.servicePriority}.
-
-Scene:
-Show a practical moment of action: worker arriving, service vehicle near property, professional inspecting the issue, tools prepared, or final clean result depending on the sector.
-
-Composition:
-Wide background image, darker edges, clear center or side negative space for overlay text and contact form.
-
-Mood:
-Fast response, trust, clarity, local availability.
-
-Avoid:
-No readable text, no fake logos, no exaggerated emergency drama, no messy clutter, no unrealistic AI artifacts.
-
-The image must work behind a dark overlay and contact form.`;
-}
-
-// ─── User prompt builder ──────────────────────────────────────────────────────
-
-function buildUserPrompt(p: WebsiteGenerateParams & {
-  heroImageUrl: string;
-  aboutImageUrl: string;
-  contactImageUrl: string;
-}): string {
+function buildUserPrompt(p: WebsiteGenerateParams): string {
   const servicesList = p.services.join(", ");
   const hoursText = p.hoursOfOperation
     ? JSON.stringify(p.hoursOfOperation)
     : "Lunes a Viernes 8:00 AM - 5:00 PM";
+
+  const imageBlock = (p.heroImageUrl || p.aboutImageUrl || p.contactImageUrl)
+    ? `
+IMÁGENES GENERADAS CON IA (úsalas como backgrounds con overlay oscuro):
+- HERO_IMAGE_URL: ${p.heroImageUrl || ""}
+- ABOUT_IMAGE_URL: ${p.aboutImageUrl || ""}
+- CONTACT_IMAGE_URL: ${p.contactImageUrl || ""}
+`
+    : `
+IMÁGENES: No se proporcionan imágenes. Crea composiciones visuales ricas usando solo CSS: gradientes, shapes geométricos, patrones y texturas. El resultado debe ser visualmente impactante sin depender de imágenes externas.
+`;
 
   return `Genera una landing page completa para la siguiente empresa:
 
@@ -323,16 +242,8 @@ COLORES DE MARCA:
 - PRIMARY_COLOR: ${p.primaryColor}
 - SECONDARY_COLOR: ${p.secondaryColor}
 - COMPLEMENTARY_COLOR: ${p.complementaryColor}
-
-IMÁGENES GENERADAS CON IA:
-- HERO_IMAGE_URL: ${p.heroImageUrl}
-- ABOUT_IMAGE_URL: ${p.aboutImageUrl}
-- CONTACT_IMAGE_URL: ${p.contactImageUrl}
-
+${imageBlock}
 INSTRUCCIONES:
-- Usa HERO_IMAGE_URL como background del hero section con overlay oscuro
-- Usa ABOUT_IMAGE_URL en la sección Nosotros
-- Usa CONTACT_IMAGE_URL como background de la sección CTA de urgencia o contacto
 - Inventa 3 testimonios realistas y específicos del rubro
 - El CTA principal debe ser llamar al teléfono {{custom_values.company_phone}}
 - Incluye los servicios listados en la sección de servicios (expande a 6 si hay menos)
@@ -341,226 +252,62 @@ INSTRUCCIONES:
 - Adapta el tono y estilo visual según el sector y los colores de marca`;
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface ImagePromptParams {
-  sector: string;
-  serviceArea: string;
-  targetAudience: string;
-  servicePriority: string;
-  services: string;
-  visualStyle: string;
-  brandColors: string;
-  priceLevel: string;
-  positioning: string;
-  tone: string;
-  values: string;
-  mainCta: string;
-  urgencyLevel: string;
-}
-
-interface WebsiteGenerateParams {
-  accountId: string;
-  locationId: string;
-  businessName: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  tagline: string;
-  services: string[];
-  primaryColor: string;
-  secondaryColor: string;
-  complementaryColor: string;
-  domain: string;
-  hoursOfOperation?: unknown;
-}
-
-// ─── Image upload helper ──────────────────────────────────────────────────────
-
-async function generateAndUploadImage(
-  prompt: string,
-  storagePath: string,
-  openaiKey: string,
-  db: ReturnType<typeof import("@/lib/supabase/client").getAdminClient>
-): Promise<string> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45_000); // 45s per image
-
-  try {
-    const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-image-2",
-        prompt,
-        n: 1,
-        size: "1536x1024",
-        output_format: "webp",
-      }),
-    });
-
-    if (!imgRes.ok) {
-      throw new Error(`Image API error: ${imgRes.status}`);
-    }
-
-    const imgJson = (await imgRes.json()) as {
-      data?: Array<{ url?: string; b64_json?: string }>;
-    };
-    const imgData = imgJson.data?.[0];
-    if (!imgData) throw new Error("No image data returned");
-
-    let buffer: Buffer;
-    if (imgData.b64_json) {
-      buffer = Buffer.from(imgData.b64_json, "base64");
-    } else if (imgData.url) {
-      const r = await fetch(imgData.url);
-      if (!r.ok) throw new Error("Failed to fetch image URL");
-      buffer = Buffer.from(await r.arrayBuffer());
-    } else {
-      throw new Error("No image URL or b64_json in response");
-    }
-
-    const { error: uploadErr } = await db.storage
-      .from("website-assets")
-      .upload(storagePath, buffer, { contentType: "image/webp", upsert: true });
-
-    if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`);
-
-    const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
-    return urlData.publicUrl;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
   try {
     const body = (await request.json()) as WebsiteGenerateParams;
-    const {
-      accountId, locationId, businessName,
-      address, city, state, zip,
-      tagline, services,
-      primaryColor, secondaryColor, complementaryColor,
-      domain, hoursOfOperation,
-    } = body;
+    const { accountId, businessName } = body;
 
     if (!accountId || !businessName) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 });
     }
 
     const db = getAdminClient();
+    const openaiKey = process.env.OPENAI_API_KEY;
 
+    if (!openaiKey) {
+      return NextResponse.json({ error: "OPENAI_API_KEY no configurada" }, { status: 500 });
+    }
+
+    // Mark as generating (preserve existing images)
     await db.from("account_websites").upsert(
-      {
-        account_id: accountId,
-        status: "generating",
-        html: null,
-        hero_image_url: null,
-        about_image_url: null,
-        contact_image_url: null,
-        error_message: null,
-      },
+      { account_id: accountId, status: "generating", html: null, error_message: null },
       { onConflict: "account_id" }
     );
 
-    const openaiKey = process.env.OPENAI_API_KEY;
-    if (!openaiKey) {
-      await db.from("account_websites").upsert(
-        { account_id: accountId, status: "error", error_message: "OPENAI_API_KEY no configurada" },
-        { onConflict: "account_id" }
-      );
-      return NextResponse.json({ error: "OpenAI not configured" }, { status: 500 });
-    }
-
-    // ── Build image prompt params ─────────────────────────────────────────────
-    const sector = services.slice(0, 2).join(" / ") || "construction";
-    const serviceArea = `${city}, ${state}`;
-    const imageParams: ImagePromptParams = {
-      sector,
-      serviceArea,
-      targetAudience: "homeowners and property managers",
-      servicePriority: services[0] ?? "general construction",
-      services: services.join(", "),
-      visualStyle: "professional, industrial, modern",
-      brandColors: `${primaryColor}, ${secondaryColor}`,
-      priceLevel: "mid-range professional",
-      positioning: tagline || "reliable local service",
-      tone: "professional, trustworthy, direct",
-      values: "quality, reliability, local expertise",
-      mainCta: "call now for a free estimate",
-      urgencyLevel: "medium",
-    };
-
-    // ── Generate 3 images in parallel ────────────────────────────────────────
-    const FALLBACK = "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&q=80";
-
-    const [heroImageUrl, aboutImageUrl, contactImageUrl] = await Promise.all([
-      generateAndUploadImage(
-        buildHeroImagePrompt(imageParams),
-        `heroes/${locationId}/hero.webp`,
-        openaiKey,
-        db
-      ).catch((e) => { console.error("[website/generate] hero image failed:", e); return FALLBACK; }),
-
-      generateAndUploadImage(
-        buildAboutImagePrompt(imageParams),
-        `heroes/${locationId}/about.webp`,
-        openaiKey,
-        db
-      ).catch((e) => { console.error("[website/generate] about image failed:", e); return ""; }),
-
-      generateAndUploadImage(
-        buildContactImagePrompt(imageParams),
-        `heroes/${locationId}/contact.webp`,
-        openaiKey,
-        db
-      ).catch((e) => { console.error("[website/generate] contact image failed:", e); return ""; }),
-    ]);
-
     // ── Generate HTML ─────────────────────────────────────────────────────────
-    const userPrompt = buildUserPrompt({
-      accountId, locationId, businessName,
-      address, city, state, zip,
-      tagline, services,
-      primaryColor, secondaryColor, complementaryColor,
-      domain, hoursOfOperation,
-      heroImageUrl,
-      aboutImageUrl,
-      contactImageUrl,
-    });
+    const userPrompt = buildUserPrompt(body);
 
-    const htmlController = new AbortController();
-    const htmlTimeout = setTimeout(() => htmlController.abort(), 60_000);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 90_000); // 90s
 
-    const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      signal: htmlController.signal,
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-5.4",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        max_completion_tokens: 16000,
-        temperature: 0.7,
-      }),
-    });
-    clearTimeout(htmlTimeout);
+    let chatRes: Response;
+    try {
+      chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-5.4",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+          max_completion_tokens: 16000,
+          temperature: 0.7,
+        }),
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!chatRes.ok) {
       const errText = await chatRes.text();
-      console.error("[website/generate] OpenAI chat error:", errText);
+      console.error("[website/generate] OpenAI error:", errText);
       await db.from("account_websites").upsert(
         { account_id: accountId, status: "error", error_message: `OpenAI error ${chatRes.status}: ${errText.slice(0, 200)}` },
         { onConflict: "account_id" }
@@ -586,28 +333,23 @@ export async function POST(request: Request): Promise<Response> {
     // ── Save ──────────────────────────────────────────────────────────────────
     await db.from("account_websites").upsert(
       {
-        account_id:        accountId,
-        status:            "ready",
+        account_id:   accountId,
+        status:       "ready",
         html,
-        hero_image_url:    heroImageUrl || null,
-        about_image_url:   aboutImageUrl || null,
-        contact_image_url: contactImageUrl || null,
-        generated_at:      new Date().toISOString(),
-        error_message:     null,
+        generated_at: new Date().toISOString(),
+        error_message: null,
       },
       { onConflict: "account_id" }
     );
 
     return NextResponse.json({ success: true }, { status: 200 });
+
   } catch (err) {
     const isAbort = err instanceof Error && err.name === "AbortError";
-    const msg = isAbort ? "Tiempo agotado — la generación tardó demasiado. Intentá de nuevo." : "Error interno del servidor";
     console.error("[POST /api/website/generate]", err);
-    try {
-      const db = getAdminClient();
-      const body = (err as { body?: { accountId?: string } })?.body;
-      void body; // accountId not available here — stale detection in GET handles it
-    } catch { /* ignore */ }
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json(
+      { error: isAbort ? "Tiempo agotado generando HTML. Intentá de nuevo." : "Error interno" },
+      { status: 500 }
+    );
   }
 }
