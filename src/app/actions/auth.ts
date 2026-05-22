@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { SignJWT, decodeJwt } from "jose";
 
 const COOKIE_NAME = "pp-session";
 
@@ -40,8 +41,23 @@ export async function loginAction(
     const data = await res.json() as { access_token: string; expires_in: number };
     const cookieStore = await cookies();
 
-    // Set a simple signed session cookie
-    cookieStore.set(COOKIE_NAME, data.access_token, {
+    const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+    if (!nextAuthSecret) {
+      console.error("[auth] Missing env var: NEXTAUTH_SECRET");
+      return { error: "Error de configuración del servidor." };
+    }
+
+    // Decode Supabase JWT (no signature verification — we just need the payload claims)
+    const decoded = decodeJwt(data.access_token);
+
+    // Create our own JWT signed with NEXTAUTH_SECRET so proxy.ts can verify it
+    const ppJwt = await new SignJWT({ email: decoded.email, sub: decoded.sub })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("7d")
+      .sign(new TextEncoder().encode(nextAuthSecret));
+
+    cookieStore.set(COOKIE_NAME, ppJwt, {
       httpOnly: true,
       secure:   true,
       sameSite: "lax",
