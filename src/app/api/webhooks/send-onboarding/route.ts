@@ -1,46 +1,39 @@
 /**
  * POST /api/webhooks/send-onboarding
  *
- * Triggered by a GHL Workflow when a contact gets the "ob-pending" tag.
- * Builds the correct onboarding link for the client's sub-account and
- * sends it via GHL Conversations API (email + SMS) from PatronPro's location.
+ * Triggered by a GHL Workflow in PatronPro's sub-account.
+ * Trigger: Contact Tag Added → "ob-meeting-ok"
+ *
+ * ─── Workflow setup (PatronPro sub-account) ───────────────────────────────────
+ *   Trigger: Contact Tag Added → ob-meeting-ok
+ *   Action:  HTTP Webhook → POST
+ *            https://getpatronpro.com/api/webhooks/send-onboarding?secret=WEBHOOK_SECRET
+ *   Body (Custom):
+ *   {
+ *     "email":        "{{contact.email}}",
+ *     "phone":        "{{contact.phone}}",
+ *     "firstName":    "{{contact.first_name}}",
+ *     "businessName": "{{contact.company_name}}"
+ *   }
+ *
+ * ─── What this endpoint does ─────────────────────────────────────────────────
+ *   1. Recibe el email del cliente desde el workflow
+ *   2. Busca en todas las GHL sub-cuentas cuál tiene ese email → locationId
+ *   3. Busca el contacto en esa sub-cuenta por email → contactId
+ *   4. Arma el link: /onboarding?locationId=...&contactId=...
+ *   5. Hace upsert del contacto en PatronPro para mandar desde ahí
+ *   6. Manda email + SMS desde PatronPro
  *
  * ─── Required env vars ───────────────────────────────────────────────────────
- *   PATRONPRO_LOCATION_ID   — PatronPro's own GHL location ID
- *   PATRONPRO_PHONE_NUMBER  — Phone number to send SMS from (e.g. +15551234567)
- *   WEBHOOK_SECRET          — Secret appended to the webhook URL for auth
- *   NEXT_PUBLIC_APP_URL     — Base URL (already set)
- *
- * ─── Required GHL setup ──────────────────────────────────────────────────────
- *   1. Create a Contact custom field in PatronPro's location:
- *      Name: "Client Location ID"  →  fieldKey: contact.client_location_id
- *      Type: TEXT
- *   2. When creating a client sub-account, set this field on the contact
- *      with the sub-account's locationId.
- *   3. Create a Workflow:
- *      Trigger:  Contact Tag Added → tag = "ob-pending"
- *      Action:   Webhook → POST https://[app]/api/webhooks/send-onboarding?secret=[WEBHOOK_SECRET]
- *      Body:     (leave as default — GHL sends full contact object)
- *
- * ─── GHL Webhook payload (Contact Tag Added) ─────────────────────────────────
- * {
- *   "type": "ContactTagUpdate",
- *   "locationId": "<patronpro_location_id>",
- *   "id": "<contactId_in_patronpro_location>",
- *   "email": "client@email.com",
- *   "phone": "+15551234567",
- *   "firstName": "Juan",
- *   "lastName": "García",
- *   "companyName": "Plomería XYZ",
- *   "tags": ["ob-pending"],
- *   "customFields": [
- *     { "id": "...", "value": "<clientLocationId>", "fieldKey": "contact.client_location_id" }
- *   ]
- * }
+ *   PATRONPRO_LOCATION_ID   — PatronPro sub-account location ID
+ *   PATRONPRO_PHONE_NUMBER  — Número desde el que sale el SMS
+ *   WEBHOOK_SECRET          — Appended to URL as ?secret=
+ *   NEXT_PUBLIC_APP_URL     — Base URL (ya existe)
  */
 
 import { NextResponse } from "next/server";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
 import { ghlFetch } from "@/lib/ghl/client";
 import {
   ONBOARDING_EMAIL_SUBJECT,
@@ -53,89 +46,88 @@ export const dynamic = "force-dynamic";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface GHLCustomField {
-  id?:      string;
-  value?:   string;
-  fieldKey?: string;
-  key?:     string; // some versions use "key"
-}
-
-interface GHLWebhookPayload {
-  type?:         string;
-  locationId?:   string;
-  id?:           string;       // contactId in PatronPro's location
-  contactId?:    string;       // alternate field name
+interface WebhookPayload {
   email?:        string;
   phone?:        string;
   firstName?:    string;
-  lastName?:     string;
-  name?:         string;
-  companyName?:  string;
-  tags?:         string[];
-  customFields?: GHLCustomField[];
-  // Allow passing clientLocationId directly (optional override in workflow body)
-  clientLocationId?: string;
+  businessName?: string;
 }
 
-interface GHLContactSearchResult {
-  contacts?: Array<{
-    id:         string;
-    email?:     string;
-    firstName?: string;
-    lastName?:  string;
-  }>;
+interface GHLContactsResponse {
+  contacts?: Array<{ id: string; email?: string }>;
+}
+
+interface GHLUpsertResponse {
+  contact?: { id: string };
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function extractClientLocationId(payload: GHLWebhookPayload): string | null {
-  // 1. Direct field (workflow can map it explicitly)
-  if (payload.clientLocationId) return payload.clientLocationId;
-
-  // 2. customFields array
-  const fields = payload.customFields ?? [];
-  for (const f of fields) {
-    const key = f.fieldKey ?? f.key ?? "";
-    if (key.includes("client_location_id") && f.value) {
-      return f.value;
-    }
-  }
-  return null;
+/** Find the client's sub-account locationId by matching their email */
+async function findLocationByEmail(email: string): Promise<string | null> {
+  const locations = await getAllGHLLocations();
+  const match = locations.find(
+    (l) => l.email?.toLowerCase().trim() === email.toLowerCase().trim()
+  );
+  return match?.locationId ?? null;
 }
 
-/**
- * Search for a contact in a given location by email.
- * Returns the contactId if found, null otherwise.
- */
-async function findContactInLocation(
+/** Find a contact in a location by email. Returns contactId or null. */
+async function findContactByEmail(
   locationId: string,
   email: string,
   token: string
 ): Promise<string | null> {
   const res = await ghlFetch(
-    `/contacts/?locationId=${encodeURIComponent(locationId)}&email=${encodeURIComponent(email)}&limit=1`,
+    `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`,
     { method: "GET", token }
   );
 
   if (!res.ok) {
-    console.error("[send-onboarding] contact search failed:", res.status, await res.text());
+    console.error("[send-onboarding] contact search failed:", res.status);
     return null;
   }
 
-  const json = (await res.json()) as GHLContactSearchResult;
+  const json = (await res.json()) as GHLContactsResponse;
   return json.contacts?.[0]?.id ?? null;
 }
 
-/**
- * Send a message via GHL Conversations API from PatronPro's location.
- */
+/** Upsert client as contact in PatronPro's location so we can send from there */
+async function upsertInPatronPro(
+  ppLocationId: string,
+  data: { email: string; phone: string; firstName: string; businessName: string },
+  token: string
+): Promise<string> {
+  const res = await ghlFetch("/contacts/upsert", {
+    method: "POST",
+    token,
+    body: JSON.stringify({
+      locationId:  ppLocationId,
+      email:       data.email,
+      phone:       data.phone       || undefined,
+      firstName:   data.firstName   || undefined,
+      companyName: data.businessName || undefined,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Upsert contact failed: ${res.status} ${await res.text()}`);
+  }
+
+  const json = (await res.json()) as GHLUpsertResponse;
+  const id = json.contact?.id;
+  if (!id) throw new Error("Upsert returned no contact id");
+  return id;
+}
+
+/** Send email or SMS via GHL Conversations from PatronPro's location */
 async function sendMessage(
   params: {
-    contactId: string;
-    type:      "Email" | "SMS";
-    subject?:  string;
-    html?:     string;
-    message?:  string;
+    contactId:   string;
+    type:        "Email" | "SMS";
+    subject?:    string;
+    html?:       string;
+    message?:    string;
     fromNumber?: string;
   },
   token: string
@@ -156,13 +148,11 @@ async function sendMessage(
   const res = await ghlFetch("/conversations/messages", {
     method: "POST",
     token,
-    body: JSON.stringify(body),
+    body:   JSON.stringify(body),
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    console.error(`[send-onboarding] sendMessage (${params.type}) failed:`, res.status, text);
-    throw new Error(`GHL ${params.type} send failed: ${res.status}`);
+    throw new Error(`GHL ${params.type} send failed: ${res.status} ${await res.text()}`);
   }
 }
 
@@ -170,69 +160,69 @@ async function sendMessage(
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    // ── Auth: verify webhook secret ──────────────────────────────────────────
+    // ── Auth ─────────────────────────────────────────────────────────────────
     const { searchParams } = new URL(request.url);
     const secret   = searchParams.get("secret") ?? "";
-    const expected = process.env.WEBHOOK_SECRET   ?? "";
+    const expected = process.env.WEBHOOK_SECRET  ?? "";
 
-    if (!expected) {
-      console.warn("[send-onboarding] WEBHOOK_SECRET not set — skipping auth check");
-    } else if (secret !== expected) {
+    if (expected && secret !== expected) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ── Parse payload ────────────────────────────────────────────────────────
-    const payload = (await request.json()) as GHLWebhookPayload;
+    // ── Parse ─────────────────────────────────────────────────────────────────
+    const payload      = (await request.json()) as WebhookPayload;
+    const email        = payload.email?.toLowerCase().trim() ?? "";
+    const phone        = payload.phone        ?? "";
+    const firstName    = payload.firstName    ?? "ahí";
+    const businessName = payload.businessName ?? "";
 
-    const ppContactId  = payload.id ?? payload.contactId ?? "";
-    const email        = payload.email    ?? "";
-    const phone        = payload.phone    ?? "";
-    const firstName    = payload.firstName ?? payload.name?.split(" ")[0] ?? "ahí";
-    const businessName = payload.companyName ?? "";
-
-    if (!ppContactId || !email) {
-      return NextResponse.json(
-        { error: "Missing contactId or email in payload" },
-        { status: 400 }
-      );
+    if (!email) {
+      return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
 
-    // ── Get client's locationId ──────────────────────────────────────────────
-    const clientLocationId = extractClientLocationId(payload);
+    // ── Find client's locationId from their email ─────────────────────────────
+    const clientLocationId = await findLocationByEmail(email);
+
     if (!clientLocationId) {
-      console.error("[send-onboarding] client_location_id custom field missing on contact", ppContactId);
+      console.error("[send-onboarding] no location found for email:", email);
       return NextResponse.json(
-        { error: "client_location_id custom field not set on contact" },
-        { status: 422 }
-      );
-    }
-
-    // ── Get PatronPro's location token (to send messages FROM PatronPro) ─────
-    const ppLocationId = process.env.PATRONPRO_LOCATION_ID ?? "";
-    if (!ppLocationId) {
-      throw new Error("Missing PATRONPRO_LOCATION_ID env var");
-    }
-    const ppToken = await getLocationAccessToken(ppLocationId);
-
-    // ── Find contact in client's sub-account ─────────────────────────────────
-    const clientToken     = await getLocationAccessToken(clientLocationId);
-    const clientContactId = await findContactInLocation(clientLocationId, email, clientToken);
-
-    if (!clientContactId) {
-      console.error("[send-onboarding] contact not found in client location", clientLocationId, email);
-      return NextResponse.json(
-        { error: `Contact not found in location ${clientLocationId} for email ${email}` },
+        { error: `No sub-account found for email: ${email}` },
         { status: 404 }
       );
     }
 
-    // ── Build onboarding URL ──────────────────────────────────────────────────
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://patronpro-web.vercel.app";
+    // ── Find contactId in client's sub-account ────────────────────────────────
+    const clientToken     = await getLocationAccessToken(clientLocationId);
+    const clientContactId = await findContactByEmail(clientLocationId, email, clientToken);
+
+    if (!clientContactId) {
+      console.error("[send-onboarding] no contact in location", clientLocationId, "for", email);
+      return NextResponse.json(
+        { error: `No contact found in sub-account for email: ${email}` },
+        { status: 404 }
+      );
+    }
+
+    // ── Build onboarding link ─────────────────────────────────────────────────
+    const appUrl         = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
     const onboardingLink = `${appUrl}/onboarding?locationId=${clientLocationId}&contactId=${clientContactId}`;
+
+    console.info("[send-onboarding] link built:", onboardingLink);
+
+    // ── PatronPro location token ──────────────────────────────────────────────
+    const ppLocationId = process.env.PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
+    const ppToken      = await getLocationAccessToken(ppLocationId);
+
+    // ── Upsert contact in PatronPro location (needed to send from there) ──────
+    const ppContactId = await upsertInPatronPro(
+      ppLocationId,
+      { email, phone, firstName, businessName },
+      ppToken
+    );
 
     const vars = { firstName, businessName, link: onboardingLink };
 
-    // ── Send EMAIL ────────────────────────────────────────────────────────────
+    // ── Send email ────────────────────────────────────────────────────────────
     await sendMessage(
       {
         contactId: ppContactId,
@@ -245,31 +235,25 @@ export async function POST(request: Request): Promise<Response> {
 
     // ── Send SMS ──────────────────────────────────────────────────────────────
     if (phone) {
-      const fromNumber = process.env.PATRONPRO_PHONE_NUMBER ?? "";
       await sendMessage(
         {
           contactId:  ppContactId,
           type:       "SMS",
           message:    interpolate(ONBOARDING_SMS_TEXT, vars),
-          fromNumber,
+          fromNumber: process.env.PATRONPRO_PHONE_NUMBER ?? "",
         },
         ppToken
       );
     } else {
-      console.warn("[send-onboarding] No phone number — skipping SMS for", ppContactId);
+      console.warn("[send-onboarding] no phone for", email, "— SMS skipped");
     }
 
-    console.info("[send-onboarding] ✅ sent email + SMS to", email, "| link:", onboardingLink);
+    console.info("[send-onboarding] ✅ sent to", email, "→", onboardingLink);
 
-    return NextResponse.json(
-      { success: true, onboardingLink },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, onboardingLink }, { status: 200 });
+
   } catch (err) {
     console.error("[POST /api/webhooks/send-onboarding]", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
