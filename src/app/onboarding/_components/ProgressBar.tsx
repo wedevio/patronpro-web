@@ -8,7 +8,8 @@ const STEPS: Step[] = [
   { number: 2, label: "Marca" },
   { number: 3, label: "Horarios" },
   { number: 4, label: "Dominio" },
-  { number: 5, label: "Revisar" },
+  { number: 5, label: "Website" },
+  { number: 6, label: "Revisar" },
 ];
 
 interface ProgressBarProps {

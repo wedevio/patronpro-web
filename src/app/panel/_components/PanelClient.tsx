@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -21,6 +21,11 @@ import {
   BadgeCheck,
   CheckCheck,
   CalendarClock,
+  Copy,
+  Check,
+  Loader2,
+  AlertCircle,
+  Code2,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -122,6 +127,128 @@ function ProgressBar({ pct, width = "w-20" }: { pct: number; width?: string }) {
         className="h-full rounded-full transition-all duration-300"
         style={{ width: `${pct}%`, background: color }}
       />
+    </div>
+  );
+}
+
+// ─── Website Section ──────────────────────────────────────────────────────────
+
+interface WebsiteData {
+  status: "pending" | "generating" | "ready" | "error";
+  html: string | null;
+  hero_image_url: string | null;
+  generated_at: string | null;
+  error_message: string | null;
+}
+
+function WebsiteSection({ locationId }: { locationId: string }) {
+  const [data, setData]     = useState<WebsiteData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [copied, setCopied]   = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/website/${locationId}`);
+      const json = await res.json() as { website: WebsiteData | null };
+      setData(json.website);
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [locationId]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  // Auto-poll while generating
+  useEffect(() => {
+    if (data?.status !== "generating") return;
+    const id = setInterval(() => { void load(); }, 5000);
+    return () => clearInterval(id);
+  }, [data?.status, load]);
+
+  async function copyHtml() {
+    if (!data?.html) return;
+    await navigator.clipboard.writeText(data.html);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-slate-400 text-[13px]">
+        <Loader2 size={14} className="animate-spin" />
+        Cargando...
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <p className="text-[13px] text-slate-400 italic">
+        No hay website generada. Se creará automáticamente tras el onboarding.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Status */}
+      <div className="flex items-center gap-2">
+        {data.status === "ready" && (
+          <Badge color="green"><BadgeCheck size={10} />Lista</Badge>
+        )}
+        {data.status === "generating" && (
+          <Badge color="amber"><Loader2 size={10} className="animate-spin" />Generando...</Badge>
+        )}
+        {data.status === "pending" && (
+          <Badge color="gray">Pendiente</Badge>
+        )}
+        {data.status === "error" && (
+          <Badge color="red"><AlertCircle size={10} />Error</Badge>
+        )}
+        {data.generated_at && (
+          <span className="text-[11px] text-slate-400">{formatDateTime(data.generated_at)}</span>
+        )}
+      </div>
+
+      {/* Error message */}
+      {data.status === "error" && data.error_message && (
+        <p className="text-[12px] text-red-500 bg-red-50 rounded px-3 py-2">{data.error_message}</p>
+      )}
+
+      {/* Hero image preview */}
+      {data.hero_image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={data.hero_image_url}
+          alt="Hero"
+          className="w-full h-24 object-cover rounded-lg border border-slate-200"
+        />
+      )}
+
+      {/* Copy HTML button */}
+      {data.status === "ready" && data.html && (
+        <button
+          onClick={copyHtml}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all"
+          style={{ backgroundColor: copied ? "#22c55e" : "#1E2C46" }}
+        >
+          {copied
+            ? <><Check size={15} />HTML copiado</>
+            : <><Copy size={15} />Copiar HTML para GHL</>
+          }
+        </button>
+      )}
+
+      {/* HTML preview hint */}
+      {data.status === "ready" && data.html && (
+        <p className="text-[11px] text-slate-400 text-center flex items-center gap-1 justify-center">
+          <Code2 size={11} />
+          {(data.html.length / 1024).toFixed(0)} KB · Pegá en un bloque Custom HTML de GHL
+        </p>
+      )}
     </div>
   );
 }
@@ -340,6 +467,16 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
 
                 <Row icon={<Calendar size={14} />} label="Enviado" value={formatDateTime(submission.submittedAt)} />
               </div>
+            </section>
+          )}
+
+          {/* Website generada */}
+          {submission && submission.checklist.form && (
+            <section>
+              <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">
+                Website generada
+              </h3>
+              <WebsiteSection locationId={account.locationId} />
             </section>
           )}
 

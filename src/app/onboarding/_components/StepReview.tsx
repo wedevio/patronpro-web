@@ -183,6 +183,33 @@ export default function StepReview({
         </div>
       </Section>
 
+      {/* Step 5 — Website */}
+      <Section title="Website" step={5} onEdit={onEdit}>
+        <div className="flex flex-col gap-2">
+          {data.websiteServices?.length ? (
+            <div>
+              <span className="text-sm font-medium block mb-1.5" style={{ color: "#5f6f88" }}>
+                Servicios:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {data.websiteServices.map((svc) => (
+                  <span
+                    key={svc}
+                    className="rounded-full px-2.5 py-1 text-xs font-medium"
+                    style={{ backgroundColor: "#f0f4ff", color: "#1E2C46" }}
+                  >
+                    {svc.startsWith("custom_") ? svc.replace(/^custom_\d+_?/, "") : svc}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm" style={{ color: "#9ca3af" }}>Sin servicios seleccionados</p>
+          )}
+          <Row label="Tagline" value={data.websiteTagline} />
+        </div>
+      </Section>
+
       <button
         type="button"
         onClick={onSubmit}

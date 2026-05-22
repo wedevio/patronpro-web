@@ -63,3 +63,19 @@ export function validateStep4(
 ): ValidationErrors {
   return {};
 }
+
+// Step 5: Website
+export function validateStep5(
+  data: Partial<OnboardingFormData>
+): ValidationErrors {
+  const errors: ValidationErrors = {};
+
+  if (!data.websiteServices?.length) {
+    errors.websiteServices = "Seleccioná al menos un servicio";
+  }
+  if (!data.websiteTagline?.trim()) {
+    errors.websiteTagline = "El tagline es requerido";
+  }
+
+  return errors;
+}

@@ -58,6 +58,12 @@ export async function POST(request: Request): Promise<Response> {
       domainRegistrar: (fd.get("domainRegistrar") as string) ?? undefined,
       authorizeDomainPurchase: fd.get("authorizeDomainPurchase") === "true",
       hoursOfOperation,
+      websiteTagline: (fd.get("websiteTagline") as string) ?? "",
+      websiteServices: (() => {
+        const raw = fd.get("websiteServices") as string | null;
+        if (!raw) return [];
+        try { return JSON.parse(raw) as string[]; } catch { return []; }
+      })(),
     };
 
     if (!data.businessName) {
@@ -157,8 +163,8 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // --- Save to panel store ---
-    try {
-      // Determine domain type and value
+    let savedAccountId: string | undefined;
+    try {      // Determine domain type and value
       let domainType: "existing" | "new" | "none" = "none";
       let domainValue = "";
       if (data.hasDomain && data.existingDomain) {
@@ -169,7 +175,7 @@ export async function POST(request: Request): Promise<Response> {
         domainValue = data.desiredDomain;
       }
 
-      await saveSubmission({
+      savedAccountId = await saveSubmission({
         locationId,
         contactId,
         businessName:       data.businessName ?? "",
@@ -191,9 +197,39 @@ export async function POST(request: Request): Promise<Response> {
         letUsChooseColors:  data.letUsChooseColors ?? false,
         logoUrl:            logoUrl ?? "",
         hoursOfOperation:   data.hoursOfOperation,
+        websiteTagline:     data.websiteTagline ?? "",
+        websiteServices:    data.websiteServices ?? [],
       });
     } catch (err) {
       console.error("[onboarding] saveSubmission failed:", err);
+    }
+
+    // --- Trigger website generation in background (non-blocking) ---
+    if (savedAccountId && (data.websiteServices?.length ?? 0) > 0) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://patronpro-web.vercel.app";
+      const domain = data.hasDomain
+        ? (data.existingDomain ?? "")
+        : (data.desiredDomain ?? "");
+
+      fetch(`${baseUrl}/api/website/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId:        savedAccountId,
+          locationId,
+          businessName:     data.businessName ?? "",
+          address:          data.address ?? "",
+          city:             data.city ?? "",
+          state:            data.state ?? "",
+          zip:              data.zip ?? "",
+          tagline:          data.websiteTagline ?? "",
+          services:         data.websiteServices ?? [],
+          primaryColor:     data.primaryColor ?? "#1E2C46",
+          secondaryColor:   data.secondaryColor ?? "#F67D0A",
+          domain,
+          hoursOfOperation: data.hoursOfOperation ?? null,
+        }),
+      }).catch((err) => console.error("[onboarding] website generation trigger failed:", err));
     }
 
     return NextResponse.json({ success: true }, { status: 201 });

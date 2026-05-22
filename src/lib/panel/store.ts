@@ -47,6 +47,8 @@ export interface PanelSubmission {
   letUsChooseColors:  boolean;
   logoUrl:            string;
   hoursOfOperation?:  HoursOfOperation;
+  websiteTagline?:    string;
+  websiteServices?:   string[];
 }
 
 export function defaultChecklist(): Record<ChecklistItemId, boolean> {
@@ -55,10 +57,10 @@ export function defaultChecklist(): Record<ChecklistItemId, boolean> {
   ) as Record<ChecklistItemId, boolean>;
 }
 
-/** Upsert account + submission + default checklist in Supabase */
+/** Upsert account + submission + default checklist in Supabase. Returns accountId. */
 export async function saveSubmission(
   data: Omit<PanelSubmission, "checklist" | "submittedAt">
-): Promise<void> {
+): Promise<string> {
   const db = getAdminClient();
   const now = new Date().toISOString();
 
@@ -126,6 +128,8 @@ export async function saveSubmission(
   if (clErr) {
     throw new Error(`Failed to seed checklist: ${clErr.message}`);
   }
+
+  return accountId;
 }
 
 /** Returns all submissions ordered by onboarding_at desc */

@@ -55,6 +55,10 @@ export interface OnboardingFormData {
 
   // Step 4: Hours of Operation
   hoursOfOperation: HoursOfOperation;
+
+  // Step 5: Website
+  websiteServices: string[];   // selected service slugs
+  websiteTagline: string;      // one-liner for the hero
 }
 
 export interface OnboardingSubmission {
