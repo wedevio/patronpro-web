@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { verifySupportSession, verifyPpSession } from "@/lib/auth/session";
 import { addNote, getTicket } from "@/lib/support/tickets";
 import { AddNoteSchema } from "@/lib/support/types";
-import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { notifyClientNote } from "@/lib/support/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -20,33 +20,6 @@ async function getAuth(): Promise<AuthResult> {
     try { await verifySupportSession(supportToken); return "client"; } catch { /* fall through */ }
   }
   return null;
-}
-
-/**
- * Sends an SMS notification to the client via GHL Conversations.
- * The contact lives in PatronPro's own location — NOT the client's sub-account location.
- */
-async function notifyClientViaGHL(contactId: string, ticketNumber: number, noteBody: string) {
-  try {
-    const patronproLocationId = process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
-    const token = await getLocationAccessToken(patronproLocationId);
-    await fetch("https://services.leadconnectorhq.com/conversations/messages", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Version: "2021-07-28",
-      },
-      body: JSON.stringify({
-        type: "Email",
-        contactId,
-        subject: `PatronPro Support — Ticket #${ticketNumber} respondido`,
-        html: `<p>${noteBody.replace(/\n/g, "<br>")}</p>`,
-      }),
-    });
-  } catch (err) {
-    console.error("[notes] GHL notification failed", err);
-  }
 }
 
 export async function POST(
@@ -70,11 +43,17 @@ export async function POST(
   try {
     const note = await addNote(id, parsed.data);
 
-    // Only notify client when staff (pp session) posts a public note
+    // Notify client when staff posts a public note
     if (auth === "staff" && parsed.data.is_public) {
       const ticket = await getTicket(id);
-      if (ticket?.ghl_contact_id && ticket.ticket_number) {
-        void notifyClientViaGHL(ticket.ghl_contact_id, ticket.ticket_number, parsed.data.body);
+      if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number) {
+        void notifyClientNote({
+          ghlLocationId: ticket.ghl_location_id,
+          ghlContactId:  ticket.ghl_contact_id,
+          ticketNumber:  ticket.ticket_number,
+          ticketTitle:   ticket.title,
+          noteBody:      parsed.data.body,
+        });
       }
     }
 

@@ -17,6 +17,7 @@ export interface Props {
   contactName: string | null;
   contactEmail: string | null;
   ghlDashboardUrl: string;
+  currentUserEmail: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -52,7 +53,7 @@ function formatDateTime(iso: string): string {
 // Component
 // ---------------------------------------------------------------------------
 
-export default function PanelTicketDetail({ ticket: initial, locationName, contactName, contactEmail, ghlDashboardUrl }: Props) {
+export default function PanelTicketDetail({ ticket: initial, locationName, contactName, contactEmail, ghlDashboardUrl, currentUserEmail }: Props) {
   const [ticket, setTicket]     = useState(initial);
   const [notes, setNotes]       = useState<TicketNote[]>(initial.notes ?? []);
   const [saving, setSaving]     = useState(false);
@@ -120,7 +121,7 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          author: ticket.assignee ?? "PatronPro",
+          author: currentUserEmail,
           body: replyBody + (attachments.length ? `\n\n${attachments.join("\n")}` : ""),
           is_public: replyPublic,
           attachments,

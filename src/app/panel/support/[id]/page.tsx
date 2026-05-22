@@ -1,6 +1,8 @@
 import { getTicket } from "@/lib/support/tickets";
 import { notFound } from "next/navigation";
 import { getAgencyAccessToken } from "@/lib/ghl/oauth";
+import { cookies } from "next/headers";
+import { verifyPpSession } from "@/lib/auth/session";
 import PanelTicketDetail from "./_components/PanelTicketDetail";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +46,17 @@ export default async function PanelTicketPage({ params }: Props) {
   const ticket = await getTicket(id);
   if (!ticket) notFound();
 
+  // Resolve current staff user for note authoring
+  let currentUserEmail = "PatronPro";
+  try {
+    const cookieStore = await cookies();
+    const ppToken = cookieStore.get("pp-session")?.value;
+    if (ppToken) {
+      const session = await verifyPpSession(ppToken);
+      currentUserEmail = session.email ?? "PatronPro";
+    }
+  } catch { /* keep default */ }
+
   const [location, contact] = await Promise.all([
     fetchGhlLocation(ticket.ghl_location_id),
     ticket.ghl_contact_id ? fetchGhlContact(ticket.ghl_location_id, ticket.ghl_contact_id) : Promise.resolve({}),
@@ -61,6 +74,7 @@ export default async function PanelTicketPage({ params }: Props) {
       contactName={contactName}
       contactEmail={contactEmail}
       ghlDashboardUrl={ghlDashboard}
+      currentUserEmail={currentUserEmail}
     />
   );
 }

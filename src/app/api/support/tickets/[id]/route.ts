@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { verifySupportSession, verifyPpSession } from "@/lib/auth/session";
 import { getTicket, updateTicket } from "@/lib/support/tickets";
 import { UpdateTicketSchema } from "@/lib/support/types";
-import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { notifyClientStatus } from "@/lib/support/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -94,35 +94,16 @@ export async function PATCH(
   try {
     const ticket = await updateTicket(id, parsed.data);
 
-    // Fire-and-forget GHL note on resolve or close
-    if (parsed.data.status === "resolved" || parsed.data.status === "closed") {
-      void (async () => {
-        try {
-          const locationToken = await getLocationAccessToken(ticket.ghl_location_id);
-          const noteBody =
-            parsed.data.status === "resolved"
-              ? `Ticket #${ticket.ticket_number} resuelto: ${ticket.title}`
-              : `Ticket #${ticket.ticket_number} cerrado`;
-
-          await fetch(
-            `https://services.leadconnectorhq.com/contacts/${ticket.ghl_contact_id}/notes`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${locationToken}`,
-                "Content-Type": "application/json",
-                Version: "2021-07-28",
-              },
-              body: JSON.stringify({
-                body: noteBody,
-                userId: ticket.ghl_contact_id,
-              }),
-            }
-          );
-        } catch (err) {
-          console.error(`[PATCH /api/support/tickets/${id}] GHL note failed`, err);
-        }
-      })();
+    // Notify client on relevant status changes
+    const NOTIFY_STATUSES = new Set(["resolved", "closed", "waiting_client"]);
+    if (parsed.data.status && NOTIFY_STATUSES.has(parsed.data.status) && ticket.ghl_contact_id) {
+      void notifyClientStatus({
+        ghlLocationId: ticket.ghl_location_id,
+        ghlContactId:  ticket.ghl_contact_id,
+        ticketNumber:  ticket.ticket_number,
+        ticketTitle:   ticket.title,
+        newStatus:     parsed.data.status,
+      });
     }
 
     return NextResponse.json(ticket);
