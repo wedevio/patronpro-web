@@ -143,6 +143,7 @@ interface WebsiteData {
   contact_image_url: string | null;
   images_status: "pending" | "generating" | "ready" | "error" | null;
   generated_at: string | null;
+  updated_at: string | null;
   error_message: string | null;
 }
 
@@ -311,26 +312,26 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
       )}
 
       {/* Hero image preview */}
-      {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
-        <div className="grid grid-cols-3 gap-1.5">
-          {[
-            { url: data.hero_image_url,    label: "Hero" },
-            { url: data.about_image_url,   label: "Nosotros" },
-            { url: data.contact_image_url, label: "Contacto" },
-          ].map(({ url, label }) =>
-            url ? (
-              <div key={label} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={url}
-                  alt={label}
-                  className="w-full h-16 object-cover rounded-lg border border-slate-200"
-                />
-                <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
-                  {label}
-                </span>
-              </div>
-            ) : null
+       {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
+         <div className="grid grid-cols-3 gap-1.5">
+           {[
+             { url: data.hero_image_url,    label: "Hero" },
+             { url: data.about_image_url,   label: "Nosotros" },
+             { url: data.contact_image_url, label: "Contacto" },
+           ].map(({ url, label }) =>
+             url ? (
+               <div key={label} className="relative">
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img
+                   src={`${url}?t=${data.updated_at ?? data.generated_at ?? Date.now()}`}
+                   alt={label}
+                   className="w-full h-16 object-cover rounded-lg border border-slate-200"
+                 />
+                 <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
+                   {label}
+                 </span>
+               </div>
+             ) : null
           )}
         </div>
       )}

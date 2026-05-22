@@ -32,10 +32,9 @@ export default function PanelHeader() {
                 key={href}
                 href={href}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-all ${
-                  active
-                    ? "bg-white/15 text-white"
-                    : "text-white/70 hover:text-white hover:bg-white/10"
+                  active ? "bg-white/15" : "hover:bg-white/10"
                 }`}
+                style={{ color: "white", opacity: active ? 1 : 0.75 }}
               >
                 <Icon size={14} />
                 {label}
