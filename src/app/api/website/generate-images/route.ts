@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyPpSession } from "@/lib/auth/session";
 import { getAdminClient } from "@/lib/supabase/client";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { uploadMediaFromBuffer } from "@/lib/ghl/media";
@@ -86,6 +88,24 @@ async function generateImage(
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    // ── Auth guard ────────────────────────────────────────────────────────────
+    const internalSecret = process.env.INTERNAL_API_SECRET;
+    const reqSecret = (request as Request & { headers: Headers }).headers.get("x-internal-secret");
+    const isInternalCall = internalSecret && reqSecret === internalSecret;
+
+    if (!isInternalCall) {
+      const cookieStore = await cookies();
+      const ppToken = cookieStore.get("pp-session")?.value;
+      if (!ppToken) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      }
+      try {
+        await verifyPpSession(ppToken);
+      } catch {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      }
+    }
+
     const body = (await request.json()) as GenerateImagesBody;
     const { accountId, locationId, businessName } = body;
 

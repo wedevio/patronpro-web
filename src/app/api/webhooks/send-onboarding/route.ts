@@ -192,9 +192,9 @@ export async function POST(request: Request): Promise<Response> {
     // ── Auth ─────────────────────────────────────────────────────────────────
     const { searchParams } = new URL(request.url);
     const secret   = searchParams.get("secret") ?? "";
-    const expected = process.env.WEBHOOK_SECRET  ?? "";
+    const expected = process.env.WEBHOOK_SECRET ?? "";
 
-    if (expected && secret !== expected) {
+    if (!expected || secret !== expected) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -43,8 +43,8 @@ export async function POST(
   try {
     const note = await addNote(id, parsed.data);
 
-    // Notify client when a public note is posted (staff reply)
-    if (parsed.data.is_public && auth !== null) {
+    // Notify client only when STAFF posts a public note (not when client writes)
+    if (parsed.data.is_public && auth === "staff") {
       const ticket = await getTicket(id);
       if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number && ticket.creator_email) {
         await notifyClientNote({

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { verifyPpSession } from "@/lib/auth/session";
 import { getAdminClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
@@ -261,6 +263,24 @@ INSTRUCCIONES:
 
 export async function POST(request: Request): Promise<Response> {
   try {
+    // ── Auth guard ────────────────────────────────────────────────────────────
+    const internalSecret = process.env.INTERNAL_API_SECRET;
+    const reqSecret = (request as Request & { headers: Headers }).headers.get("x-internal-secret");
+    const isInternalCall = internalSecret && reqSecret === internalSecret;
+
+    if (!isInternalCall) {
+      const cookieStore = await cookies();
+      const ppToken = cookieStore.get("pp-session")?.value;
+      if (!ppToken) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      }
+      try {
+        await verifyPpSession(ppToken);
+      } catch {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+      }
+    }
+
     const body = (await request.json()) as WebsiteGenerateParams;
     const { accountId, businessName } = body;
 
@@ -352,7 +372,10 @@ export async function POST(request: Request): Promise<Response> {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
     void fetch(`${appUrl}/api/website/generate-images`, {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
+      },
       body: JSON.stringify({
         accountId:    body.accountId,
         locationId:   body.locationId,
