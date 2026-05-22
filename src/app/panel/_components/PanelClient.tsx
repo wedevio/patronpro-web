@@ -27,6 +27,7 @@ import {
   AlertCircle,
   Code2,
   RefreshCw,
+  Sparkles,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -140,6 +141,7 @@ interface WebsiteData {
   hero_image_url: string | null;
   about_image_url: string | null;
   contact_image_url: string | null;
+  images_status: "pending" | "generating" | "ready" | "error" | null;
   generated_at: string | null;
   error_message: string | null;
 }
@@ -150,6 +152,7 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   const [loading, setLoading]   = useState(true);
   const [copied, setCopied]     = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [generatingImages, setGeneratingImages] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -174,11 +177,43 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     return () => clearInterval(id);
   }, [data?.status, load]);
 
+  // Auto-poll while generating images
+  useEffect(() => {
+    if (data?.images_status !== "generating") return;
+    const id = setInterval(() => { void load(); }, 5000);
+    return () => clearInterval(id);
+  }, [data?.images_status, load]);
+
   async function copyHtml() {
     if (!data?.html) return;
     await navigator.clipboard.writeText(data.html);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function generateImages() {
+    if (!submission || !accountId) return;
+    setGeneratingImages(true);
+    try {
+      await fetch("/api/website/generate-images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId,
+          locationId,
+          businessName:  submission.businessName,
+          services:      submission.websiteServices ?? [],
+          city:          submission.city,
+          state:         submission.state,
+          primaryColor:  submission.primaryColor || "#1E2C46",
+        }),
+      });
+      await load();
+    } catch (err) {
+      console.error("generateImages failed:", err);
+    } finally {
+      setGeneratingImages(false);
+    }
   }
 
   async function regenerate() {
@@ -299,6 +334,29 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
             : <><Copy size={15} />Copiar HTML para GHL</>
           }
         </button>
+      )}
+
+      {/* Generate images button */}
+      {data.status === "ready" && submission && accountId && data.images_status !== "ready" && data.images_status !== "generating" && (
+        <button
+          onClick={generateImages}
+          disabled={generatingImages}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+          style={{ backgroundColor: "#F67D0A" }}
+        >
+          {generatingImages
+            ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
+            : <><Sparkles size={14} />Generar imágenes con IA</>
+          }
+        </button>
+      )}
+
+      {/* Images generating badge */}
+      {data.images_status === "generating" && (
+        <div className="flex items-center gap-2 text-[13px] text-amber-600 bg-amber-50 rounded-[10px] px-4 py-2.5">
+          <Loader2 size={14} className="animate-spin" />
+          Generando imágenes con IA... (puede demorar 1-2 min)
+        </div>
       )}
 
       {/* Regenerate button */}
