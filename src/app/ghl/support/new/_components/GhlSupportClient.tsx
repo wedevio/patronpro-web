@@ -94,6 +94,14 @@ function priorityBadgeClass(priority: TicketPriority): string {
   return map[priority] ?? "bg-gray-100 text-gray-700";
 }
 
+function planStatusClass(status: string): string {
+  const s = status.toLowerCase();
+  if (s === "active" || s === "trialing") return "bg-green-100 text-green-700";
+  if (s === "canceled" || s === "cancelled" || s === "inactive") return "bg-red-100 text-red-700";
+  if (s === "paused" || s === "past_due") return "bg-amber-100 text-amber-700";
+  return "bg-gray-100 text-gray-500";
+}
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString("es-AR", {
     day: "2-digit",
@@ -612,6 +620,8 @@ export default function GhlSupportClient({ locationId: propLocationId, userId }:
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [userName, setUserName] = useState<string | undefined>(undefined);
+  const [locationName, setLocationName] = useState<string | null>(null);
+  const [accountPlanStatus, setAccountPlanStatus] = useState<string | null>(null);
 
   // Auth on mount
   useEffect(() => {
@@ -629,8 +639,10 @@ export default function GhlSupportClient({ locationId: propLocationId, userId }:
           const d = (await res.json()) as { error?: string };
           throw new Error(d.error ?? "Auth failed");
         }
-        const data = (await res.json()) as { userName?: string };
+        const data = (await res.json()) as { userName?: string; locationName?: string; planStatus?: string };
         if (data.userName) setUserName(data.userName);
+        if (data.locationName) setLocationName(data.locationName);
+        if (data.planStatus) setAccountPlanStatus(data.planStatus);
         setAuthed(true);
       } catch (err: unknown) {
         setAuthError(err instanceof Error ? err.message : "Error de autenticación");
@@ -774,6 +786,18 @@ export default function GhlSupportClient({ locationId: propLocationId, userId }:
 
   return (
     <div className="p-4">
+      {/* Account info header */}
+      {locationName && (
+        <div className="mb-3 flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+          <span className="text-sm font-semibold text-[#1E2C46] truncate">{locationName}</span>
+          {accountPlanStatus && (
+            <span className={`ml-2 shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold ${planStatusClass(accountPlanStatus)}`}>
+              {accountPlanStatus}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
         <h1 className="text-base font-semibold text-[#1E2C46]">Soporte PatronPro</h1>

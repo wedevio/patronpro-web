@@ -103,6 +103,14 @@ async function fetchPatronProSignals(
   return result;
 }
 
+// ─── Static plan fallback map ─────────────────────────────────────────────────
+// TODO: fill in real PatronPro plan IDs from the GHL SaaS console
+// Format: "ghl_plan_id": "Human readable name"
+const STATIC_PLAN_MAP: Record<string, string> = {
+  // e.g. "price_1ABC": "Mensual",
+  // e.g. "price_2XYZ": "Anual",
+};
+
 // ─── SaaS plan name cache ─────────────────────────────────────────────────────
 
 let cachedPlanMap: Map<string, string> | null = null;
@@ -181,12 +189,14 @@ async function fetchLocation(
     const loc = (json?.location as Record<string, unknown>) ?? json ?? {};
 
     // Extract SaaS status + plan directly from location object
-    const settings     = (loc.settings as Record<string, unknown>) ?? {};
-    const saasSettings = (settings.saasSettings as Record<string, unknown>) ?? {};
-    const planDetails  = (saasSettings.planDetails as Record<string, unknown>) ?? {};
-    const saasMode     = (saasSettings.saasMode as string) ?? "";
-    const subStatus    = (planDetails.subscriptionStatus as string) ?? "";
-    const saasPlanId   = (saasSettings.saasPlanId as string) ?? "";
+    const settings            = (loc.settings as Record<string, unknown>) ?? {};
+    const saasSettings        = (settings.saasSettings as Record<string, unknown>) ?? {};
+    const planDetails         = (saasSettings.planDetails as Record<string, unknown>) ?? {};
+    const saasMode            = (saasSettings.saasMode as string) ?? "";
+    const subStatus           = (planDetails.subscriptionStatus as string) ?? "";
+    const saasPlanId          = (saasSettings.saasPlanId as string) ?? "";
+    // Direct plan name from location object (most reliable source)
+    const planNameFromDetails = (planDetails.name as string) ?? (planDetails.planName as string) ?? "";
 
     // planStatus: use subscriptionStatus if SaaS is activated, otherwise "—"
     const planStatus = saasMode === "activated" && subStatus ? subStatus : "—";
@@ -211,10 +221,16 @@ async function fetchLocation(
       appointmentDate:   "",
     };
 
-    // Resolve plan name from cache
+    // Resolve plan name — priority: (1) planDetails.name, (2) static map, (3) GHL API map, (4) truncated ID
     if (saasPlanId) {
-      const planMap = await getSaasPlanMap(agencyToken);
-      result.planName = planMap.get(saasPlanId) ?? saasPlanId.slice(0, 8) + "…";
+      if (planNameFromDetails) {
+        result.planName = planNameFromDetails;
+      } else if (STATIC_PLAN_MAP[saasPlanId]) {
+        result.planName = STATIC_PLAN_MAP[saasPlanId];
+      } else {
+        const planMap = await getSaasPlanMap(agencyToken);
+        result.planName = planMap.get(saasPlanId) ?? saasPlanId.slice(0, 8) + "…";
+      }
     }
 
     // Run secondary fetches in parallel (plan already extracted from location object)

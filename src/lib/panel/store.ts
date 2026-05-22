@@ -27,6 +27,7 @@ export interface PanelSubmission {
   locationId:         string;
   contactId:          string;
   submittedAt:        string;
+  approvedAt:         string | null;
   checklist:          Record<ChecklistItemId, boolean>;
   businessName:       string;
   legalName:          string;
@@ -60,7 +61,7 @@ export function defaultChecklist(): Record<ChecklistItemId, boolean> {
 
 /** Upsert account + submission + default checklist in Supabase. Returns accountId. */
 export async function saveSubmission(
-  data: Omit<PanelSubmission, "checklist" | "submittedAt">
+  data: Omit<PanelSubmission, "checklist" | "submittedAt" | "approvedAt">
 ): Promise<string> {
   const db = getAdminClient();
   const now = new Date().toISOString();
@@ -148,6 +149,7 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       location_id,
       contact_id,
       onboarding_at,
+      approved_at,
       account_submissions ( * ),
       account_checklist ( item_id, checked )
     `)
@@ -176,6 +178,7 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       locationId:         acc.location_id as string,
       contactId:          (acc.contact_id as string) ?? "",
       submittedAt:        (acc.onboarding_at as string) ?? "",
+      approvedAt:         (acc.approved_at as string | null) ?? null,
       checklist,
       businessName:       (sub.business_name as string) ?? "",
       legalName:          (sub.legal_name as string) ?? "",

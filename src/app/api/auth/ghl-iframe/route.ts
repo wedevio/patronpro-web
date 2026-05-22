@@ -81,7 +81,9 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "GHL service unavailable" }, { status: 502 });
   }
 
-  // Verify this location belongs to our company
+  // Verify this location belongs to our company + extract enrichment fields
+  let locationName: string | null = null;
+  let planStatus: string | null = null;
   try {
     const res = await fetch(
       `https://services.leadconnectorhq.com/locations/${location_id}`,
@@ -98,10 +100,27 @@ export async function POST(request: Request): Promise<Response> {
       console.error("[ghl-iframe] GHL location fetch failed", res.status, text);
       return NextResponse.json({ error: "GHL service unavailable" }, { status: 502 });
     }
-    const data = (await res.json()) as { location: { companyId: string } };
+    const data = (await res.json()) as {
+      location: {
+        companyId: string;
+        name?: string;
+        settings?: {
+          saasSettings?: {
+            saasMode?: string;
+            planDetails?: { subscriptionStatus?: string };
+          };
+        };
+      };
+    };
     if (data.location.companyId !== process.env.GHL_COMPANY_ID) {
       return NextResponse.json({ error: "Forbidden: wrong company" }, { status: 403 });
     }
+
+    locationName = data.location.name ?? null;
+    const saasSettings = data.location.settings?.saasSettings;
+    planStatus = saasSettings?.saasMode === "activated"
+      ? (saasSettings?.planDetails?.subscriptionStatus ?? null)
+      : null;
   } catch (err) {
     console.error("[ghl-iframe] GHL location fetch error", err);
     return NextResponse.json({ error: "GHL service unavailable" }, { status: 502 });
@@ -125,7 +144,7 @@ export async function POST(request: Request): Promise<Response> {
     email: creatorEmail,
   });
 
-  const response = NextResponse.json({ success: true, locationId: location_id, userName: userName ?? null });
+  const response = NextResponse.json({ success: true, locationId: location_id, userName: userName ?? null, locationName, planStatus });
   response.cookies.set("support-session", token, {
     httpOnly: true,
     secure: true,

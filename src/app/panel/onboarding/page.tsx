@@ -66,6 +66,7 @@ export default async function OnboardingPage() {
         locationId,
         contactId:          "",
         submittedAt:        ghl.createdAt,
+        approvedAt:         null,
         businessName:       ghl.name,
         legalName:          "",
         email:              ghl.email,

@@ -28,6 +28,7 @@ import {
   Code2,
   RefreshCw,
   Sparkles,
+  UserCheck,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -401,12 +402,14 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
 
 // ─── Side Panel ───────────────────────────────────────────────────────────────
 
-function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: () => void }) {
+function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; onClose: () => void; onApprove?: (locationId: string) => void }) {
   const { ghl, submission } = account;
   const [checklist, setChecklist] = useState(
     submission?.checklist ?? ({} as Record<ChecklistItemId, boolean>)
   );
   const [isPending, startTransition] = useTransition();
+  const [approvedAt, setApprovedAt] = useState<string | null>(submission?.approvedAt ?? null);
+  const [approving, setApproving] = useState(false);
 
   const done = countDone(checklist);
   const pct  = progressPct(checklist);
@@ -433,6 +436,24 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
     });
   }
 
+  async function approveAccount() {
+    setApproving(true);
+    try {
+      const res = await fetch(`/api/panel/accounts/${account.locationId}/approve`, {
+        method: "PATCH",
+      });
+      if (res.ok) {
+        const now = new Date().toISOString();
+        setApprovedAt(now);
+        onApprove?.(account.locationId);
+      }
+    } catch {
+      // silent — user can retry
+    } finally {
+      setApproving(false);
+    }
+  }
+
   const DAYS: Array<[string, string]> = [
     ["monday",    "Lunes"],
     ["tuesday",   "Martes"],
@@ -457,9 +478,23 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
             </p>
             <p className="text-white/50 text-[12px] mt-0.5">{account.locationId}</p>
           </div>
-          <button onClick={onClose} className="text-white/60 hover:text-white transition-colors p-1 rounded">
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {submission && approvedAt === null && (
+              <button
+                onClick={approveAccount}
+                disabled={approving}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-md bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-50"
+              >
+                {approving
+                  ? <Loader2 size={12} className="animate-spin" />
+                  : <UserCheck size={12} />}
+                Aprobar cuenta
+              </button>
+            )}
+            <button onClick={onClose} className="text-white/60 hover:text-white transition-colors p-1 rounded">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-6 space-y-8">
@@ -709,7 +744,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
-type FilterType = "all" | "active" | "inactive" | "no-onboarding";
+type FilterType = "all" | "active" | "inactive" | "no-onboarding" | "pending-approval";
 type SortType   = "date-desc" | "date-asc" | "name";
 
 export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] }) {
@@ -717,13 +752,30 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
   const [filter,   setFilter]   = useState<FilterType>("all");
   const [sort,     setSort]     = useState<SortType>("date-desc");
   const [selected, setSelected] = useState<EnrichedAccount | null>(null);
+  const [accountList, setAccountList] = useState<EnrichedAccount[]>(accounts);
 
-  const total        = accounts.length;
-  const active       = accounts.filter((a) => a.ghl.planStatus.toLowerCase() === "active").length;
-  const pendingSetup = accounts.filter((a) => !a.submission?.checklist.form).length;
-  const completed    = accounts.filter((a) => a.submission && progressPct(a.submission.checklist) === 100).length;
+  function handleApprove(locationId: string) {
+    setAccountList((prev) =>
+      prev.map((a) => {
+        if (a.locationId !== locationId || !a.submission) return a;
+        return {
+          ...a,
+          submission: { ...a.submission, approvedAt: new Date().toISOString() },
+        };
+      })
+    );
+    setSelected((prev) => {
+      if (!prev || prev.locationId !== locationId || !prev.submission) return prev;
+      return { ...prev, submission: { ...prev.submission, approvedAt: new Date().toISOString() } };
+    });
+  }
 
-  const visible = accounts
+  const total        = accountList.length;
+  const active       = accountList.filter((a) => a.ghl.planStatus.toLowerCase() === "active").length;
+  const pendingSetup = accountList.filter((a) => !a.submission?.checklist.form).length;
+  const completed    = accountList.filter((a) => a.submission && progressPct(a.submission.checklist) === 100).length;
+
+  const visible = accountList
     .filter((a) => {
       const q = search.toLowerCase();
       if (q) {
@@ -731,9 +783,10 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
         const email = (a.submission?.email        || a.ghl.email).toLowerCase();
         if (!name.includes(q) && !email.includes(q)) return false;
       }
-      if (filter === "active")        return a.ghl.planStatus.toLowerCase() === "active";
-      if (filter === "inactive")      return a.ghl.planStatus.toLowerCase() === "inactive";
-      if (filter === "no-onboarding") return !a.submission?.checklist.form;
+      if (filter === "active")           return a.ghl.planStatus.toLowerCase() === "active";
+      if (filter === "inactive")         return a.ghl.planStatus.toLowerCase() === "inactive";
+      if (filter === "no-onboarding")    return !a.submission?.checklist.form;
+      if (filter === "pending-approval") return a.submission?.approvedAt === null;
       return true;
     })
     .sort((a, b) => {
@@ -776,6 +829,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
               <option value="active">Activo</option>
               <option value="inactive">Inactivo</option>
               <option value="no-onboarding">Sin onboarding</option>
+              <option value="pending-approval">Pendiente aprobación</option>
             </select>
             <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
@@ -821,6 +875,8 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
                   const checklist = sub?.checklist ?? ({} as Record<ChecklistItemId, boolean>);
                   const done      = countDone(checklist);
                   const pct       = progressPct(checklist);
+                  // F7: if account has never been approved, override displayed status to "paused"
+                  const effectiveStatus = sub?.approvedAt === null ? "paused" : account.ghl.planStatus;
 
                   return (
                     <tr
@@ -842,7 +898,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
                           : <span className="text-slate-300 text-[12px]">—</span>}
                       </td>
 
-                      <td className="px-4 py-3">{statusBadge(account.ghl.planStatus)}</td>
+                      <td className="px-4 py-3">{statusBadge(effectiveStatus)}</td>
 
                       <td className="px-4 py-3">
                         <YesNoBadge active={account.ghl.twilioActive} labelYes="Activo" labelNo="—" />
@@ -892,7 +948,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
         )}
       </div>
 
-      {selected && <SidePanel account={selected} onClose={() => setSelected(null)} />}
+      {selected && <SidePanel account={selected} onClose={() => setSelected(null)} onApprove={handleApprove} />}
     </div>
   );
 }
