@@ -72,24 +72,46 @@ async function findLocationByEmail(email: string): Promise<string | null> {
   return match?.locationId ?? null;
 }
 
-/** Find a contact in a location by email. Returns contactId or null. */
-async function findContactByEmail(
+/** Find or create a contact in the client's sub-account. Always returns a contactId. */
+async function findOrCreateContact(
   locationId: string,
-  email: string,
+  data: { email: string; phone: string; firstName: string; businessName: string },
   token: string
-): Promise<string | null> {
+): Promise<string> {
+  // Try to find first
   const res = await ghlFetch(
-    `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(email)}&limit=1`,
+    `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(data.email)}&limit=1`,
     { method: "GET", token }
   );
 
-  if (!res.ok) {
-    console.error("[send-onboarding] contact search failed:", res.status);
-    return null;
+  if (res.ok) {
+    const json = (await res.json()) as GHLContactsResponse;
+    const found = json.contacts?.[0]?.id;
+    if (found) return found;
   }
 
-  const json = (await res.json()) as GHLContactsResponse;
-  return json.contacts?.[0]?.id ?? null;
+  // Not found → upsert (create)
+  console.info("[send-onboarding] contact not found in sub-account — creating:", data.email);
+  const upsertRes = await ghlFetch("/contacts/upsert", {
+    method: "POST",
+    token,
+    body: JSON.stringify({
+      locationId,
+      email:       data.email,
+      phone:       data.phone       || undefined,
+      firstName:   data.firstName   || undefined,
+      companyName: data.businessName || undefined,
+    }),
+  });
+
+  if (!upsertRes.ok) {
+    throw new Error(`Failed to create contact in sub-account: ${upsertRes.status} ${await upsertRes.text()}`);
+  }
+
+  const upsertJson = (await upsertRes.json()) as GHLUpsertResponse;
+  const id = upsertJson.contact?.id;
+  if (!id) throw new Error("Upsert in sub-account returned no contact id");
+  return id;
 }
 
 /** Upsert client as contact in PatronPro's location so we can send from there */
@@ -193,15 +215,11 @@ export async function POST(request: Request): Promise<Response> {
 
     // ── Find contactId in client's sub-account ────────────────────────────────
     const clientToken     = await getLocationAccessToken(clientLocationId);
-    const clientContactId = await findContactByEmail(clientLocationId, email, clientToken);
-
-    if (!clientContactId) {
-      console.error("[send-onboarding] no contact in location", clientLocationId, "for", email);
-      return NextResponse.json(
-        { error: `No contact found in sub-account for email: ${email}` },
-        { status: 404 }
-      );
-    }
+    const clientContactId = await findOrCreateContact(
+      clientLocationId,
+      { email, phone, firstName, businessName },
+      clientToken
+    );
 
     // ── Build onboarding link ─────────────────────────────────────────────────
     const appUrl         = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
