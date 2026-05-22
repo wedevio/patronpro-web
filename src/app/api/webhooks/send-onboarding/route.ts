@@ -50,6 +50,8 @@ interface WebhookPayload {
   email?:        string;
   phone?:        string;
   firstName?:    string;
+  lastName?:     string;
+  name?:         string; // fallback if firstName is empty
   businessName?: string;
 }
 
@@ -195,8 +197,12 @@ export async function POST(request: Request): Promise<Response> {
     const payload      = (await request.json()) as WebhookPayload;
     const email        = payload.email?.toLowerCase().trim() ?? "";
     const phone        = payload.phone        ?? "";
-    const firstName    = payload.firstName?.trim() || "";
     const businessName = payload.businessName?.trim() || "";
+
+    // firstName: use explicit field, fallback to parsing full name
+    const rawFirst = payload.firstName?.trim() || "";
+    const rawName  = payload.name?.trim() || "";
+    const firstName = rawFirst || rawName.split(" ")[0] || "";
 
     console.info("[send-onboarding] payload received:", { email, phone, firstName, businessName });
 
