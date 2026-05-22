@@ -100,8 +100,10 @@ Hero con imagen y overlay:
 
 <section style="background-image:url('{{custom_values.website_hero_image}}');background-size:cover;background-position:center;position:relative;">
   <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);"></div>
-  <div style="position:relative;z-index:1;"><!-- contenido --></div>
+  <div style="position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:80px 24px;"><!-- contenido --></div>
 </section>
+
+El headline del hero NUNCA supera font-size:3.5rem en desktop. En móvil usa clamp o media query para reducirlo (máx 2.2rem en mobile). El subtítulo no supera 1.1rem. Todo el contenido del hero (textos, CTAs, stats) va dentro del div con max-width:1200px — el fondo de imagen/color puede ser full-width pero el texto NUNCA.
 
 Si el custom value está vacío (imagen aún no generada), el overlay sobre fondo de color se ve igual de bien — no rompas el diseño por imágenes ausentes. Usa siempre el overlay y un color de fondo sólido como fallback:
 
