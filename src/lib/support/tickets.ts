@@ -18,7 +18,7 @@ async function lookupAccountId(ghlLocationId: string): Promise<string | null> {
   const { data } = await db
     .from("accounts")
     .select("id")
-    .eq("ghl_location_id", ghlLocationId)
+    .eq("location_id", ghlLocationId)
     .maybeSingle();
   return data?.id ?? null;
 }
