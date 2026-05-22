@@ -11,6 +11,13 @@ import { ghlFetch } from "@/lib/ghl/client";
 const PATRONPRO_LOCATION_ID =
   process.env.GHL_PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
 
+// GHL Custom Menu link for the support iframe (menu item ID is fixed agency-wide)
+const SUPPORT_MENU_ID = "f5b6a089-ecd7-4b26-9613-05fdd15021a9";
+
+function supportMenuUrl(locationId: string): string {
+  return `https://app.gohighlevel.com/v2/location/${locationId}/custom-menu-link/${SUPPORT_MENU_ID}`;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NotifyNoteParams {
@@ -77,7 +84,7 @@ async function sendEmail(
  * Notify client when staff posts a public note on their ticket.
  */
 export async function notifyClientNote({
-  ghlLocationId: _ghlLocationId,
+  ghlLocationId,
   ghlContactId,
   creatorEmail,
   ticketNumber,
@@ -87,6 +94,7 @@ export async function notifyClientNote({
   try {
     const token     = await getLocationAccessToken(PATRONPRO_LOCATION_ID);
     const truncated = noteBody.length > 300 ? noteBody.slice(0, 297) + "..." : noteBody;
+    const menuUrl   = supportMenuUrl(ghlLocationId);
 
     await sendEmail(ghlContactId, token, {
       subject: `PatronPro Support — Ticket #${ticketNumber} respondido`,
@@ -97,7 +105,12 @@ export async function notifyClientNote({
         <blockquote style="border-left:4px solid #F67D0A;padding:8px 16px;margin:16px 0;color:#374151;">
           ${truncated.replace(/\n/g, "<br>")}
         </blockquote>
-        <p>Si tenés preguntas, respondé este email o contactanos directamente.</p>
+        <p>Para responder o ver el hilo completo, entrá a tu portal de soporte:</p>
+        <p>
+          <a href="${menuUrl}" style="display:inline-block;background:#F67D0A;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">
+            Ver ticket #${ticketNumber}
+          </a>
+        </p>
         <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
       `.trim(),
     });
@@ -110,7 +123,7 @@ export async function notifyClientNote({
  * Notify client when their ticket status changes (resolved, closed, etc.).
  */
 export async function notifyClientStatus({
-  ghlLocationId: _ghlLocationId,
+  ghlLocationId,
   ghlContactId,
   creatorEmail,
   ticketNumber,
@@ -120,6 +133,7 @@ export async function notifyClientStatus({
   try {
     const token       = await getLocationAccessToken(PATRONPRO_LOCATION_ID);
     const statusLabel = STATUS_LABELS[newStatus] ?? newStatus;
+    const menuUrl     = supportMenuUrl(ghlLocationId);
 
     await sendEmail(ghlContactId, token, {
       subject: `PatronPro Support — Ticket #${ticketNumber} ${statusLabel}`,
@@ -127,7 +141,11 @@ export async function notifyClientStatus({
       html: `
         <p>Hola,</p>
         <p>Te informamos que tu ticket <strong>#${ticketNumber} — ${ticketTitle}</strong> ha sido marcado como <strong>${statusLabel}</strong>.</p>
-        <p>Si necesitás algo más, abrí un nuevo ticket o contactanos directamente.</p>
+        <p>
+          <a href="${menuUrl}" style="display:inline-block;background:#F67D0A;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">
+            Ver ticket #${ticketNumber}
+          </a>
+        </p>
         <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
       `.trim(),
     });
