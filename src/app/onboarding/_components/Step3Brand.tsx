@@ -449,7 +449,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
                     <img
                       src={`data:image/png;base64,${logo.horizontal}`}
                       alt={`Logo opción ${idx + 1}`}
-                      className="h-16 object-contain flex-1 min-w-0"
+                      className="h-32 object-contain flex-1 min-w-0"
                       style={{ background: "repeating-conic-gradient(#e5e7eb 0% 25%, transparent 0% 50%) 0 0 / 12px 12px" }}
                     />
                     <div className="flex items-center gap-1.5 shrink-0">
