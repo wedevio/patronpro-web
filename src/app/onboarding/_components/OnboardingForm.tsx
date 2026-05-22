@@ -8,14 +8,12 @@ import {
   validateStep2,
   validateStep3,
   validateStep4,
-  validateStep5,
 } from "@/lib/onboarding/validation";
 import ProgressBar from "./ProgressBar";
 import Step1Domain from "./Step1Domain";
 import Step2Business from "./Step2Business";
 import Step3Brand from "./Step3Brand";
 import Step4Hours from "./Step4Hours";
-import Step5Website from "./Step5Website";
 import StepReview from "./StepReview";
 import SuccessScreen from "./SuccessScreen";
 
@@ -65,7 +63,6 @@ export default function OnboardingForm({
     if (currentStep === 2) stepErrors = validateStep3(formData);
     if (currentStep === 3) stepErrors = validateStep4(formData);
     if (currentStep === 4) stepErrors = validateStep1(formData);
-    if (currentStep === 5) stepErrors = validateStep5(formData);
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
@@ -126,6 +123,10 @@ export default function OnboardingForm({
         fd.append("logoFile", formData.logoFile);
       }
 
+      if (formData.logoSquareFile instanceof File) {
+        fd.append("logoSquareFile", formData.logoSquareFile);
+      }
+
       const res = await fetch("/api/onboarding", {
         method: "POST",
         body: fd,
@@ -150,14 +151,14 @@ export default function OnboardingForm({
     return (
       <SuccessScreen
         businessName={formData.businessName ?? ""}
-        hasLogo={!!formData.logoFile}
+        hasLogo={!!(formData.logoFile || formData.logoSquareFile)}
         hasColors={!formData.letUsChooseColors && !!formData.primaryColor}
         hasDomainInfo={!!(formData.existingDomain || formData.desiredDomain)}
       />
     );
   }
 
-  const TOTAL_STEPS = 6;
+  const TOTAL_STEPS = 5;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -203,15 +204,6 @@ export default function OnboardingForm({
           />
         )}
         {currentStep === 5 && (
-          <Step5Website
-            data={formData}
-            errors={errors}
-            onChange={(field, value) =>
-              updateField(field as keyof OnboardingFormData, value as FieldValue)
-            }
-          />
-        )}
-        {currentStep === 6 && (
           <StepReview
             data={formData}
             onEdit={(step) => setCurrentStep(step)}
@@ -226,7 +218,7 @@ export default function OnboardingForm({
           </p>
         )}
 
-        {currentStep < 6 && (
+        {currentStep < 5 && (
           <div className="flex justify-between mt-8">
             {currentStep > 1 ? (
               <button
@@ -246,7 +238,7 @@ export default function OnboardingForm({
               className="rounded-[14px] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
               style={{ backgroundColor: "#F67D0A" }}
             >
-              {currentStep === 5 ? "Revisar" : "Siguiente"}
+              {currentStep === 4 ? "Revisar" : "Siguiente"}
             </button>
           </div>
         )}

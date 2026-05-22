@@ -46,6 +46,7 @@ export interface PanelSubmission {
   complementaryColor: string;
   letUsChooseColors:  boolean;
   logoUrl:            string;
+  logoSquareUrl?:     string;
   hoursOfOperation?:  HoursOfOperation;
   websiteTagline?:    string;
   websiteServices?:   string[];
@@ -106,6 +107,7 @@ export async function saveSubmission(
     complementary_color: data.complementaryColor,
     let_patronpro_choose_colors: data.letUsChooseColors,
     logo_url:            data.logoUrl,
+    logo_square_url:     data.logoSquareUrl ?? null,
     hours_of_operation:  data.hoursOfOperation ?? null,
     website_tagline:     data.websiteTagline ?? null,
     website_services:    data.websiteServices ?? [],
@@ -193,6 +195,7 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       complementaryColor: (sub.complementary_color as string) ?? "",
       letUsChooseColors:  (sub.let_patronpro_choose_colors as boolean) ?? false,
       logoUrl:            (sub.logo_url as string) ?? "",
+      logoSquareUrl:      (sub.logo_square_url as string) ?? undefined,
       hoursOfOperation:   sub.hours_of_operation as HoursOfOperation | undefined,
       websiteTagline:     (sub.website_tagline as string) ?? "",
       websiteServices:    (sub.website_services as string[]) ?? [],

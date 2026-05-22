@@ -43,7 +43,7 @@ export function validateStep2(
   return errors;
 }
 
-// Step 3: Brand Identity
+// Step 3: Brand Identity (includes services + description)
 export function validateStep3(
   data: Partial<OnboardingFormData>
 ): ValidationErrors {
@@ -52,6 +52,12 @@ export function validateStep3(
   if (!data.letUsChooseColors) {
     if (!data.primaryColor?.trim())
       errors.primaryColor = "El color principal es requerido";
+  }
+  if (!data.websiteServices?.length) {
+    errors.websiteServices = "Seleccioná al menos un servicio";
+  }
+  if (!data.websiteTagline?.trim()) {
+    errors.websiteTagline = "Contanos brevemente sobre tu negocio";
   }
 
   return errors;
@@ -62,20 +68,4 @@ export function validateStep4(
   _data: Partial<OnboardingFormData>
 ): ValidationErrors {
   return {};
-}
-
-// Step 5: Website
-export function validateStep5(
-  data: Partial<OnboardingFormData>
-): ValidationErrors {
-  const errors: ValidationErrors = {};
-
-  if (!data.websiteServices?.length) {
-    errors.websiteServices = "Seleccioná al menos un servicio";
-  }
-  if (!data.websiteTagline?.trim()) {
-    errors.websiteTagline = "El tagline es requerido";
-  }
-
-  return errors;
 }

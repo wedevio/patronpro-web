@@ -111,7 +111,7 @@ async function fetchCalendarLinks(
 
 export async function syncCustomValues(
   locationId: string,
-  data: Partial<OnboardingFormData> & { logoUrl?: string },
+  data: Partial<OnboardingFormData> & { logoUrl?: string; logoSquareUrl?: string },
   token: string
 ): Promise<void> {
   const [existingValues, calendarLinks] = await Promise.all([
@@ -134,7 +134,7 @@ export async function syncCustomValues(
     ["company_address", fullAddress],
     ["dominio_web", domain],
     ["logo", data.logoUrl ?? ""],
-    ["logo_cuadrado", data.logoUrl ?? ""],
+    ["logo_cuadrado", data.logoSquareUrl ?? data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
     ["domain_purchase_authorized", data.authorizeDomainPurchase ? "Sí" : ""],
     // Brand colors — stored as reference until brand-board API scope is confirmed

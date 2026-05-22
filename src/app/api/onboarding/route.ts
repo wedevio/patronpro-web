@@ -90,6 +90,8 @@ export async function POST(request: Request): Promise<Response> {
 
     // --- Upload logo if present ---
     let logoUrl: string | undefined;
+    let logoSquareUrl: string | undefined;
+
     const logoFile = fd.get("logoFile");
     if (logoFile instanceof File && logoFile.size > 0) {
       // Upload to GHL for custom values sync
@@ -118,8 +120,30 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
+    // --- Upload square logo (AI-generated) if present ---
+    const logoSquareFile = fd.get("logoSquareFile");
+    if (logoSquareFile instanceof File && logoSquareFile.size > 0) {
+      try {
+        const db = getAdminClient();
+        const path = `logos/${locationId}/logo_square.png`;
+        const buffer = Buffer.from(await logoSquareFile.arrayBuffer());
+        const { error } = await db.storage
+          .from("logos")
+          .upload(path, buffer, {
+            contentType: "image/png",
+            upsert: true,
+          });
+        if (!error) {
+          const { data: urlData } = db.storage.from("logos").getPublicUrl(path);
+          logoSquareUrl = urlData.publicUrl;
+        }
+      } catch (err) {
+        console.error("[onboarding] Supabase square logo upload failed:", err);
+      }
+    }
+
     // --- Sync custom values ---
-    await syncCustomValues(locationId, { ...data, logoUrl }, token);
+    await syncCustomValues(locationId, { ...data, logoUrl, logoSquareUrl }, token);
 
     // --- Apply default staff permissions ---
     if (companyId) {
@@ -196,6 +220,7 @@ export async function POST(request: Request): Promise<Response> {
         complementaryColor: data.complementaryColor ?? "",
         letUsChooseColors:  data.letUsChooseColors ?? false,
         logoUrl:            logoUrl ?? "",
+        logoSquareUrl:      logoSquareUrl ?? "",
         hoursOfOperation:   data.hoursOfOperation,
         websiteTagline:     data.websiteTagline ?? "",
         websiteServices:    data.websiteServices ?? [],

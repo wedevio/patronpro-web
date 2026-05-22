@@ -46,19 +46,21 @@ export interface OnboardingFormData {
   ein?: string;
 
   // Step 3: Brand Identity
-  logoFile?: File; // client-side only
-  logoUrl?: string; // after upload
+  logoFile?: File;       // client-side only
+  logoSquareFile?: File; // client-side only — AI-generated square version
+  logoUrl?: string;      // after upload
+  logoSquareUrl?: string;
   primaryColor: string;
   secondaryColor: string;
   complementaryColor: string;
   letUsChooseColors: boolean;
 
+  // Step 3: Services & Description (moved from website step — informs logo + web)
+  websiteServices: string[];
+  websiteTagline: string; // repurposed as "breve descripción del negocio"
+
   // Step 4: Hours of Operation
   hoursOfOperation: HoursOfOperation;
-
-  // Step 5: Website
-  websiteServices: string[];   // selected service slugs
-  websiteTagline: string;      // one-liner for the hero
 }
 
 export interface OnboardingSubmission {
