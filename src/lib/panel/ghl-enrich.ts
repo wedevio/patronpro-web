@@ -104,11 +104,9 @@ async function fetchPatronProSignals(
 }
 
 // ─── Static plan fallback map ─────────────────────────────────────────────────
-// TODO: fill in real PatronPro plan IDs from the GHL SaaS console
-// Format: "ghl_plan_id": "Human readable name"
 const STATIC_PLAN_MAP: Record<string, string> = {
-  // e.g. "price_1ABC": "Mensual",
-  // e.g. "price_2XYZ": "Anual",
+  "69eb2ea718fa6ef929247b2a": "Mensual ($99/mes)",
+  "69eb2ea718fa6e20b7247b2f": "Anual ($999/año)",
 };
 
 // ─── SaaS plan name cache ─────────────────────────────────────────────────────
