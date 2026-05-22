@@ -198,6 +198,13 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ── Validate required env vars ───────────────────────────────────────────
+    const patronProPhone = process.env.PATRONPRO_PHONE_NUMBER ?? "";
+    if (!patronProPhone) {
+      console.error("[send-onboarding] PATRONPRO_PHONE_NUMBER env var is not set — cannot send SMS");
+      return NextResponse.json({ error: "Server misconfiguration: PATRONPRO_PHONE_NUMBER not set" }, { status: 500 });
+    }
+
     // ── Parse ─────────────────────────────────────────────────────────────────
     const raw    = await request.text();
     console.info("[send-onboarding] raw payload:", raw);
@@ -265,23 +272,31 @@ export async function POST(request: Request): Promise<Response> {
     );
 
     // ── Send SMS ──────────────────────────────────────────────────────────────
-    if (phone) {
+    let smsSent = false;
+    let smsSkipReason: string | undefined;
+
+    if (!phone) {
+      console.warn("[send-onboarding] SMS skipped — no phone", { locationId: clientLocationId, email, contactId: ppContactId });
+      smsSkipReason = "no_phone";
+    } else {
       await sendMessage(
         {
           contactId:  ppContactId,
           type:       "SMS",
           message:    interpolate(ONBOARDING_SMS_TEXT, vars),
-          fromNumber: process.env.PATRONPRO_PHONE_NUMBER ?? "",
+          fromNumber: patronProPhone,
         },
         ppToken
       );
-    } else {
-      console.warn("[send-onboarding] no phone for", email, "— SMS skipped");
+      smsSent = true;
     }
 
-    console.info("[send-onboarding] ✅ sent to", email, "→", onboardingLink);
+    console.info("[send-onboarding] done", { email, onboardingLink, smsSent, smsSkipReason });
 
-    return NextResponse.json({ success: true, onboardingLink }, { status: 200 });
+    return NextResponse.json(
+      { success: true, onboardingLink, smsSent, ...(smsSkipReason && { reason: smsSkipReason }) },
+      { status: 200 }
+    );
 
   } catch (err) {
     console.error("[POST /api/webhooks/send-onboarding]", err);
