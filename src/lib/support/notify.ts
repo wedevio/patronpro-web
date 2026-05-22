@@ -18,7 +18,6 @@ interface GHLContactResponse {
     phone?:     string;
   };
 }
-
 interface NotifyNoteParams {
   ghlLocationId: string;
   ghlContactId:  string;
@@ -54,17 +53,21 @@ async function getContact(
   locationId: string,
   contactId:  string,
   token:      string,
-): Promise<{ firstName: string; phone: string }> {
+): Promise<{ firstName: string; phone: string; email: string }> {
   try {
     const res = await ghlFetch(`/contacts/${contactId}`, { method: "GET", token });
-    if (!res.ok) return { firstName: "", phone: "" };
+    if (!res.ok) {
+      console.error(`[notify] getContact failed (${res.status}) for ${contactId}`);
+      return { firstName: "", phone: "", email: "" };
+    }
     const json = (await res.json()) as GHLContactResponse;
     return {
       firstName: json.contact?.firstName ?? "",
       phone:     json.contact?.phone     ?? "",
+      email:     json.contact?.email     ?? "",
     };
   } catch {
-    return { firstName: "", phone: "" };
+    return { firstName: "", phone: "", email: "" };
   }
 }
 
@@ -73,12 +76,13 @@ async function sendMessage(
   contactId:  string,
   token:      string,
   type:       "Email" | "SMS",
-  params:     { subject?: string; html?: string; message?: string },
+  params:     { subject?: string; html?: string; message?: string; emailTo?: string },
 ): Promise<void> {
   const body: Record<string, string> = { type, contactId };
   if (type === "Email") {
     body.subject = params.subject ?? "";
     body.html    = params.html    ?? "";
+    if (params.emailTo) body.emailTo = params.emailTo;
   } else {
     body.message = params.message ?? "";
   }
@@ -114,19 +118,23 @@ export async function notifyClientNote({
     const name    = contact.firstName || "cliente";
     const truncated = noteBody.length > 300 ? noteBody.slice(0, 297) + "..." : noteBody;
 
-    // Email
-    await sendMessage(ghlLocationId, ghlContactId, token, "Email", {
-      subject: `PatronPro Support — Ticket #${ticketNumber} respondido`,
-      html: `
-        <p>Hola ${name},</p>
-        <p>Tu ticket <strong>#${ticketNumber} — ${ticketTitle}</strong> tiene una nueva respuesta de nuestro equipo:</p>
-        <blockquote style="border-left:4px solid #F67D0A;padding:8px 16px;margin:16px 0;color:#374151;">
-          ${truncated.replace(/\n/g, "<br>")}
-        </blockquote>
-        <p>Si tenés preguntas, respondé este email o contactanos directamente.</p>
-        <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
-      `.trim(),
-    });
+    if (!contact.email) {
+      console.warn(`[notify] No email for contact ${ghlContactId} — skipping email`);
+    } else {
+      await sendMessage(ghlLocationId, ghlContactId, token, "Email", {
+        subject:  `PatronPro Support — Ticket #${ticketNumber} respondido`,
+        emailTo:  contact.email,
+        html: `
+          <p>Hola ${name},</p>
+          <p>Tu ticket <strong>#${ticketNumber} — ${ticketTitle}</strong> tiene una nueva respuesta de nuestro equipo:</p>
+          <blockquote style="border-left:4px solid #F67D0A;padding:8px 16px;margin:16px 0;color:#374151;">
+            ${truncated.replace(/\n/g, "<br>")}
+          </blockquote>
+          <p>Si tenés preguntas, respondé este email o contactanos directamente.</p>
+          <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
+        `.trim(),
+      });
+    }
 
     // SMS (only if phone available)
     if (contact.phone) {
@@ -155,16 +163,20 @@ export async function notifyClientStatus({
     const name       = contact.firstName || "cliente";
     const statusLabel = STATUS_LABELS[newStatus] ?? newStatus;
 
-    // Email
-    await sendMessage(ghlLocationId, ghlContactId, token, "Email", {
-      subject: `PatronPro Support — Ticket #${ticketNumber} ${statusLabel}`,
-      html: `
-        <p>Hola ${name},</p>
-        <p>Te informamos que tu ticket <strong>#${ticketNumber} — ${ticketTitle}</strong> ha sido marcado como <strong>${statusLabel}</strong>.</p>
-        <p>Si necesitás algo más, abrí un nuevo ticket o contactanos directamente.</p>
-        <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
-      `.trim(),
-    });
+    if (!contact.email) {
+      console.warn(`[notify] No email for contact ${ghlContactId} — skipping status email`);
+    } else {
+      await sendMessage(ghlLocationId, ghlContactId, token, "Email", {
+        subject: `PatronPro Support — Ticket #${ticketNumber} ${statusLabel}`,
+        emailTo: contact.email,
+        html: `
+          <p>Hola ${name},</p>
+          <p>Te informamos que tu ticket <strong>#${ticketNumber} — ${ticketTitle}</strong> ha sido marcado como <strong>${statusLabel}</strong>.</p>
+          <p>Si necesitás algo más, abrí un nuevo ticket o contactanos directamente.</p>
+          <p style="color:#6b7280;font-size:13px;">— El equipo de PatronPro</p>
+        `.trim(),
+      });
+    }
 
     // SMS
     if (contact.phone) {
