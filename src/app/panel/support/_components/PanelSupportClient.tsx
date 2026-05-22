@@ -124,7 +124,7 @@ export default function PanelSupportClient({ tickets }: Props) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Stats */}
-      <div className="max-w-[1250px] mx-auto px-6 pt-6 pb-2">
+      <div className="max-w-[1400px] mx-auto px-6 pt-6 pb-2">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Total tickets"  value={total}    color="#1E2C46" />
           <StatCard label="Abiertos"       value={open}     color="#F67A0A" />
@@ -134,8 +134,8 @@ export default function PanelSupportClient({ tickets }: Props) {
       </div>
 
       {/* Filters */}
-      <div className="border-b border-gray-200 bg-white mt-4 px-6 py-3">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="border-b border-gray-200 bg-white mt-4 py-3">
+        <div className="max-w-[1400px] mx-auto px-6 flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
             <input
@@ -181,7 +181,7 @@ export default function PanelSupportClient({ tickets }: Props) {
       </div>
 
       {/* Table */}
-      <div className="max-w-[1250px] mx-auto px-6 py-4">
+      <div className="max-w-[1400px] mx-auto px-6 py-4">
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-500">
