@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
 
@@ -280,7 +280,7 @@ export async function POST(request: Request): Promise<Response> {
     const userPrompt = buildUserPrompt(body);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 90_000); // 90s
+    const timeout = setTimeout(() => controller.abort(), 270_000); // 270s (maxDuration is 300)
 
     let chatRes: Response;
     try {
