@@ -102,6 +102,31 @@ export default function StepReview({
       {/* Step 2 — Marca */}
       <Section title="Marca" step={2} onEdit={onEdit}>
         <div className="flex flex-col gap-3">
+          {/* Services */}
+          {data.websiteServices?.length ? (
+            <div>
+              <span className="text-sm font-medium block mb-1.5" style={{ color: "#5f6f88" }}>
+                Servicios:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {data.websiteServices.map((svc) => (
+                  <span
+                    key={svc}
+                    className="rounded-full px-2.5 py-1 text-xs font-medium"
+                    style={{ backgroundColor: "#f0f4ff", color: "#1E2C46" }}
+                  >
+                    {svc.startsWith("custom_") ? svc.replace(/^custom_\d+_?/, "") : svc}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Description */}
+          {data.websiteTagline && (
+            <Row label="Descripción" value={data.websiteTagline} />
+          )}
+
           {/* Logo preview */}
           {logoSrc ? (
             <div className="flex items-center gap-3">
@@ -109,8 +134,8 @@ export default function StepReview({
               <img
                 src={logoSrc}
                 alt="Logo"
-                className="h-12 object-contain rounded-[8px] border p-1"
-                style={{ borderColor: "#e5e7eb", maxWidth: "120px" }}
+                className="h-16 object-contain rounded-[8px] border p-1"
+                style={{ borderColor: "#e5e7eb", maxWidth: "180px" }}
               />
               <span className="text-sm" style={{ color: "#5f6f88" }}>Logo subido</span>
             </div>
@@ -180,33 +205,6 @@ export default function StepReview({
               Por definir en la llamada
             </p>
           )}
-        </div>
-      </Section>
-
-      {/* Step 5 — Website */}
-      <Section title="Website" step={5} onEdit={onEdit}>
-        <div className="flex flex-col gap-2">
-          {data.websiteServices?.length ? (
-            <div>
-              <span className="text-sm font-medium block mb-1.5" style={{ color: "#5f6f88" }}>
-                Servicios:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {data.websiteServices.map((svc) => (
-                  <span
-                    key={svc}
-                    className="rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{ backgroundColor: "#f0f4ff", color: "#1E2C46" }}
-                  >
-                    {svc.startsWith("custom_") ? svc.replace(/^custom_\d+_?/, "") : svc}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm" style={{ color: "#9ca3af" }}>Sin servicios seleccionados</p>
-          )}
-          <Row label="Tagline" value={data.websiteTagline} />
         </div>
       </Section>
 

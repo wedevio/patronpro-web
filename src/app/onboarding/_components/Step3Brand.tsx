@@ -267,6 +267,58 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
         )}
       </div>
 
+      {/* ── DESCRIPTION ───────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold" style={{ color: "#1E2C46" }}>
+          Descripción de tu negocio
+        </label>
+        <p className="text-xs" style={{ color: "#9ca3af" }}>
+          ¿Qué querés que diga tu web sobre tu negocio? Ej: &ldquo;Llevamos 10 años haciendo techos en Glendale. Trabajo garantizado, precio justo.&rdquo;
+        </p>
+        <textarea
+          value={data.websiteTagline ?? ""}
+          onChange={(e) => onChange("websiteTagline", e.target.value)}
+          placeholder="Contanos sobre tu negocio..."
+          maxLength={280}
+          rows={3}
+          className="w-full rounded-[10px] border px-3 py-2.5 text-sm outline-none resize-none focus:ring-2 focus:ring-[#F67D0A]/30 focus:border-[#F67D0A]"
+          style={{ borderColor: errors.websiteTagline ? "#ef4444" : "#e5e7eb", color: "#1E2C46" }}
+        />
+        <div className="flex justify-between">
+          {errors.websiteTagline
+            ? <p className="text-xs" style={{ color: "#ef4444" }}>{errors.websiteTagline}</p>
+            : <span />
+          }
+          <p className="text-xs" style={{ color: "#9ca3af" }}>
+            {(data.websiteTagline ?? "").length}/280
+          </p>
+        </div>
+      </div>
+
+      {/* ── COLORS ────────────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={data.letUsChooseColors ?? false}
+            onChange={(e) => onChange("letUsChooseColors", e.target.checked)}
+            className="rounded"
+          />
+          <span className="text-sm font-medium" style={{ color: "#1E2C46" }}>
+            Prefiero que PatronPro elija los colores
+          </span>
+        </label>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <ColorPicker label="Color principal (Main)"   value={data.primaryColor       ?? "#1E2C46"} onChange={(v) => onChange("primaryColor",       v)} disabled={data.letUsChooseColors ?? false} />
+          <ColorPicker label="Color de acento (Accent)" value={data.secondaryColor     ?? "#F67D0A"} onChange={(v) => onChange("secondaryColor",     v)} disabled={data.letUsChooseColors ?? false} />
+          <ColorPicker label="Color complementario"     value={data.complementaryColor ?? "#FFFFFF"} onChange={(v) => onChange("complementaryColor", v)} disabled={data.letUsChooseColors ?? false} />
+        </div>
+        {errors.primaryColor && (
+          <p className="text-xs" style={{ color: "#ef4444" }}>{errors.primaryColor}</p>
+        )}
+      </div>
+
       {/* ── LOGO ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3">
         <label className="text-sm font-semibold" style={{ color: "#1E2C46" }}>Logo</label>
@@ -313,7 +365,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
           >
             {preview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={preview} alt="Logo preview" className="max-h-24 object-contain" />
+              <img src={preview} alt="Logo preview" className="max-h-40 object-contain" />
             ) : (
               <>
                 <svg className="w-10 h-10 mb-2" style={{ color: "#9ca3af" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +449,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
                     <img
                       src={`data:image/png;base64,${logo.horizontal}`}
                       alt={`Logo opción ${idx + 1}`}
-                      className="h-12 object-contain flex-1 min-w-0"
+                      className="h-16 object-contain flex-1 min-w-0"
                       style={{ background: "repeating-conic-gradient(#e5e7eb 0% 25%, transparent 0% 50%) 0 0 / 12px 12px" }}
                     />
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -434,58 +486,6 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
               </div>
             )}
           </div>
-        )}
-      </div>
-
-      {/* ── DESCRIPTION ───────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-semibold" style={{ color: "#1E2C46" }}>
-          Descripción de tu negocio
-        </label>
-        <p className="text-xs" style={{ color: "#9ca3af" }}>
-          ¿Qué querés que diga tu web sobre tu negocio? Ej: &ldquo;Llevamos 10 años haciendo techos en Glendale. Trabajo garantizado, precio justo.&rdquo;
-        </p>
-        <textarea
-          value={data.websiteTagline ?? ""}
-          onChange={(e) => onChange("websiteTagline", e.target.value)}
-          placeholder="Contanos sobre tu negocio..."
-          maxLength={280}
-          rows={3}
-          className="w-full rounded-[10px] border px-3 py-2.5 text-sm outline-none resize-none focus:ring-2 focus:ring-[#F67D0A]/30 focus:border-[#F67D0A]"
-          style={{ borderColor: errors.websiteTagline ? "#ef4444" : "#e5e7eb", color: "#1E2C46" }}
-        />
-        <div className="flex justify-between">
-          {errors.websiteTagline
-            ? <p className="text-xs" style={{ color: "#ef4444" }}>{errors.websiteTagline}</p>
-            : <span />
-          }
-          <p className="text-xs" style={{ color: "#9ca3af" }}>
-            {(data.websiteTagline ?? "").length}/280
-          </p>
-        </div>
-      </div>
-
-      {/* ── COLORS ────────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-4">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={data.letUsChooseColors ?? false}
-            onChange={(e) => onChange("letUsChooseColors", e.target.checked)}
-            className="rounded"
-          />
-          <span className="text-sm font-medium" style={{ color: "#1E2C46" }}>
-            Prefiero que PatronPro elija los colores
-          </span>
-        </label>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <ColorPicker label="Color principal (Main)"   value={data.primaryColor       ?? "#1E2C46"} onChange={(v) => onChange("primaryColor",       v)} disabled={data.letUsChooseColors ?? false} />
-          <ColorPicker label="Color de acento (Accent)" value={data.secondaryColor     ?? "#F67D0A"} onChange={(v) => onChange("secondaryColor",     v)} disabled={data.letUsChooseColors ?? false} />
-          <ColorPicker label="Color complementario"     value={data.complementaryColor ?? "#FFFFFF"} onChange={(v) => onChange("complementaryColor", v)} disabled={data.letUsChooseColors ?? false} />
-        </div>
-        {errors.primaryColor && (
-          <p className="text-xs" style={{ color: "#ef4444" }}>{errors.primaryColor}</p>
         )}
       </div>
     </div>

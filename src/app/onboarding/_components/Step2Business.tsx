@@ -191,6 +191,13 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
     onChange("ein", digits);
   }
 
+  // Display with EIN format XX-XXXXXXX
+  const einDisplay = (() => {
+    const d = data.ein ?? "";
+    if (d.length <= 2) return d;
+    return `${d.slice(0, 2)}-${d.slice(2)}`;
+  })();
+
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-bold" style={{ color: "#1E2C46" }}>
@@ -269,17 +276,17 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
 
       <Field
         label="EIN (opcional)"
-        hint="Número de identificación fiscal. 9 dígitos, sin guiones. Lo usamos solo para configurar integraciones de pagos."
+        hint="Número de identificación fiscal. Lo usamos solo para configurar integraciones de pagos."
         error={errors.ein}
       >
         <input
           className={inputClass}
           style={{ borderColor: errors.ein ? "#ef4444" : "#e5e7eb" }}
-          value={data.ein ?? ""}
+          value={einDisplay}
           onChange={(e) => handleEinInput(e.target.value)}
-          placeholder="123456789"
+          placeholder="12-3456789"
           inputMode="numeric"
-          maxLength={9}
+          maxLength={10}
         />
       </Field>
     </div>
