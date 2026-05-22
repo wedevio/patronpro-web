@@ -342,6 +342,23 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
+    // ── Trigger image generation (fire-and-forget) ────────────────────────────
+    // Runs as an independent Vercel invocation with its own 300s timeout.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
+    void fetch(`${appUrl}/api/website/generate-images`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accountId:    body.accountId,
+        locationId:   body.locationId,
+        businessName: body.businessName,
+        services:     body.services,
+        city:         body.city,
+        state:        body.state,
+        primaryColor: body.primaryColor,
+      }),
+    });
+
     return NextResponse.json({ success: true }, { status: 200 });
 
   } catch (err) {

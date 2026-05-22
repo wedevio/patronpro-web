@@ -137,10 +137,6 @@ export async function syncCustomValues(
     ["logo_cuadrado", data.logoSquareUrl ?? data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
     ["domain_purchase_authorized", data.authorizeDomainPurchase ? "Sí" : ""],
-    // Brand colors — stored as reference until brand-board API scope is confirmed
-    ["brand_color_main", (!data.letUsChooseColors && data.primaryColor) ? data.primaryColor : ""],
-    ["brand_color_accent", (!data.letUsChooseColors && data.secondaryColor) ? data.secondaryColor : ""],
-    ["brand_color_complementary", (!data.letUsChooseColors && data.complementaryColor) ? data.complementaryColor : ""],
     // Calendar booking links — auto-detected from location calendars
     ["on_site_visit_calendar", calendarLinks.onSiteVisit],
     ["free_consultation_calendar", calendarLinks.freeConsultation],
