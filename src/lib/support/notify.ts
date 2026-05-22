@@ -88,7 +88,10 @@ async function sendMessage(
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    console.error(`[notify] GHL ${type} failed for contact ${contactId}:`, res.status, await res.text());
+    const responseText = await res.text();
+    console.error(`[notify] GHL ${type} failed for contact ${contactId} (${res.status}):`, responseText);
+  } else {
+    console.log(`[notify] GHL ${type} sent OK for contact ${contactId}`);
   }
 }
 

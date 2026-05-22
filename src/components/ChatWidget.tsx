@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 export default function ChatWidget() {
   const pathname = usePathname();
-  if (pathname.startsWith("/panel") || pathname.startsWith("/ghl")) return null;
+  if (pathname.startsWith("/panel") || pathname.startsWith("/ghl") || pathname.startsWith("/onboarding")) return null;
   return (
     <Script
       src="https://widgets.leadconnectorhq.com/loader.js"

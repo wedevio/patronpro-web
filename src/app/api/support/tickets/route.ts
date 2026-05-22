@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySupportSession, verifyPpSession } from "@/lib/auth/session";
-import { listTickets, createTicket } from "@/lib/support/tickets";
+import { listTickets, createTicket, addNote } from "@/lib/support/tickets";
 import {
   CreateTicketSchema,
   type TicketStatus,
@@ -102,6 +102,13 @@ export async function POST(request: Request): Promise<Response> {
         (auth.type === "support" ? (auth.contactId ?? undefined) : undefined),
     };
     const ticket = await createTicket(ticketData);
+
+    // Auto-note: welcome message visible to client
+    void addNote(ticket.id, {
+      author: "PatronPro",
+      body: "¡Gracias por contactarnos! Hemos recibido tu ticket y nuestro equipo lo revisará en breve. Te responderemos lo antes posible.",
+      is_public: true,
+    }).catch((err) => console.error("[POST /api/support/tickets] auto-note failed", err));
 
     // Fire-and-forget GHL contact note
     void (async () => {

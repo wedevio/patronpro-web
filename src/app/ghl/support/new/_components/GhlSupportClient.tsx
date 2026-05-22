@@ -27,14 +27,14 @@ import type {
 const PATRONPRO_LOCATION_ID = "hHLZC7FaTtUINPf3cbHd";
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
-  new: "Nuevo",
-  triage: "Triage",
-  assigned: "Asignado",
-  waiting_client: "Esperando cliente",
-  waiting_internal: "Esperando interno",
-  waiting_tech: "Esperando tech",
-  resolved: "Resuelto",
-  closed: "Cerrado",
+  new:              "Pendiente de Respuesta",
+  triage:           "Pendiente de Respuesta",
+  assigned:         "Revisando",
+  waiting_client:   "Contestado",
+  waiting_internal: "Revisando",
+  waiting_tech:     "Revisando",
+  resolved:         "Resuelto",
+  closed:           "Resuelto",
 };
 
 const PRIORITY_LABELS: Record<TicketPriority, string> = {
@@ -43,6 +43,23 @@ const PRIORITY_LABELS: Record<TicketPriority, string> = {
   high: "Alta",
   urgent: "Urgente",
 };
+
+const CATEGORY_CHIPS: { value: TicketCategory; label: string }[] = [
+  { value: "general",         label: "General" },
+  { value: "technical",       label: "Técnico" },
+  { value: "billing",         label: "Facturación" },
+  { value: "onboarding",      label: "Onboarding" },
+  { value: "account",         label: "Cuenta" },
+  { value: "feature_request", label: "Nueva función" },
+  { value: "bug",             label: "Bug" },
+];
+
+const PRIORITY_CHIPS: { value: TicketPriority; label: string; active: string; idle: string }[] = [
+  { value: "low",    label: "Baja",    active: "bg-gray-600 text-white border-gray-600",       idle: "border-gray-300 text-gray-500" },
+  { value: "normal", label: "Normal",  active: "bg-blue-600 text-white border-blue-600",       idle: "border-gray-300 text-gray-500" },
+  { value: "high",   label: "Alta",    active: "bg-orange-500 text-white border-orange-500",   idle: "border-gray-300 text-gray-500" },
+  { value: "urgent", label: "Urgente", active: "bg-red-600 text-white border-red-600",         idle: "border-gray-300 text-gray-500" },
+];
 
 const OPEN_STATUSES: TicketStatus[] = [
   "new",
@@ -55,14 +72,14 @@ const OPEN_STATUSES: TicketStatus[] = [
 
 function statusBadgeClass(status: TicketStatus): string {
   const map: Record<TicketStatus, string> = {
-    new: "bg-gray-100 text-gray-700",
-    triage: "bg-yellow-100 text-yellow-800",
-    assigned: "bg-blue-100 text-blue-800",
-    waiting_client: "bg-orange-100 text-orange-800",
-    waiting_internal: "bg-orange-100 text-orange-800",
-    waiting_tech: "bg-orange-100 text-orange-800",
-    resolved: "bg-green-100 text-green-800",
-    closed: "bg-slate-100 text-slate-600",
+    new:              "bg-yellow-100 text-yellow-800",
+    triage:           "bg-yellow-100 text-yellow-800",
+    assigned:         "bg-blue-100 text-blue-800",
+    waiting_client:   "bg-green-100 text-green-800",
+    waiting_internal: "bg-blue-100 text-blue-800",
+    waiting_tech:     "bg-blue-100 text-blue-800",
+    resolved:         "bg-slate-100 text-slate-600",
+    closed:           "bg-slate-100 text-slate-600",
   };
   return map[status] ?? "bg-gray-100 text-gray-700";
 }
@@ -195,33 +212,40 @@ function TicketForm({ locationId, submittedBy, onSuccess, onCancel }: TicketForm
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Categoría</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as TicketCategory)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="technical">Técnico</option>
-            <option value="billing">Facturación</option>
-            <option value="onboarding">Onboarding</option>
-            <option value="account">Cuenta</option>
-            <option value="feature_request">Nueva función</option>
-            <option value="bug">Bug</option>
-            <option value="general">General</option>
-          </select>
+          <label className="mb-2 block text-xs font-medium text-gray-700">Categoría</label>
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORY_CHIPS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setCategory(value)}
+                className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                  category === value
+                    ? "border-[#1E2C46] bg-[#1E2C46] text-white"
+                    : "border-gray-300 text-gray-600 hover:border-gray-400"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Prioridad</label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as TicketPriority)}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="low">Baja</option>
-            <option value="normal">Normal</option>
-            <option value="high">Alta</option>
-            <option value="urgent">Urgente</option>
-          </select>
+          <label className="mb-2 block text-xs font-medium text-gray-700">Prioridad</label>
+          <div className="flex flex-wrap gap-1.5">
+            {PRIORITY_CHIPS.map(({ value, label, active, idle }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setPriority(value)}
+                className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                  priority === value ? active : idle + " hover:border-gray-400"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

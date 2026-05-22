@@ -167,6 +167,16 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
               <h2 className="mb-1 text-base font-semibold text-gray-900">{ticket.title}</h2>
               <p className="mb-3 text-xs text-gray-400">{formatDateTime(ticket.created_at)}</p>
               <p className="whitespace-pre-wrap text-sm text-gray-700">{ticket.description}</p>
+              {ticket.attachments.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {ticket.attachments.map((url, i) => (
+                    <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Adjunto ${i + 1}`} className="h-20 w-20 rounded border object-cover hover:opacity-80 transition-opacity" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Thread */}
