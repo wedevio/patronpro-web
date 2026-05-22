@@ -41,9 +41,9 @@ export async function loginAction(
     const data = await res.json() as { access_token: string; expires_in: number };
     const cookieStore = await cookies();
 
-    const nextAuthSecret = process.env.NEXTAUTH_SECRET;
+    const nextAuthSecret = process.env.SUPPORT_SESSION_SECRET;
     if (!nextAuthSecret) {
-      console.error("[auth] Missing env var: NEXTAUTH_SECRET");
+      console.error("[auth] Missing env var: SUPPORT_SESSION_SECRET");
       return { error: "Error de configuración del servidor." };
     }
 

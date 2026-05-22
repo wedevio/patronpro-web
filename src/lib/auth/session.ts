@@ -8,9 +8,9 @@ function getSupportSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-function getNextAuthSecret(): Uint8Array {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
+function getPanelSecret(): Uint8Array {
+  const secret = process.env.SUPPORT_SESSION_SECRET;
+  if (!secret) throw new Error("SUPPORT_SESSION_SECRET is not set");
   return new TextEncoder().encode(secret);
 }
 
@@ -68,7 +68,7 @@ export async function verifySupportSession(
 export async function verifyPpSession(
   token: string
 ): Promise<{ email: string; sub: string }> {
-  const { payload } = await jwtVerify(token, getNextAuthSecret());
+  const { payload } = await jwtVerify(token, getPanelSecret());
 
   const email = payload["email"] ?? payload["sub"];
   const sub = payload["sub"];
