@@ -540,7 +540,7 @@ export async function POST(request: Request): Promise<Response> {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 16000,
+        max_completion_tokens: 16000,
         temperature: 0.7,
       }),
     });
