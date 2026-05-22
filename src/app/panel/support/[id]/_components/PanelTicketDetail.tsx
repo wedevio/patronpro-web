@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Loader2, ExternalLink, Send, Paperclip, X } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Send, Paperclip, X, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import type { SupportTicket, TicketNote, TicketStatus, TicketPriority } from "@/lib/support/types";
 
@@ -58,6 +58,17 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
   const [notes, setNotes]       = useState<TicketNote[]>(initial.notes ?? []);
   const [saving, setSaving]     = useState(false);
   const [users, setUsers]       = useState<StaffUser[]>([]);
+
+  // Copy feedback
+  const [copiedContactId, setCopiedContactId]   = useState(false);
+  const [copiedLocationId, setCopiedLocationId] = useState(false);
+
+  function copyToClipboard(value: string, setter: (v: boolean) => void) {
+    void navigator.clipboard.writeText(value).then(() => {
+      setter(true);
+      setTimeout(() => setter(false), 1500);
+    });
+  }
 
   // Reply form
   const [replyBody, setReplyBody]       = useState("");
@@ -299,6 +310,52 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
                   <div>
                     <dt className="text-xs text-gray-400">Email</dt>
                     <dd className="text-gray-700 text-xs break-all">{contactEmail}</dd>
+                  </div>
+                )}
+                {ticket.submitted_by && (
+                  <div>
+                    <dt className="text-xs text-gray-400">Enviado por</dt>
+                    <dd className="text-xs text-gray-700">{ticket.submitted_by}</dd>
+                  </div>
+                )}
+                {ticket.ghl_contact_id && (
+                  <div>
+                    <dt className="text-xs text-gray-400">Contact ID</dt>
+                    <dd className="flex items-center gap-1">
+                      <span className="font-mono text-[11px] text-gray-700 break-all">{ticket.ghl_contact_id}</span>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(ticket.ghl_contact_id!, setCopiedContactId)}
+                        className="shrink-0"
+                        title="Copiar"
+                      >
+                        {copiedContactId
+                          ? <Check className="h-3.5 w-3.5 text-green-500" />
+                          : <Copy className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-pointer" />}
+                      </button>
+                    </dd>
+                  </div>
+                )}
+                <div>
+                  <dt className="text-xs text-gray-400">Location ID</dt>
+                  <dd className="flex items-center gap-1">
+                    <span className="font-mono text-[11px] text-gray-700 break-all">{ticket.ghl_location_id}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(ticket.ghl_location_id, setCopiedLocationId)}
+                      className="shrink-0"
+                      title="Copiar"
+                    >
+                      {copiedLocationId
+                        ? <Check className="h-3.5 w-3.5 text-green-500" />
+                        : <Copy className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-pointer" />}
+                    </button>
+                  </dd>
+                </div>
+                {ticket.source && (
+                  <div>
+                    <dt className="text-xs text-gray-400">Origen</dt>
+                    <dd className="text-xs text-gray-700">{ticket.source}</dd>
                   </div>
                 )}
                 <div className="pt-1">

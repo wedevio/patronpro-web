@@ -8,6 +8,7 @@ import {
   type TicketPriority,
 } from "@/lib/support/types";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
+import { notifyClientNote } from "@/lib/support/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,24 @@ export async function POST(request: Request): Promise<Response> {
         );
       } catch (err) {
         console.error("[POST /api/support/tickets] GHL note failed", err);
+      }
+    })();
+
+    // Fire-and-forget: welcome email notification to client
+    void (async () => {
+      try {
+        if (ticket.creator_email && ticket.ghl_contact_id && ticket.ticket_number !== undefined) {
+          await notifyClientNote({
+            ghlLocationId: ticket.ghl_location_id,
+            ghlContactId: ticket.ghl_contact_id,
+            creatorEmail: ticket.creator_email,
+            ticketNumber: ticket.ticket_number,
+            ticketTitle: ticket.title,
+            noteBody: "¡Gracias por contactarnos! Hemos recibido tu ticket y nuestro equipo lo revisará en breve. Te responderemos lo antes posible.",
+          });
+        }
+      } catch (err) {
+        console.error("[POST /api/support/tickets] welcome notify failed", err);
       }
     })();
 

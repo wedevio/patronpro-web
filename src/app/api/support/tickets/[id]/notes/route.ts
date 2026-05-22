@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySupportSession, verifyPpSession } from "@/lib/auth/session";
-import { addNote, getTicket } from "@/lib/support/tickets";
+import { addNote, getTicket, updateTicket } from "@/lib/support/tickets";
 import { AddNoteSchema } from "@/lib/support/types";
 import { notifyClientNote } from "@/lib/support/notify";
 
@@ -46,6 +46,12 @@ export async function POST(
     // Notify client only when STAFF posts a public note (not when client writes)
     if (parsed.data.is_public && auth === "staff") {
       const ticket = await getTicket(id);
+
+      // Auto-set status to waiting_client unless already resolved/closed
+      if (ticket && ticket.status !== "resolved" && ticket.status !== "closed") {
+        try { await updateTicket(id, { status: "waiting_client" }); } catch { /* silent */ }
+      }
+
       if (ticket?.ghl_contact_id && ticket.ghl_location_id && ticket.ticket_number && ticket.creator_email) {
         await notifyClientNote({
           ghlLocationId: ticket.ghl_location_id,

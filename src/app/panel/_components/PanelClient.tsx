@@ -505,7 +505,7 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
               <PanelRow label="SMS"><YesNoBadge active={ghl.smsSent} labelYes="Enviado" labelNo="Sin enviar" /></PanelRow>
               <PanelRow label="Cita">
                 {ghl.appointmentDate
-                  ? <Badge color="green"><CalendarClock size={10} />{formatDate(ghl.appointmentDate)}</Badge>
+                  ? <Badge color={new Date(ghl.appointmentDate) < new Date() ? "green" : "blue"}><CalendarClock size={10} />{formatDate(ghl.appointmentDate)}</Badge>
                   : <Badge color="gray">Sin agendar</Badge>}
               </PanelRow>
             </div>
@@ -860,7 +860,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
 
                       <td className="px-4 py-3 whitespace-nowrap">
                         {account.ghl.appointmentDate
-                          ? <Badge color="green"><CalendarClock size={10} />{formatDate(account.ghl.appointmentDate)}</Badge>
+                          ? <Badge color={new Date(account.ghl.appointmentDate) < new Date() ? "green" : "blue"}><CalendarClock size={10} />{formatDate(account.ghl.appointmentDate)}</Badge>
                           : <span className="text-slate-300 text-[12px]">—</span>}
                       </td>
 

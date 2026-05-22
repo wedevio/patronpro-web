@@ -97,24 +97,28 @@ export default function PanelSupportClient({ tickets }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [priorityFilter, setPriorityFilter] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [hideClosedFilter, setHideClosedFilter] = useState(false);
 
   const filtered = useMemo(() => {
     return tickets.filter((t) => {
       if (statusFilter && t.status !== statusFilter) return false;
       if (priorityFilter && t.priority !== priorityFilter) return false;
+      if (hideClosedFilter && (t.status === "resolved" || t.status === "closed")) return false;
       if (search) {
         const q = search.toLowerCase();
         if (
           !t.title.toLowerCase().includes(q) &&
           !(t.ghl_contact_id ?? "").toLowerCase().includes(q) &&
-          !(t.assignee ?? "").toLowerCase().includes(q)
+          !(t.assignee ?? "").toLowerCase().includes(q) &&
+          !(t.submitted_by ?? "").toLowerCase().includes(q) &&
+          !(t.creator_email ?? "").toLowerCase().includes(q)
         ) {
           return false;
         }
       }
       return true;
     });
-  }, [tickets, statusFilter, priorityFilter, search]);
+  }, [tickets, statusFilter, priorityFilter, search, hideClosedFilter]);
 
   const total    = tickets.length;
   const open     = tickets.filter((t) => !["resolved","closed"].includes(t.status)).length;
@@ -169,9 +173,20 @@ export default function PanelSupportClient({ tickets }: Props) {
             ))}
           </select>
 
-          {(statusFilter || priorityFilter || search) && (
+          <button
+            onClick={() => setHideClosedFilter((v) => !v)}
+            className={`rounded border px-3 py-1.5 text-sm font-medium transition-colors ${
+              hideClosedFilter
+                ? "border-[#1E2C46] bg-[#1E2C46] text-white"
+                : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"
+            }`}
+          >
+            Solo abiertos
+          </button>
+
+          {(statusFilter || priorityFilter || search || hideClosedFilter) && (
             <button
-              onClick={() => { setStatusFilter(""); setPriorityFilter(""); setSearch(""); }}
+              onClick={() => { setStatusFilter(""); setPriorityFilter(""); setSearch(""); setHideClosedFilter(false); }}
               className="text-xs text-gray-500 hover:text-gray-700 underline"
             >
               Limpiar filtros
@@ -216,11 +231,16 @@ export default function PanelSupportClient({ tickets }: Props) {
                   <td className="max-w-56 px-4 py-3">
                     <span className="line-clamp-2 font-medium text-gray-900">{t.title}</span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500">
-                    {t.ghl_contact_id || "—"}
+                  <td className="px-4 py-3 text-sm text-gray-700">
+                    {t.submitted_by || t.creator_email || (t.ghl_contact_id ? `${t.ghl_contact_id.slice(0, 8)}…` : "—")}
                   </td>
                   <td className="max-w-32 px-4 py-3 font-mono text-xs text-gray-500">
-                    <span className="truncate block">{t.ghl_location_id || "—"}</span>
+                    <span
+                      className="truncate block"
+                      title={t.ghl_location_id ?? undefined}
+                    >
+                      {t.ghl_location_id ? `${t.ghl_location_id.slice(0, 12)}…` : "—"}
+                    </span>
                   </td>
                   <td className="px-4 py-3">{statusBadge(t.status)}</td>
                   <td className="px-4 py-3">{priorityBadge(t.priority)}</td>
