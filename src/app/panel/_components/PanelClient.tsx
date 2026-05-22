@@ -26,6 +26,7 @@ import {
   Loader2,
   AlertCircle,
   Code2,
+  RefreshCw,
 } from "lucide-react";
 import type { PanelSubmission, ChecklistItemId } from "@/lib/panel/store";
 import { CHECKLIST_ITEMS } from "@/lib/panel/store";
@@ -143,17 +144,20 @@ interface WebsiteData {
   error_message: string | null;
 }
 
-function WebsiteSection({ locationId }: { locationId: string }) {
-  const [data, setData]     = useState<WebsiteData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied]   = useState(false);
+function WebsiteSection({ locationId, submission }: { locationId: string; submission: PanelSubmission | null }) {
+  const [data, setData]         = useState<WebsiteData | null>(null);
+  const [accountId, setAccountId] = useState<string | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [copied, setCopied]     = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/website/${locationId}`);
-      const json = await res.json() as { website: WebsiteData | null };
+      const json = await res.json() as { website: WebsiteData | null; accountId: string | null };
       setData(json.website);
+      if (json.accountId) setAccountId(json.accountId);
     } catch {
       setData(null);
     } finally {
@@ -175,6 +179,44 @@ function WebsiteSection({ locationId }: { locationId: string }) {
     await navigator.clipboard.writeText(data.html);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function regenerate() {
+    if (!submission || !accountId) return;
+    setRegenerating(true);
+
+    const domain = submission.domainType === "existing" || submission.domainType === "new"
+      ? submission.domain
+      : "";
+
+    try {
+      await fetch("/api/website/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId,
+          locationId,
+          businessName:       submission.businessName,
+          address:            submission.address,
+          city:               submission.city,
+          state:              submission.state,
+          zip:                submission.zip,
+          tagline:            submission.websiteTagline ?? "",
+          services:           submission.websiteServices ?? [],
+          primaryColor:       submission.primaryColor || "#1E2C46",
+          secondaryColor:     submission.secondaryColor || "#F67D0A",
+          complementaryColor: submission.complementaryColor || "#FFFFFF",
+          domain,
+          hoursOfOperation:   submission.hoursOfOperation ?? null,
+        }),
+      });
+
+      await load();
+    } catch (err) {
+      console.error("regenerate failed:", err);
+    } finally {
+      setRegenerating(false);
+    }
   }
 
   if (loading) {
@@ -255,6 +297,21 @@ function WebsiteSection({ locationId }: { locationId: string }) {
           {copied
             ? <><Check size={15} />HTML copiado</>
             : <><Copy size={15} />Copiar HTML para GHL</>
+          }
+        </button>
+      )}
+
+      {/* Regenerate button */}
+      {submission && accountId && data.status !== "generating" && (
+        <button
+          onClick={regenerate}
+          disabled={regenerating}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-medium border transition-colors disabled:opacity-50"
+          style={{ borderColor: "#e5e7eb", color: "#5f6f88" }}
+        >
+          {regenerating
+            ? <><Loader2 size={14} className="animate-spin" />Iniciando regeneración...</>
+            : <><RefreshCw size={14} />Regenerar website</>
           }
         </button>
       )}
@@ -493,7 +550,7 @@ function SidePanel({ account, onClose }: { account: EnrichedAccount; onClose: ()
               <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">
                 Website generada
               </h3>
-              <WebsiteSection locationId={account.locationId} />
+              <WebsiteSection locationId={account.locationId} submission={submission} />
             </section>
           )}
 

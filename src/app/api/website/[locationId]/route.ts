@@ -22,11 +22,11 @@ export async function GET(
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ website: null }, { status: 200 });
+    return NextResponse.json({ website: null, accountId: null }, { status: 200 });
   }
 
   const websites = (data.account_websites as unknown[]) ?? [];
   const website = Array.isArray(websites) ? websites[0] : websites;
 
-  return NextResponse.json({ website: website ?? null }, { status: 200 });
+  return NextResponse.json({ website: website ?? null, accountId: data.id as string }, { status: 200 });
 }
