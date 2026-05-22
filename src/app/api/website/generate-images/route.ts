@@ -14,6 +14,14 @@ interface GenerateImagesBody {
   city: string;
   state: string;
   primaryColor?: string;
+  // Optional fields needed for auto HTML re-generation
+  address?: string;
+  zip?: string;
+  tagline?: string;
+  secondaryColor?: string;
+  complementaryColor?: string;
+  domain?: string;
+  hoursOfOperation?: unknown;
 }
 
 interface OpenAIImageResponse {
@@ -164,6 +172,34 @@ export async function POST(request: Request): Promise<Response> {
       },
       { onConflict: "account_id" }
     );
+
+    // Auto-regenerate HTML with the new images (non-blocking)
+    if (anyGenerated) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://patronpro-web.vercel.app";
+      fetch(`${baseUrl}/api/website/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId,
+          locationId,
+          businessName,
+          address:            body.address            ?? "",
+          city:               body.city               ?? "",
+          state:              body.state              ?? "",
+          zip:                body.zip                ?? "",
+          tagline:            body.tagline            ?? "",
+          services:           body.services           ?? [],
+          primaryColor:       body.primaryColor       ?? "#1E2C46",
+          secondaryColor:     body.secondaryColor     ?? "#F67D0A",
+          complementaryColor: body.complementaryColor ?? "#FFFFFF",
+          domain:             body.domain             ?? "",
+          hoursOfOperation:   body.hoursOfOperation   ?? null,
+          heroImageUrl:       results.hero    ?? "",
+          aboutImageUrl:      results.about   ?? "",
+          contactImageUrl:    results.contact ?? "",
+        }),
+      }).catch((err) => console.error("[generate-images] HTML re-gen trigger failed:", err));
+    }
 
     return NextResponse.json(
       {

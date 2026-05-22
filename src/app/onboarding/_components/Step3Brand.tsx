@@ -21,6 +21,28 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleFile(file: File) {
+    // SVG → PNG conversion: GHL media API doesn't accept SVG
+    if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width  = img.naturalWidth  || 800;
+        canvas.height = img.naturalHeight || 400;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const pngFile = new File([blob], file.name.replace(/\.svg$/i, ".png"), { type: "image/png" });
+          onChange("logoFile", pngFile);
+          setPreview(URL.createObjectURL(pngFile));
+        }, "image/png");
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+      return;
+    }
     onChange("logoFile", file);
     setPreview(URL.createObjectURL(file));
   }
@@ -78,7 +100,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
                   Arrastrá o hacé clic para subir tu logo
                 </p>
                 <p className="text-xs mt-1" style={{ color: "#9ca3af" }}>
-                  PNG, JPG, SVG · Máx 5MB
+                  PNG, JPG, WebP, SVG · Máx 5MB
                 </p>
               </>
             )}

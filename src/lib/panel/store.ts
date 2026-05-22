@@ -107,6 +107,8 @@ export async function saveSubmission(
     let_patronpro_choose_colors: data.letUsChooseColors,
     logo_url:            data.logoUrl,
     hours_of_operation:  data.hoursOfOperation ?? null,
+    website_tagline:     data.websiteTagline ?? null,
+    website_services:    data.websiteServices ?? [],
   });
 
   if (subErr) {
@@ -192,6 +194,8 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       letUsChooseColors:  (sub.let_patronpro_choose_colors as boolean) ?? false,
       logoUrl:            (sub.logo_url as string) ?? "",
       hoursOfOperation:   sub.hours_of_operation as HoursOfOperation | undefined,
+      websiteTagline:     (sub.website_tagline as string) ?? "",
+      websiteServices:    (sub.website_services as string[]) ?? [],
     };
   });
 }

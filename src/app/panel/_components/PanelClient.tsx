@@ -194,6 +194,11 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   async function generateImages() {
     if (!submission || !accountId) return;
     setGeneratingImages(true);
+
+    const domain = submission.domainType === "existing" || submission.domainType === "new"
+      ? submission.domain
+      : "";
+
     try {
       await fetch("/api/website/generate-images", {
         method: "POST",
@@ -201,11 +206,19 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
         body: JSON.stringify({
           accountId,
           locationId,
-          businessName:  submission.businessName,
-          services:      submission.websiteServices ?? [],
-          city:          submission.city,
-          state:         submission.state,
-          primaryColor:  submission.primaryColor || "#1E2C46",
+          businessName:       submission.businessName,
+          services:           submission.websiteServices ?? [],
+          city:               submission.city,
+          state:              submission.state,
+          primaryColor:       submission.primaryColor || "#1E2C46",
+          // Extra fields for auto HTML re-generation after images
+          address:            submission.address,
+          zip:                submission.zip,
+          tagline:            submission.websiteTagline ?? "",
+          secondaryColor:     submission.secondaryColor || "#F67D0A",
+          complementaryColor: submission.complementaryColor || "#FFFFFF",
+          domain,
+          hoursOfOperation:   submission.hoursOfOperation ?? null,
         }),
       });
       await load();
