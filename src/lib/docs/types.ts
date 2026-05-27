@@ -6,7 +6,7 @@ export interface HeadingBlockData {
 }
 
 export interface TextBlockData {
-  /** Plain text with \n line breaks. May contain markdown-style **bold** or _italic_. */
+  /** Plain text with \n line breaks. May contain markdown-style **bold**, __underline__, and `code`. */
   content: string;
 }
 

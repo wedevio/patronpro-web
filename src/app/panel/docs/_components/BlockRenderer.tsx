@@ -1,5 +1,6 @@
 import type { DocBlock, CalloutVariant } from "@/lib/docs/types";
 import { Info, AlertTriangle, CheckCircle, Zap, Clock } from "lucide-react";
+import type { ReactNode } from "react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Callout config
@@ -16,8 +17,29 @@ const CALLOUT_CONFIG: Record<
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Text line renderer (converts bullet prefixes to indented lines)
+// Text line renderer (converts bullet prefixes and inline formatting)
 // ─────────────────────────────────────────────────────────────────────────────
+function renderInline(text: string): ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`)/g);
+
+  return parts.filter(Boolean).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("__") && part.endsWith("__")) {
+      return <u key={i}>{part.slice(2, -2)}</u>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={i} className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.92em] text-slate-800">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 function TextContent({ content }: { content: string }) {
   const lines = content.split("\n");
   return (
@@ -38,11 +60,11 @@ function TextContent({ content }: { content: string }) {
           >
             {isBullet && <span className="mt-[5px] w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />}
             {isNumbered && !isBullet ? (
-              <span>{text}</span>
+              <span>{renderInline(text)}</span>
             ) : isBullet ? (
-              <span>{text}</span>
+              <span>{renderInline(text)}</span>
             ) : (
-              <span>{trimmed || "\u00A0"}</span>
+              <span>{trimmed ? renderInline(trimmed) : "\u00A0"}</span>
             )}
           </p>
         );

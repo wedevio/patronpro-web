@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import type { DocBlock, BlockType, CalloutVariant } from "@/lib/docs/types";
-import { X, Upload, Loader2 } from "lucide-react";
+import { X, Upload, Loader2, Bold, Underline, List, Code2 } from "lucide-react";
 
 interface Props {
   block: DocBlock;
@@ -32,6 +32,7 @@ export default function BlockEditor({ block, onSave, onCancel }: Props) {
   // ── text state ─────────────────────────────────────────────────────────────
   const textData = block.type === "text" ? (block.data as { content: string }) : null;
   const [textContent, setTextContent] = useState(textData?.content ?? "");
+  const textRef = useRef<HTMLTextAreaElement>(null);
 
   // ── image state ────────────────────────────────────────────────────────────
   const imageData = block.type === "image" ? (block.data as { url: string; alt: string; caption?: string }) : null;
@@ -50,20 +51,91 @@ export default function BlockEditor({ block, onSave, onCancel }: Props) {
   const [calloutTitle, setCalloutTitle] = useState(calloutData?.title ?? "");
   const [calloutContent, setCalloutContent] = useState(calloutData?.content ?? "");
 
-  // ── file upload ────────────────────────────────────────────────────────────
+  function wrapSelection(token: "**" | "__" | "`") {
+    const el = textRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const selected = textContent.slice(start, end);
+    const wrapped = `${token}${selected || "texto"}${token}`;
+    const next = textContent.slice(0, start) + wrapped + textContent.slice(end);
+    setTextContent(next);
+
+    requestAnimationFrame(() => {
+      el.focus();
+      const innerStart = start + token.length;
+      const innerEnd = innerStart + (selected || "texto").length;
+      el.setSelectionRange(innerStart, innerEnd);
+    });
+  }
+
+  function toggleBullets() {
+    const el = textRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+
+    const blockStart = textContent.lastIndexOf("\n", start - 1) + 1;
+    const nextNewLine = textContent.indexOf("\n", end);
+    const blockEnd = nextNewLine === -1 ? textContent.length : nextNewLine;
+    const selectedBlock = textContent.slice(blockStart, blockEnd);
+    const lines = selectedBlock.split("\n");
+    const allBulleted = lines.every((line) => !line.trim() || line.trimStart().startsWith("• "));
+
+    const transformed = lines.map((line) => {
+      if (!line.trim()) return line;
+      const leading = line.match(/^\s*/)?.[0] ?? "";
+      const trimmed = line.trimStart();
+      if (allBulleted) {
+        return trimmed.startsWith("• ") ? `${leading}${trimmed.slice(2)}` : line;
+      }
+      return trimmed.startsWith("• ") ? line : `${leading}• ${trimmed}`;
+    }).join("\n");
+
+    const next = textContent.slice(0, blockStart) + transformed + textContent.slice(blockEnd);
+    setTextContent(next);
+
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(blockStart, blockStart + transformed.length);
+    });
+  }
+
+  // ── file upload (direct-to-Supabase via signed URL) ───────────────────────
+  // Flow:
+  //   1. POST metadata to /api/panel/docs/media → { signedUrl, publicUrl }
+  //   2. PUT file bytes directly to signedUrl   (bypasses Vercel body limit)
+  //   3. Store publicUrl into the block
   async function handleFileUpload(file: File) {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/panel/docs/media", { method: "POST", body: fd });
-      const json = await res.json() as { url?: string; error?: string };
-      if (!res.ok || !json.url) {
-        alert(json.error ?? "Error al subir archivo");
+      // Step 1 — request a signed upload URL from the admin-protected route
+      const metaRes = await fetch("/api/panel/docs/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+      });
+      const meta = await metaRes.json() as { signedUrl?: string; publicUrl?: string; error?: string };
+      if (!metaRes.ok || !meta.signedUrl || !meta.publicUrl) {
+        alert(meta.error ?? "Error al preparar la subida");
         return;
       }
-      if (type === "image") setImageUrl(json.url);
-      if (type === "video") setVideoUrl(json.url);
+
+      // Step 2 — upload the file bytes directly to Supabase Storage
+      const uploadRes = await fetch(meta.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        const msg = await uploadRes.text().catch(() => "");
+        alert(`Error al subir el archivo: ${msg || uploadRes.status}`);
+        return;
+      }
+
+      // Step 3 — store the public URL in the block
+      if (type === "image") setImageUrl(meta.publicUrl);
+      if (type === "video") setVideoUrl(meta.publicUrl);
     } finally {
       setUploading(false);
     }
@@ -118,8 +190,44 @@ export default function BlockEditor({ block, onSave, onCancel }: Props) {
 
       {type === "text" && (
         <div>
-          <label className={labelCls}>Contenido (usa • para viñetas)</label>
+          <label className={labelCls}>Contenido</label>
+          <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 bg-white p-2">
+            <button
+              type="button"
+              onClick={() => wrapSelection("**")}
+              className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[12px] hover:bg-slate-50"
+              title="Negrita"
+            >
+              <Bold size={13} /> Negrita
+            </button>
+            <button
+              type="button"
+              onClick={() => wrapSelection("__")}
+              className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[12px] hover:bg-slate-50"
+              title="Subrayado"
+            >
+              <Underline size={13} /> Subrayado
+            </button>
+            <button
+              type="button"
+              onClick={toggleBullets}
+              className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[12px] hover:bg-slate-50"
+              title="Viñetas"
+            >
+              <List size={13} /> Viñetas
+            </button>
+            <button
+              type="button"
+              onClick={() => wrapSelection("`")}
+              className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[12px] hover:bg-slate-50"
+              title="Código"
+            >
+              <Code2 size={13} /> Código
+            </button>
+            <span className="text-[11px] text-slate-400">Negrita: **texto** · Subrayado: __texto__ · Código: `texto`.</span>
+          </div>
           <textarea
+            ref={textRef}
             value={textContent}
             onChange={(e) => setTextContent(e.target.value)}
             rows={8}
@@ -132,7 +240,7 @@ export default function BlockEditor({ block, onSave, onCancel }: Props) {
         <>
           <div>
             <label className={labelCls}>Archivo (subir)</label>
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
@@ -141,6 +249,9 @@ export default function BlockEditor({ block, onSave, onCancel }: Props) {
                 {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
                 {uploading ? "Subiendo…" : "Seleccionar archivo"}
               </button>
+              <span className="text-[11px] text-slate-400">
+                {type === "image" ? "JPG, PNG, GIF, WebP, SVG — máx. 1 GB" : "MP4, WebM, OGG — máx. 1 GB"}
+              </span>
               <input
                 ref={fileRef}
                 type="file"
