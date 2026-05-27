@@ -319,7 +319,8 @@ export default function DocsPageClient({ initialPages, isAdmin }: Props) {
 
             {/* Admin toolbar */}
             {isAdmin && (
-              <div className="mb-6 flex items-center gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="sticky top-0 z-20 mb-6 -mx-2 px-2 py-2 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200 shadow-sm">
                 {!isEditing ? (
                   <button
                     onClick={enterEditMode}
@@ -352,6 +353,7 @@ export default function DocsPageClient({ initialPages, isAdmin }: Props) {
                     )}
                   </>
                 )}
+                </div>
               </div>
             )}
 
