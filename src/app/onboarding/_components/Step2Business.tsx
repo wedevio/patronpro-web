@@ -13,12 +13,15 @@ type Step2Data = Pick<
   | "zip"
   | "country"
   | "ein"
+  | "businessLegalStructure"
+  | "taxIdStatus"
+  | "teamSize"
 >;
 
-interface Step2Props {
+  interface Step2Props {
   data: Partial<Step2Data>;
   errors: Partial<Record<keyof Step2Data, string>>;
-  onChange: (field: keyof Step2Data, value: string) => void;
+  onChange: (field: keyof Step2Data, value: string | undefined) => void;
 }
 
 interface NominatimResult {
@@ -198,6 +201,9 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
     return `${d.slice(0, 2)}-${d.slice(2)}`;
   })();
 
+  const selectClass =
+    "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A] bg-white appearance-none cursor-pointer";
+
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-bold" style={{ color: "#1E2C46" }}>
@@ -289,6 +295,92 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
           maxLength={10}
         />
       </Field>
+
+      {/* ── Sección: estructura legal y datos adicionales ── */}
+      <div className="pt-2 border-t border-slate-100">
+        <p className="text-[13px] font-semibold mb-4" style={{ color: "#1E2C46" }}>
+          Información adicional del negocio
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+          <Field
+            label="Estructura legal del negocio"
+            hint="¿Bajo qué forma legal opera o va a operar tu negocio?"
+          >
+            <select
+              className={selectClass}
+              style={{ borderColor: "#e5e7eb" }}
+              value={data.businessLegalStructure ?? ""}
+              onChange={(e) =>
+                onChange(
+                  "businessLegalStructure",
+                  e.target.value as OnboardingFormData["businessLegalStructure"]
+                )
+              }
+            >
+              <option value="">Seleccioná una opción</option>
+              <option value="llc">LLC (Sociedad de Responsabilidad Limitada)</option>
+              <option value="corporation">Corporación (Inc.)</option>
+              <option value="sole_proprietorship">Empresa unipersonal (Sole Proprietor)</option>
+              <option value="partnership">Sociedad / Partnership</option>
+              <option value="none">Todavía no creé una entidad legal</option>
+            </select>
+          </Field>
+
+          <Field
+            label="Cantidad de usuarios del sistema"
+            hint="¿Cuántas personas de tu equipo van a usar el sistema?"
+          >
+            <select
+              className={selectClass}
+              style={{ borderColor: "#e5e7eb" }}
+              value={data.teamSize ?? ""}
+              onChange={(e) =>
+                onChange("teamSize", e.target.value as OnboardingFormData["teamSize"])
+              }
+            >
+              <option value="">Seleccioná una opción</option>
+              <option value="solo">Solo yo</option>
+              <option value="2-5">2 a 5 personas</option>
+              <option value="6-15">6 a 15 personas</option>
+              <option value="16+">Más de 15 personas</option>
+            </select>
+          </Field>
+
+          <Field
+            label="Identificación personal (Tax ID)"
+            hint="¿Con qué número de identificación tributaria personal contás?"
+          >
+            <div className="flex flex-col gap-2">
+              {([
+                { val: "ssn",  label: "Tengo SSN (número de seguro social)" },
+                { val: "itin", label: "Tengo ITIN (número tributario individual)" },
+                { val: "none", label: "No tengo ninguno por ahora" },
+              ] as { val: OnboardingFormData["taxIdStatus"]; label: string }[]).map(({ val, label }) => (
+                <label
+                  key={val}
+                  className="flex items-center gap-3 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors text-sm"
+                  style={{
+                    borderColor: data.taxIdStatus === val ? "#F67D0A" : "#e5e7eb",
+                    backgroundColor: data.taxIdStatus === val ? "#fff8f0" : "white",
+                    color: "#1E2C46",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="taxIdStatus"
+                    checked={data.taxIdStatus === val}
+                    onChange={() => onChange("taxIdStatus", val)}
+                    className="accent-[#F67D0A]"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </Field>
+
+        </div>
+      </div>
     </div>
   );
 }

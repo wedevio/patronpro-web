@@ -111,6 +111,19 @@ export default function OnboardingForm({
       fd.append("wantNewDomain", String(formData.wantNewDomain ?? false));
       fd.append("authorizeDomainPurchase", String(formData.authorizeDomainPurchase ?? false));
 
+      if (formData.businessLegalStructure) {
+        fd.append("businessLegalStructure", formData.businessLegalStructure);
+      }
+      if (formData.teamSize) {
+        fd.append("teamSize", formData.teamSize);
+      }
+      if (formData.taxIdStatus) {
+        fd.append("taxIdStatus", formData.taxIdStatus);
+      }
+      if (formData.hasStripeAccount !== undefined) {
+        fd.append("hasStripeAccount", String(formData.hasStripeAccount));
+      }
+
       if (formData.hoursOfOperation) {
         fd.append("hoursOfOperation", JSON.stringify(formData.hoursOfOperation));
       }

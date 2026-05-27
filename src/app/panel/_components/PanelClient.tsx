@@ -575,6 +575,33 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                     {submission.city && (
                       <Row icon={<MapPin size={14} />} label="Ciudad" value={[submission.city, submission.state, submission.zip].filter(Boolean).join(", ")} />
                     )}
+                    {submission.businessLegalStructure && (
+                      <Row icon={<Building2 size={14} />} label="Estructura legal" value={{
+                        llc: "LLC (Sociedad de Responsabilidad Limitada)",
+                        corporation: "Corporación (Inc.)",
+                        sole_proprietorship: "Empresa unipersonal (Sole Proprietor)",
+                        partnership: "Sociedad / Partnership",
+                        none: "Sin entidad legal creada",
+                      }[submission.businessLegalStructure] ?? submission.businessLegalStructure} />
+                    )}
+                    {submission.teamSize && (
+                      <Row icon={<Tag size={14} />} label="Equipo / usuarios" value={{
+                        "solo": "Solo el dueño",
+                        "2-5": "2 a 5 personas",
+                        "6-15": "6 a 15 personas",
+                        "16+": "Más de 15 personas",
+                      }[submission.teamSize] ?? submission.teamSize} />
+                    )}
+                    {submission.hasStripeAccount !== undefined && (
+                      <Row icon={<Tag size={14} />} label="Cuenta de Stripe" value={submission.hasStripeAccount ? "Sí" : "No"} />
+                    )}
+                    {submission.taxIdStatus && (
+                      <Row icon={<Tag size={14} />} label="Identificación fiscal" value={{
+                        ssn:  "Tiene SSN",
+                        itin: "Tiene ITIN",
+                        none: "Sin SSN ni ITIN",
+                      }[submission.taxIdStatus] ?? submission.taxIdStatus} />
+                    )}
                   </div>
                 </div>
 

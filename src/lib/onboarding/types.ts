@@ -44,6 +44,12 @@ export interface OnboardingFormData {
   phone: string;
   email: string;
   ein?: string;
+  businessLegalStructure?: "llc" | "corporation" | "sole_proprietorship" | "partnership" | "none";
+  taxIdStatus?: "ssn" | "itin" | "none"; // personal tax ID situation
+  teamSize?: "solo" | "2-5" | "6-15" | "16+";
+
+  // Step 1: Domain (also asked here for grouping convenience)
+  hasStripeAccount?: boolean;
 
   // Step 3: Brand Identity
   logoFile?: File;       // client-side only

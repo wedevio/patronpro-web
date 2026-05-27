@@ -12,6 +12,7 @@ type Step1Data = Pick<
   | "desiredDomain"
   | "domainRegistrar"
   | "authorizeDomainPurchase"
+  | "hasStripeAccount"
 >;
 
 interface Step1Props {
@@ -301,6 +302,46 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
           </div>
         </div>
       )}
+
+      {/* Stripe account */}
+      <div className="pt-2 border-t border-slate-100">
+        <p className="text-[13px] font-semibold mb-3" style={{ color: "#1E2C46" }}>
+          Cuentas y plataformas
+        </p>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium" style={{ color: "#1E2C46" }}>
+            ¿Ya tenés una cuenta de Stripe?
+          </label>
+          <p className="text-xs mb-2" style={{ color: "#5f6f88" }}>
+            Stripe es la plataforma de pagos que usamos para cobros online.
+          </p>
+          <div className="flex gap-3">
+            {([
+              { val: true,  label: "Sí" },
+              { val: false, label: "No" },
+            ] as { val: boolean; label: string }[]).map(({ val, label }) => (
+              <label
+                key={String(val)}
+                className="flex items-center gap-2 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors flex-1 justify-center text-sm font-medium"
+                style={{
+                  borderColor: data.hasStripeAccount === val ? "#F67D0A" : "#e5e7eb",
+                  backgroundColor: data.hasStripeAccount === val ? "#fff8f0" : "white",
+                  color: "#1E2C46",
+                }}
+              >
+                <input
+                  type="radio"
+                  name="hasStripeAccount"
+                  checked={data.hasStripeAccount === val}
+                  onChange={() => onChange("hasStripeAccount", val)}
+                  className="accent-[#F67D0A]"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

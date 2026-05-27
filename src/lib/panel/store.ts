@@ -48,9 +48,13 @@ export interface PanelSubmission {
   letUsChooseColors:  boolean;
   logoUrl:            string;
   logoSquareUrl?:     string;
-  hoursOfOperation?:  HoursOfOperation;
-  websiteTagline?:    string;
-  websiteServices?:   string[];
+  hoursOfOperation?:       HoursOfOperation;
+  websiteTagline?:         string;
+  websiteServices?:        string[];
+  businessLegalStructure?: string;
+  hasStripeAccount?:       boolean;
+  taxIdStatus?:            string;
+  teamSize?:               string;
 }
 
 export function defaultChecklist(): Record<ChecklistItemId, boolean> {
@@ -112,6 +116,10 @@ export async function saveSubmission(
     hours_of_operation:  data.hoursOfOperation ?? null,
     website_tagline:     data.websiteTagline ?? null,
     website_services:    data.websiteServices ?? [],
+    business_legal_structure: data.businessLegalStructure ?? null,
+    has_stripe_account:  data.hasStripeAccount ?? null,
+    tax_id_status:       data.taxIdStatus ?? null,
+    team_size:           data.teamSize ?? null,
   });
 
   if (subErr) {
@@ -203,6 +211,10 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       hoursOfOperation:   sub.hours_of_operation as HoursOfOperation | undefined,
       websiteTagline:     (sub.website_tagline as string) ?? "",
       websiteServices:    (sub.website_services as string[]) ?? [],
+      businessLegalStructure: (sub.business_legal_structure as string) ?? undefined,
+      hasStripeAccount:   sub.has_stripe_account as boolean | undefined,
+      taxIdStatus:        (sub.tax_id_status as string) ?? undefined,
+      teamSize:           (sub.team_size as string) ?? undefined,
     };
   });
 }
