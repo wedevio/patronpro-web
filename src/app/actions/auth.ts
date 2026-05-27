@@ -50,16 +50,11 @@ export async function loginAction(
     // Decode Supabase JWT (no signature verification — we just need the payload claims)
     const decoded = decodeJwt(data.access_token);
 
-    // Determine role: ADMIN_EMAILS env var (comma-separated) or hardcoded fallback
-    const adminEmailsEnv = process.env.ADMIN_EMAILS ?? "";
-    const adminEmails = adminEmailsEnv
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
-    const fallbackAdmins = ["carlos@wedevio.com"];
-    const allAdmins = adminEmails.length > 0 ? adminEmails : fallbackAdmins;
-    const userEmail = (decoded.email as string | undefined)?.toLowerCase() ?? "";
-    const role: "admin" | "member" = allAdmins.includes(userEmail) ? "admin" : "member";
+    // Determine role from Supabase auth metadata (app_metadata.role).
+    // The Supabase access token embeds app_metadata under the "app_metadata" claim.
+    // Any value other than "admin" (or missing) defaults to "member".
+    const appMeta = decoded["app_metadata"] as Record<string, unknown> | undefined;
+    const role: "admin" | "member" = appMeta?.["role"] === "admin" ? "admin" : "member";
 
     // Create our own JWT signed with SUPPORT_SESSION_SECRET so proxy.ts can verify it
     const ppJwt = await new SignJWT({ email: decoded.email, sub: decoded.sub, role })
