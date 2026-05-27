@@ -62,12 +62,12 @@ export async function verifySupportSession(
 }
 
 /**
- * Verifies a pp-session (NextAuth) JWT using NEXTAUTH_SECRET.
- * Replaces the previous unverified jwtDecode usage.
+ * Verifies a pp-session JWT using SUPPORT_SESSION_SECRET.
+ * Returns email, sub, and role (defaults to "member" for legacy tokens without role).
  */
 export async function verifyPpSession(
   token: string
-): Promise<{ email: string; sub: string }> {
+): Promise<{ email: string; sub: string; role: "admin" | "member" }> {
   const { payload } = await jwtVerify(token, getPanelSecret());
 
   const email = payload["email"] ?? payload["sub"];
@@ -80,5 +80,7 @@ export async function verifyPpSession(
     throw new Error("Invalid pp-session: missing sub");
   }
 
-  return { email, sub };
+  const role = payload["role"] === "admin" ? "admin" : "member";
+
+  return { email, sub, role };
 }
