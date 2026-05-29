@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySupportSession, verifyPpSession } from "@/lib/auth/session";
-import { getTicket, updateTicket } from "@/lib/support/tickets";
+import { deleteTicket, getTicket, updateTicket } from "@/lib/support/tickets";
 import { UpdateTicketSchema } from "@/lib/support/types";
 import { notifyClientStatus } from "@/lib/support/notify";
 
@@ -110,6 +110,35 @@ export async function PATCH(
     return NextResponse.json(ticket);
   } catch (err) {
     console.error(`[PATCH /api/support/tickets/${id}]`, err);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  const auth = await getAuth();
+  if (!auth) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  if (auth.type !== "pp") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  try {
+    const ticket = await getTicket(id);
+    if (!ticket) {
+      return NextResponse.json({ error: "Ticket no encontrado" }, { status: 404 });
+    }
+
+    await deleteTicket(id);
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (err) {
+    console.error(`[DELETE /api/support/tickets/${id}]`, err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

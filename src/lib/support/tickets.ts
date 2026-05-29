@@ -166,6 +166,27 @@ export async function addNote(
 }
 
 /**
+ * Deletes a ticket and its notes.
+ */
+export async function deleteTicket(id: string): Promise<void> {
+  const db = getAdminClient();
+
+  const { error: notesError } = await db
+    .from("support_ticket_notes")
+    .delete()
+    .eq("ticket_id", id);
+
+  if (notesError) throw new Error(`deleteTicket notes: ${notesError.message}`);
+
+  const { error: ticketError } = await db
+    .from("support_tickets")
+    .delete()
+    .eq("id", id);
+
+  if (ticketError) throw new Error(`deleteTicket ticket: ${ticketError.message}`);
+}
+
+/**
  * Returns all non-closed/non-resolved tickets for a contact in a location.
  */
 export async function searchByContact(

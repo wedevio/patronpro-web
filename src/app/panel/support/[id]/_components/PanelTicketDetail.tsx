@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Loader2, ExternalLink, Send, Paperclip, X, Copy, Check } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Send, Paperclip, X, Copy, Check, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { SupportTicket, TicketNote, TicketStatus, TicketPriority } from "@/lib/support/types";
 
 // ---------------------------------------------------------------------------
@@ -54,10 +55,14 @@ function formatDateTime(iso: string): string {
 // ---------------------------------------------------------------------------
 
 export default function PanelTicketDetail({ ticket: initial, locationName, contactName, contactEmail, ghlDashboardUrl, currentUserEmail }: Props) {
+  const router = useRouter();
   const [ticket, setTicket]     = useState(initial);
   const [notes, setNotes]       = useState<TicketNote[]>(initial.notes ?? []);
   const [saving, setSaving]     = useState(false);
   const [users, setUsers]       = useState<StaffUser[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Copy feedback
   const [copiedContactId, setCopiedContactId]   = useState(false);
@@ -153,6 +158,28 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
     }
   }
 
+  async function handleDeleteTicket() {
+    setDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const res = await fetch(`/api/support/tickets/${ticket.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "No se pudo eliminar el ticket");
+      }
+
+      router.push("/panel/support");
+      router.refresh();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "No se pudo eliminar el ticket");
+      setDeleting(false);
+    }
+  }
+
   const currentStatus   = STATUS_OPTIONS.find((o) => o.value === ticket.status);
   const currentPriority = PRIORITY_OPTIONS.find((o) => o.value === ticket.priority);
 
@@ -167,7 +194,54 @@ export default function PanelTicketDetail({ ticket: initial, locationName, conta
           <span className="text-gray-300">/</span>
           <span className="text-sm text-gray-700 font-medium">#{ticket.ticket_number} — {ticket.title}</span>
           {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400 ml-1" />}
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Eliminar ticket
+          </button>
         </div>
+
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+              <h2 className="text-base font-semibold text-gray-900">Eliminar ticket</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                ¿Seguro que quieres eliminar el ticket #{ticket.ticket_number}? Esta acción no se puede deshacer.
+              </p>
+
+              {deleteError && (
+                <p className="mt-3 rounded bg-red-50 px-3 py-2 text-xs text-red-700">{deleteError}</p>
+              )}
+
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (deleting) return;
+                    setShowDeleteConfirm(false);
+                    setDeleteError(null);
+                  }}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  disabled={deleting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteTicket()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                  disabled={deleting}
+                >
+                  {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-6">
           {/* ── Main ── */}
