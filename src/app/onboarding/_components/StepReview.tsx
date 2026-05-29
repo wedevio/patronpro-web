@@ -58,6 +58,27 @@ const DAY_LABELS: Record<keyof HoursOfOperation, string> = {
   thursday: "Jue", friday: "Vie", saturday: "Sáb", sunday: "Dom",
 };
 
+const LEGAL_STRUCTURE_LABELS: Record<NonNullable<OnboardingFormData["businessLegalStructure"]>, string> = {
+  llc: "LLC",
+  corporation: "Corporación",
+  sole_proprietorship: "Sole Proprietorship",
+  partnership: "Partnership",
+  none: "Todavía no definido",
+};
+
+const TEAM_SIZE_LABELS: Record<NonNullable<OnboardingFormData["teamSize"]>, string> = {
+  solo: "Solo yo",
+  "2-5": "2 a 5 personas",
+  "6-15": "6 a 15 personas",
+  "16+": "Más de 15 personas",
+};
+
+const TAX_ID_LABELS: Record<NonNullable<OnboardingFormData["taxIdStatus"]>, string> = {
+  ssn: "Social Security Number",
+  itin: "ITIN",
+  none: "No tiene uno todavía",
+};
+
 function formatTime(t: string): string {
   const [hh, mm] = t.split(":").map(Number);
   const period = hh >= 12 ? "PM" : "AM";
@@ -76,6 +97,11 @@ export default function StepReview({
     .join(", ");
 
   const hours = data.hoursOfOperation;
+  const domainType = data.hasDomain
+    ? "Ya tengo dominio"
+    : data.wantNewDomain
+      ? "Quiero comprar un dominio nuevo"
+      : "Por definir en la llamada";
 
   // Logo preview — use object URL if File, otherwise logoUrl string
   const logoSrc =
@@ -96,6 +122,18 @@ export default function StepReview({
           <Row label="Nombre legal" value={data.legalName} />
           <Row label="Dirección" value={address} />
           <Row label="EIN" value={data.ein} />
+          <Row
+            label="Estructura legal"
+            value={data.businessLegalStructure ? LEGAL_STRUCTURE_LABELS[data.businessLegalStructure] : undefined}
+          />
+          <Row
+            label="Equipo"
+            value={data.teamSize ? TEAM_SIZE_LABELS[data.teamSize] : undefined}
+          />
+          <Row
+            label="Tax ID personal"
+            value={data.taxIdStatus ? TAX_ID_LABELS[data.taxIdStatus] : undefined}
+          />
         </div>
       </Section>
 
@@ -193,18 +231,29 @@ export default function StepReview({
       {/* Step 4 — Dominio */}
       <Section title="Dominio" step={4} onEdit={onEdit}>
         <div className="flex flex-col gap-2">
+          <Row label="Tipo" value={domainType} />
           {data.hasDomain ? (
             <>
               <Row label="Dominio" value={data.existingDomain} />
               <Row label="Registrar" value={data.domainRegistrar} />
             </>
           ) : data.wantNewDomain ? (
-            <Row label="Dominio deseado" value={data.desiredDomain} />
+            <>
+              <Row label="Dominio deseado" value={data.desiredDomain} />
+              <Row
+                label="Compra autorizada"
+                value={data.authorizeDomainPurchase === undefined ? undefined : data.authorizeDomainPurchase ? "Sí" : "No"}
+              />
+            </>
           ) : (
             <p className="text-sm" style={{ color: "#5f6f88" }}>
               Por definir en la llamada
             </p>
           )}
+          <Row
+            label="Stripe"
+            value={data.hasStripeAccount === undefined ? undefined : data.hasStripeAccount ? "Sí" : "No"}
+          />
         </div>
       </Section>
 

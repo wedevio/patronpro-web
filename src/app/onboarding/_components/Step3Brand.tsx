@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, X, Sparkles, Download, Check, RefreshCw, Loader2 } from "lucide-react";
 import type { OnboardingFormData } from "@/lib/onboarding/types";
 import ColorPicker from "./ColorPicker";
@@ -48,7 +48,7 @@ interface GeneratedLogo {
 
 type Step3Fields = Pick<
   OnboardingFormData,
-  | "logoFile" | "logoSquareFile" | "logoUrl"
+  | "logoFile" | "logoSquareFile" | "logoUrl" | "logoSquareUrl"
   | "primaryColor" | "secondaryColor" | "complementaryColor" | "letUsChooseColors"
   | "websiteServices" | "websiteTagline"
   | "businessName"
@@ -82,6 +82,27 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
   const selected: string[] = data.websiteServices ?? [];
   const allServices = [...PRESET_SERVICES, ...customServices];
   const attemptsLeft = 3 - attempts.length;
+
+  useEffect(() => {
+    if (data.logoSquareFile instanceof File || data.logoSquareUrl) {
+      setNoLogo(true);
+    }
+  }, [data.logoSquareFile, data.logoSquareUrl]);
+
+  useEffect(() => {
+    if (data.logoFile instanceof File) {
+      const objectUrl = URL.createObjectURL(data.logoFile);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+
+    if (typeof data.logoUrl === "string" && data.logoUrl.trim()) {
+      setPreview(data.logoUrl);
+      return;
+    }
+
+    setPreview(null);
+  }, [data.logoFile, data.logoUrl]);
 
   // ── Logo upload handlers ──────────────────────────────────────────────────
 

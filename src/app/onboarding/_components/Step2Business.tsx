@@ -353,9 +353,9 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
           >
             <div className="flex flex-col gap-2">
               {([
-                { val: "ssn",  label: "Tengo SSN (número de seguro social)" },
-                { val: "itin", label: "Tengo ITIN (número tributario individual)" },
-                { val: "none", label: "No tengo ninguno por ahora" },
+                { val: "ssn",  label: "Social Security Number" },
+                { val: "itin", label: "ITIN" },
+                { val: "none", label: "No tengo uno todavía" },
               ] as { val: OnboardingFormData["taxIdStatus"]; label: string }[]).map(({ val, label }) => (
                 <label
                   key={val}

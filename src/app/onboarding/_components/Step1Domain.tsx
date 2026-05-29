@@ -268,13 +268,13 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
               <div>
                 <p className="text-sm font-semibold" style={{ color: "#1E2C46" }}>
                   Compra del dominio —{" "}
-                  <span style={{ color: "#F67D0A" }}>$11 / año</span>
+                  <span style={{ color: "#F67D0A" }}>$13.84 / año</span>
                 </p>
                 <p className="text-sm mt-1" style={{ color: "#5f6f88" }}>
                   Nosotros registramos el dominio por vos para poder configurar
                   todo correctamente: sitio web, emails profesionales y sistema
                   de seguimiento. El costo de{" "}
-                  <strong>$11 al año</strong> se cobra junto con tu plan en el
+                  <strong>$13.84 al año</strong> se cobra junto con tu plan en el
                   momento de activación.
                 </p>
               </div>
@@ -290,7 +290,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                 className="mt-0.5 rounded accent-[#F67D0A]"
               />
               <span className="text-sm font-medium" style={{ color: "#1E2C46" }}>
-                Autorizo a PatronPro a registrar este dominio por $11 al activar
+                Autorizo a PatronPro a registrar este dominio por $13.84 al activar
                 mi cuenta
               </span>
             </label>
