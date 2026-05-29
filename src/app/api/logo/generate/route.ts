@@ -16,6 +16,61 @@ interface OpenAIImageResponse {
   error?: { message: string };
 }
 
+async function trimTransparentPadding(
+  base64Image: string,
+  lateralPaddingPx = 5,
+): Promise<string> {
+  try {
+    const { default: sharp } = await import("sharp");
+    const inputBuffer = Buffer.from(base64Image, "base64");
+    const image = sharp(inputBuffer).ensureAlpha();
+    const { data, info } = await image.raw().toBuffer({ resolveWithObject: true });
+
+    let left = info.width;
+    let right = -1;
+    let top = info.height;
+    let bottom = -1;
+
+    for (let y = 0; y < info.height; y += 1) {
+      for (let x = 0; x < info.width; x += 1) {
+        const alpha = data[(y * info.width + x) * info.channels + 3];
+        if (alpha > 8) {
+          if (x < left) left = x;
+          if (x > right) right = x;
+          if (y < top) top = y;
+          if (y > bottom) bottom = y;
+        }
+      }
+    }
+
+    if (right === -1 || bottom === -1) {
+      return base64Image;
+    }
+
+    const extracted = await sharp(inputBuffer)
+      .extract({
+        left,
+        top,
+        width: right - left + 1,
+        height: bottom - top + 1,
+      })
+      .extend({
+        top: 0,
+        bottom: 0,
+        left: lateralPaddingPx,
+        right: lateralPaddingPx,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer();
+
+    return extracted.toString("base64");
+  } catch (err) {
+    console.error("[logo/generate] trimTransparentPadding error:", err);
+    return base64Image;
+  }
+}
+
 // Detect specialty from services list
 function detectSpecialty(services: string[]): string {
   if (!services.length) return "general construction and remodeling";
@@ -92,7 +147,12 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "No se pudo generar el logo" }, { status: 502 });
     }
 
-    return NextResponse.json({ horizontal, square }, { status: 200 });
+    const [trimmedHorizontal, trimmedSquare] = await Promise.all([
+      trimTransparentPadding(horizontal, 5),
+      trimTransparentPadding(square, 5),
+    ]);
+
+    return NextResponse.json({ horizontal: trimmedHorizontal, square: trimmedSquare }, { status: 200 });
 
   } catch (err) {
     console.error("[POST /api/logo/generate]", err);

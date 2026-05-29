@@ -27,11 +27,11 @@ NO incluyas ningún otro logo, texto "PatronPro", watermark ni badge de ningún 
 El logo es SOLO el del cliente. No hay segunda marca en esta página.
 
 Navbar — logo horizontal:
-<img src="{{custom_values.logo}}" alt="{{custom_values.company_name}}" style="height:76px;width:auto;object-fit:contain;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+<img src="{{custom_values.logo}}" alt="{{custom_values.company_name}}" style="height:76px;width:auto;object-fit:contain;filter:brightness(0) invert(1) contrast(200%);" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
 <span style="display:none;font-weight:700;font-size:1.1rem;">{{custom_values.company_name}}</span>
 
 Footer — logo cuadrado (más pequeño):
-<img src="{{custom_values.logo_cuadrado}}" alt="{{custom_values.company_name}}" style="height:60px;width:auto;object-fit:contain;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+<img src="{{custom_values.logo_cuadrado}}" alt="{{custom_values.company_name}}" style="height:60px;width:auto;object-fit:contain;filter:brightness(0) invert(1) contrast(200%);" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
 <span style="display:none;font-weight:600;">{{custom_values.company_name}}</span>
 
 =================================================================
@@ -71,12 +71,9 @@ Asígnalos así en :root:
   --accent:        SECONDARY_COLOR
   --complementary: COMPLEMENTARY_COLOR
 
-La navbar DEBE ir siempre sobre fondo blanco (#ffffff o casi blanco) para maximizar la legibilidad del logo.
-NO uses --primary como fondo de navbar.
-Usa --primary para: botones principales, headings importantes y texto principal del navbar.
+Usa --primary para: navbar background, botones principales, headings importantes.
 Usa --accent para: CTAs secundarios, highlights, íconos, hover states.
 Usa --complementary para: acentos decorativos, badges, separadores.
-En la navbar, aplica los colores de marca del cliente al texto: links y nombre en --primary, hover/estado activo en --accent, detalles sutiles en --complementary si aportan contraste.
 
 Si los colores tienen bajo contraste con texto blanco, ajusta ligeramente para WCAG AA, pero mantén la identidad.
 Si el usuario eligió "PatronPro elige colores", usa una paleta profesional para el sector (ej: navy + naranja para construcción).
@@ -120,7 +117,7 @@ ESTRUCTURA OBLIGATORIA
 
 Estas secciones en este orden — varía el layout interno, no la estructura:
 
-1. NAVBAR fija: fondo blanco, solo logo del cliente, links de navegación con colores de marca, botón "Llamar ahora"
+1. NAVBAR fija: solo logo del cliente, links de navegación, botón "Llamar ahora"
 2. HERO: headline directo y potente, subtítulo, 2 CTAs (llamar + cotizar), 3-4 stats de confianza, imagen o composición visual fuerte
 3. BANDA DE CONFIANZA: licencias, años de experiencia, garantía, zona de servicio, tiempo de respuesta — en iconos horizontales
 4. SERVICIOS: 6 servicios con íconos Lucide, descripción de 1 línea cada uno
