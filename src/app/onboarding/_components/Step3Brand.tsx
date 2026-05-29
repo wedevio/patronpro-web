@@ -226,7 +226,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
             ¿Qué servicios ofrece tu empresa?
           </label>
           <p className="text-xs mt-0.5" style={{ color: "#9ca3af" }}>
-            Seleccioná todos los que apliquen — los usaremos para tu logo y tu web.
+            Selecciona todos los que apliquen — los usaremos para tu logo y tu sitio web.
           </p>
         </div>
 
@@ -294,12 +294,12 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
           Descripción de tu negocio
         </label>
         <p className="text-xs" style={{ color: "#9ca3af" }}>
-          ¿Qué querés que diga tu web sobre tu negocio? Ej: &ldquo;Llevamos 10 años haciendo techos en Glendale. Trabajo garantizado, precio justo.&rdquo;
+          ¿Qué quieres que diga tu sitio web sobre tu negocio? Ej: &ldquo;Llevamos 10 años haciendo techos en Glendale. Trabajo garantizado, precio justo.&rdquo;
         </p>
         <textarea
           value={data.websiteTagline ?? ""}
           onChange={(e) => onChange("websiteTagline", e.target.value)}
-          placeholder="Contanos sobre tu negocio..."
+          placeholder="Cuéntanos sobre tu negocio..."
           maxLength={280}
           rows={3}
           className="w-full rounded-[10px] border px-3 py-2.5 text-sm outline-none resize-none focus:ring-2 focus:ring-[#F67D0A]/30 focus:border-[#F67D0A]"
@@ -393,7 +393,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <p className="text-sm font-medium" style={{ color: "#5f6f88" }}>
-                  Arrastrá o hacé clic para subir tu logo
+                  Arrastra o haz clic para subir tu logo
                 </p>
                 <p className="text-xs mt-1" style={{ color: "#9ca3af" }}>
                   PNG, JPG, WebP, SVG · Máx 5MB
@@ -454,7 +454,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
             {attempts.length > 0 && (
               <div className="flex flex-col gap-2">
                 <p className="text-xs font-semibold" style={{ color: "#1E2C46" }}>
-                  Seleccioná el logo que más te guste
+                  Selecciona el logo que más te guste
                 </p>
                 {attempts.map((logo, idx) => (
                   <div

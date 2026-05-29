@@ -146,7 +146,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
               value={data.domainRegistrar ?? ""}
               onChange={(e) => onChange("domainRegistrar", e.target.value)}
             >
-              <option value="">Seleccioná un proveedor</option>
+              <option value="">Selecciona un proveedor</option>
               <option value="godaddy">GoDaddy</option>
               <option value="namecheap">Namecheap</option>
               <option value="google">Google Domains</option>
@@ -208,7 +208,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                 className="rounded-[14px] px-4 py-3 text-sm"
                 style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
               >
-                Ingresá un dominio válido, por ejemplo{" "}
+                Ingresa un dominio válido, por ejemplo{" "}
                 <span className="font-mono">tunegocio.com</span>
               </div>
             )}
@@ -226,7 +226,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                 className="rounded-[14px] px-4 py-3 text-sm"
                 style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
               >
-                ❌ Ese dominio ya está en uso. Intentá con una variación (ej:{" "}
+                ❌ Ese dominio ya está en uso. Intenta con una variación (ej:{" "}
                 <span className="font-mono">
                   {data.desiredDomain?.replace(/\.(com|net|org).*/, "")}-pro.com
                 </span>
@@ -240,7 +240,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
             )}
             {availabilityStatus === "idle" && (
               <p className="text-xs" style={{ color: "#5f6f88" }}>
-                Hacé clic en "Verificar" para saber si está disponible.
+                Haz clic en "Verificar" para saber si está disponible.
               </p>
             )}
           </div>
@@ -271,7 +271,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
                   <span style={{ color: "#F67D0A" }}>$13.84 / año</span>
                 </p>
                 <p className="text-sm mt-1" style={{ color: "#5f6f88" }}>
-                  Nosotros registramos el dominio por vos para poder configurar
+                  Nosotros registramos el dominio por ti para poder configurar
                   todo correctamente: sitio web, emails profesionales y sistema
                   de seguimiento. El costo de{" "}
                   <strong>$13.84 al año</strong> se cobra junto con tu plan en el
@@ -310,7 +310,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
         </p>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium" style={{ color: "#1E2C46" }}>
-            ¿Ya tenés una cuenta de Stripe?
+            ¿Ya tienes una cuenta de Stripe?
           </label>
           <p className="text-xs mb-2" style={{ color: "#5f6f88" }}>
             Stripe es la plataforma de pagos que usamos para cobros online.

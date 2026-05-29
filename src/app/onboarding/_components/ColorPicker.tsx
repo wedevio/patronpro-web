@@ -27,7 +27,7 @@ export default function ColorPicker({
             className="w-6 h-6 rounded-full border"
             style={{ backgroundColor: "#e5e7eb", borderColor: "#e5e7eb" }}
           />
-          <span>PatronPro lo elegirá por vos</span>
+          <span>PatronPro lo elegirá por ti</span>
         </div>
       ) : (
         <div

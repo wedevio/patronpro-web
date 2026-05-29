@@ -318,7 +318,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
                 )
               }
             >
-              <option value="">Seleccioná una opción</option>
+              <option value="">Selecciona una opción</option>
               <option value="llc">LLC (Sociedad de Responsabilidad Limitada)</option>
               <option value="corporation">Corporación (Inc.)</option>
               <option value="sole_proprietorship">Empresa unipersonal (Sole Proprietor)</option>
@@ -339,7 +339,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
                 onChange("teamSize", e.target.value as OnboardingFormData["teamSize"])
               }
             >
-              <option value="">Seleccioná una opción</option>
+              <option value="">Selecciona una opción</option>
               <option value="solo">Solo yo</option>
               <option value="2-5">2 a 5 personas</option>
               <option value="6-15">6 a 15 personas</option>
@@ -349,9 +349,9 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
 
           <Field
             label="Identificación personal (Tax ID)"
-            hint="¿Con qué número de identificación tributaria personal contás?"
+            hint="¿Con qué número de identificación tributaria personal cuentas?"
           >
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {([
                 { val: "ssn",  label: "Social Security Number" },
                 { val: "itin", label: "ITIN" },
@@ -359,7 +359,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
               ] as { val: OnboardingFormData["taxIdStatus"]; label: string }[]).map(({ val, label }) => (
                 <label
                   key={val}
-                  className="flex items-center gap-3 rounded-[14px] border px-4 py-3 cursor-pointer transition-colors text-sm"
+                  className="flex items-center justify-center gap-2 rounded-[14px] border px-3 py-3 cursor-pointer transition-colors text-sm text-center min-h-[76px]"
                   style={{
                     borderColor: data.taxIdStatus === val ? "#F67D0A" : "#e5e7eb",
                     backgroundColor: data.taxIdStatus === val ? "#fff8f0" : "white",
