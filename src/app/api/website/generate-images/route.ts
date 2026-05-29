@@ -26,6 +26,11 @@ interface OpenAIImageResponse {
   error?: { message: string };
 }
 
+interface GeneratedAsset {
+  buffer: Buffer;
+  publicUrl: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildImagePrompt(subject: "hero" | "about" | "contact", p: GenerateImagesBody): string {
@@ -129,7 +134,7 @@ export async function POST(request: Request): Promise<Response> {
     // Generate 3 images in parallel
     const subjects = ["hero", "about", "contact"] as const;
 
-    async function processSubject(subject: typeof subjects[number]): Promise<string | null> {
+    async function processSubject(subject: typeof subjects[number]): Promise<GeneratedAsset | null> {
       const prompt = buildImagePrompt(subject, body);
       const buffer = await generateImage(prompt, openaiKey!);
       if (!buffer) return null;
@@ -146,17 +151,24 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
-      return urlData.publicUrl;
+      return {
+        buffer,
+        publicUrl: urlData.publicUrl,
+      };
     }
 
-    const [heroUrl, aboutUrl, contactUrl] = await Promise.all([
+    const [heroAsset, aboutAsset, contactAsset] = await Promise.all([
       processSubject("hero"),
       processSubject("about"),
       processSubject("contact"),
     ]);
 
-    const results = { hero: heroUrl, about: aboutUrl, contact: contactUrl };
-    const anyGenerated = heroUrl || aboutUrl || contactUrl;
+    const results = {
+      hero: heroAsset?.publicUrl ?? null,
+      about: aboutAsset?.publicUrl ?? null,
+      contact: contactAsset?.publicUrl ?? null,
+    };
+    const anyGenerated = Boolean(results.hero || results.about || results.contact);
 
     // Save URLs to our DB
     await db.from("account_websites").upsert(
@@ -170,45 +182,63 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
-    // Upload to GHL Media + set custom values (non-blocking)
+    // Upload to GHL Media + set custom values before reporting ready
     if (anyGenerated) {
-      (async () => {
-        try {
-          const token = await getLocationAccessToken(locationId);
+      try {
+        const token = await getLocationAccessToken(locationId);
+        const existing = await fetch(
+          `https://services.leadconnectorhq.com/locations/${locationId}/customValues`,
+          { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
+        ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
 
-          // Re-generate buffers from Supabase URLs to upload to GHL
-          // (we already have the URLs, fetch them back as buffers)
-          const downloadAndUpload = async (
-            supabaseUrl: string | null,
-            filename: string,
-            customValueKey: string,
-          ): Promise<void> => {
-            if (!supabaseUrl) return;
-            const res = await fetch(supabaseUrl);
-            const buffer = Buffer.from(await res.arrayBuffer());
-            const ghlUrl = await uploadMediaFromBuffer(
-              locationId, buffer, filename, "image/png", token
-            );
-            if (ghlUrl) {
-              const existing = await fetch(
-                `https://services.leadconnectorhq.com/locations/${locationId}/customValues`,
-                { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
-              ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
-              await upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
-            } else {
-              console.error(`[generate-images] GHL media upload failed for ${filename}`);
-            }
-          };
+        const syncAssetToGhl = async (
+          asset: GeneratedAsset | null,
+          filename: string,
+          customValueKey: string,
+        ): Promise<boolean> => {
+          if (!asset) return true;
 
-          await Promise.all([
-            downloadAndUpload(results.hero,    "website_hero_image.png",    "website_hero_image"),
-            downloadAndUpload(results.about,   "website_about_image.png",   "website_about_image"),
-            downloadAndUpload(results.contact, "website_contact_image.png", "website_contact_image"),
-          ]);
-        } catch (err) {
-          console.error("[generate-images] GHL upload/custom-values failed:", err);
-        }
-      })();
+          const ghlUrl = await uploadMediaFromBuffer(
+            locationId,
+            asset.buffer,
+            filename,
+            "image/png",
+            token,
+          );
+
+          if (!ghlUrl) {
+            console.error(`[generate-images] GHL media upload failed for ${filename}`);
+            return false;
+          }
+
+          return upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
+        };
+
+        const syncResults = await Promise.all([
+          syncAssetToGhl(heroAsset, "website_hero_image.png", "website_hero_image"),
+          syncAssetToGhl(aboutAsset, "website_about_image.png", "website_about_image"),
+          syncAssetToGhl(contactAsset, "website_contact_image.png", "website_contact_image"),
+        ]);
+
+        const ghlSyncOk = syncResults.every(Boolean);
+
+        await db.from("account_websites").upsert(
+          {
+            account_id: accountId,
+            images_status: ghlSyncOk ? "ready" : "error",
+          },
+          { onConflict: "account_id" }
+        );
+      } catch (err) {
+        console.error("[generate-images] GHL upload/custom-values failed:", err);
+        await db.from("account_websites").upsert(
+          {
+            account_id: accountId,
+            images_status: "error",
+          },
+          { onConflict: "account_id" }
+        );
+      }
     }
 
     return NextResponse.json({ success: true, images: results }, { status: 200 });

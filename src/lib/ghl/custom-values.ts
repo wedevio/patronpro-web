@@ -20,8 +20,8 @@ export async function upsertCustomValue(
   value: string,
   token: string,
   existingValues: GHLCustomValue[]
-): Promise<void> {
-  if (!value) return;
+): Promise<boolean> {
+  if (!value) return false;
   // GHL returns fieldKeys like "{{ custom_values.company_name }}" — use includes() to match
   const existing = existingValues.find((v) => v.fieldKey.includes(fieldKey));
 
@@ -33,8 +33,10 @@ export async function upsertCustomValue(
     });
     if (!res.ok) {
       console.error(`[customValues] PUT ${fieldKey} failed:`, res.status, await res.text());
+      return false;
     } else {
       console.info(`[customValues] PUT ${fieldKey} ok`);
+      return true;
     }
   } else {
     const res = await ghlFetch(`/locations/${locationId}/customValues`, {
@@ -44,8 +46,10 @@ export async function upsertCustomValue(
     });
     if (!res.ok) {
       console.error(`[customValues] POST ${fieldKey} failed:`, res.status, await res.text());
+      return false;
     } else {
       console.info(`[customValues] POST ${fieldKey} ok (created)`);
+      return true;
     }
   }
 }
