@@ -79,7 +79,7 @@ const TAX_ID_LABELS: Record<NonNullable<OnboardingFormData["taxIdStatus"]>, stri
   none: "No tiene uno todavía",
 };
 
-const LANGUAGE_LABELS: Record<NonNullable<OnboardingFormData["preferredPlatformLanguage"]>, string> = {
+const LANGUAGE_LABELS: Record<string, string> = {
   es: "Español",
   en: "Inglés",
   bilingual: "Español e inglés",

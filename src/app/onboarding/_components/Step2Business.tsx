@@ -50,15 +50,17 @@ function Field({
   error,
   children,
   hint,
+  className,
 }: {
   label: string;
   required?: boolean;
   error?: string;
   children: React.ReactNode;
   hint?: string;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className ?? ""}`}>
       <label className="text-sm font-medium" style={{ color: "#1E2C46" }}>
         {label}
         {required && <span style={{ color: "#F67D0A" }}> *</span>}
@@ -181,6 +183,22 @@ function AddressAutocomplete({
   );
 }
 
+function SelectChevron() {
+  return (
+    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M5 7.5L10 12.5L15 7.5"
+          stroke="#5F6F88"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 export default function Step2Business({ data, errors, onChange }: Step2Props) {
   function handleAddressSelect(
     fields: Pick<Step2Data, "address" | "city" | "state" | "zip" | "country">
@@ -204,7 +222,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
   })();
 
   const selectClass =
-    "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A] bg-white appearance-none cursor-pointer";
+    "w-full rounded-[14px] border px-4 py-3 pr-11 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A] bg-white appearance-none cursor-pointer";
 
   const languageOptions: Array<{
     value: NonNullable<OnboardingFormData["preferredPlatformLanguage"]>;
@@ -212,7 +230,6 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
   }> = [
     { value: "es", label: "Español" },
     { value: "en", label: "Inglés" },
-    { value: "bilingual", label: "Español e inglés" },
   ];
 
   return (
@@ -314,24 +331,27 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
           error={errors.preferredPlatformLanguage}
           hint="Este será el idioma que priorizaremos para tu experiencia dentro del sistema."
         >
-          <select
-            className={selectClass}
-            style={{ borderColor: errors.preferredPlatformLanguage ? "#ef4444" : "#e5e7eb" }}
-            value={data.preferredPlatformLanguage ?? ""}
-            onChange={(e) =>
-              onChange(
-                "preferredPlatformLanguage",
-                e.target.value as OnboardingFormData["preferredPlatformLanguage"]
-              )
-            }
-          >
-            <option value="">Selecciona una opción</option>
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className={selectClass}
+              style={{ borderColor: errors.preferredPlatformLanguage ? "#ef4444" : "#e5e7eb" }}
+              value={data.preferredPlatformLanguage ?? ""}
+              onChange={(e) =>
+                onChange(
+                  "preferredPlatformLanguage",
+                  e.target.value as OnboardingFormData["preferredPlatformLanguage"]
+                )
+              }
+            >
+              <option value="">Selecciona una opción</option>
+              {languageOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <SelectChevron />
+          </div>
         </Field>
 
         <Field
@@ -340,24 +360,27 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
           error={errors.customerCommunicationLanguage}
           hint="Este idioma nos guía para configurar mensajes, contenido y comunicación hacia tus clientes."
         >
-          <select
-            className={selectClass}
-            style={{ borderColor: errors.customerCommunicationLanguage ? "#ef4444" : "#e5e7eb" }}
-            value={data.customerCommunicationLanguage ?? ""}
-            onChange={(e) =>
-              onChange(
-                "customerCommunicationLanguage",
-                e.target.value as OnboardingFormData["customerCommunicationLanguage"]
-              )
-            }
-          >
-            <option value="">Selecciona una opción</option>
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className={selectClass}
+              style={{ borderColor: errors.customerCommunicationLanguage ? "#ef4444" : "#e5e7eb" }}
+              value={data.customerCommunicationLanguage ?? ""}
+              onChange={(e) =>
+                onChange(
+                  "customerCommunicationLanguage",
+                  e.target.value as OnboardingFormData["customerCommunicationLanguage"]
+                )
+              }
+            >
+              <option value="">Selecciona una opción</option>
+              {languageOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <SelectChevron />
+          </div>
         </Field>
       </div>
 
@@ -372,49 +395,56 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
             label="Estructura legal del negocio"
             hint="¿Bajo qué forma legal opera o va a operar tu negocio?"
           >
-            <select
-              className={selectClass}
-              style={{ borderColor: "#e5e7eb" }}
-              value={data.businessLegalStructure ?? ""}
-              onChange={(e) =>
-                onChange(
-                  "businessLegalStructure",
-                  e.target.value as OnboardingFormData["businessLegalStructure"]
-                )
-              }
-            >
-              <option value="">Selecciona una opción</option>
-              <option value="llc">LLC (Sociedad de Responsabilidad Limitada)</option>
-              <option value="corporation">Corporación (Inc.)</option>
-              <option value="sole_proprietorship">Empresa unipersonal (Sole Proprietor)</option>
-              <option value="partnership">Sociedad / Partnership</option>
-              <option value="none">Todavía no creé una entidad legal</option>
-            </select>
+            <div className="relative">
+              <select
+                className={selectClass}
+                style={{ borderColor: "#e5e7eb" }}
+                value={data.businessLegalStructure ?? ""}
+                onChange={(e) =>
+                  onChange(
+                    "businessLegalStructure",
+                    e.target.value as OnboardingFormData["businessLegalStructure"]
+                  )
+                }
+              >
+                <option value="">Selecciona una opción</option>
+                <option value="llc">LLC (Sociedad de Responsabilidad Limitada)</option>
+                <option value="corporation">Corporación (Inc.)</option>
+                <option value="sole_proprietorship">Empresa unipersonal (Sole Proprietor)</option>
+                <option value="partnership">Sociedad / Partnership</option>
+                <option value="none">Todavía no creé una entidad legal</option>
+              </select>
+              <SelectChevron />
+            </div>
           </Field>
 
           <Field
             label="Cantidad de usuarios del sistema"
             hint="¿Cuántas personas de tu equipo van a usar el sistema?"
           >
-            <select
-              className={selectClass}
-              style={{ borderColor: "#e5e7eb" }}
-              value={data.teamSize ?? ""}
-              onChange={(e) =>
-                onChange("teamSize", e.target.value as OnboardingFormData["teamSize"])
-              }
-            >
-              <option value="">Selecciona una opción</option>
-              <option value="solo">Solo yo</option>
-              <option value="2-5">2 a 5 personas</option>
-              <option value="6-15">6 a 15 personas</option>
-              <option value="16+">Más de 15 personas</option>
-            </select>
+            <div className="relative">
+              <select
+                className={selectClass}
+                style={{ borderColor: "#e5e7eb" }}
+                value={data.teamSize ?? ""}
+                onChange={(e) =>
+                  onChange("teamSize", e.target.value as OnboardingFormData["teamSize"])
+                }
+              >
+                <option value="">Selecciona una opción</option>
+                <option value="solo">Solo yo</option>
+                <option value="2-5">2 a 5 personas</option>
+                <option value="6-15">6 a 15 personas</option>
+                <option value="16+">Más de 15 personas</option>
+              </select>
+              <SelectChevron />
+            </div>
           </Field>
 
           <Field
             label="Identificación personal (Tax ID)"
             hint="¿Con qué número de identificación tributaria personal cuentas?"
+            className="sm:col-span-2"
           >
             <div className="flex w-full gap-2">
               {([

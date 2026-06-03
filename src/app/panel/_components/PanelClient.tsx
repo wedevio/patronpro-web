@@ -606,14 +606,14 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                         es: "Español",
                         en: "Inglés",
                         bilingual: "Español e inglés",
-                      }[submission.preferredPlatformLanguage] ?? submission.preferredPlatformLanguage} />
+                      }[submission.preferredPlatformLanguage as string] ?? submission.preferredPlatformLanguage} />
                     )}
                     {submission.customerCommunicationLanguage && (
                       <Row icon={<Tag size={14} />} label="Idioma para comunicarse con clientes" value={{
                         es: "Español",
                         en: "Inglés",
                         bilingual: "Español e inglés",
-                      }[submission.customerCommunicationLanguage] ?? submission.customerCommunicationLanguage} />
+                      }[submission.customerCommunicationLanguage as string] ?? submission.customerCommunicationLanguage} />
                     )}
                   </div>
                 </div>
