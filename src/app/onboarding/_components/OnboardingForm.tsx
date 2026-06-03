@@ -99,6 +99,8 @@ export default function OnboardingForm({
         "desiredDomain",
         "domainRegistrar",
         "websiteTagline",
+        "preferredPlatformLanguage",
+        "customerCommunicationLanguage",
       ];
 
       for (const key of stringFields) {

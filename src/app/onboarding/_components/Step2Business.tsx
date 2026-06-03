@@ -16,6 +16,8 @@ type Step2Data = Pick<
   | "businessLegalStructure"
   | "taxIdStatus"
   | "teamSize"
+  | "preferredPlatformLanguage"
+  | "customerCommunicationLanguage"
 >;
 
   interface Step2Props {
@@ -204,6 +206,15 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
   const selectClass =
     "w-full rounded-[14px] border px-4 py-3 text-sm min-h-[52px] outline-none transition-colors focus:border-[#F67D0A] bg-white appearance-none cursor-pointer";
 
+  const languageOptions: Array<{
+    value: NonNullable<OnboardingFormData["preferredPlatformLanguage"]>;
+    label: string;
+  }> = [
+    { value: "es", label: "Español" },
+    { value: "en", label: "Inglés" },
+    { value: "bilingual", label: "Español e inglés" },
+  ];
+
   return (
     <div className="flex flex-col gap-5">
       <h2 className="text-xl font-bold" style={{ color: "#1E2C46" }}>
@@ -296,6 +307,60 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
         />
       </Field>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Field
+          label="¿En qué idioma prefieres usar la plataforma?"
+          required
+          error={errors.preferredPlatformLanguage}
+          hint="Este será el idioma que priorizaremos para tu experiencia dentro del sistema."
+        >
+          <select
+            className={selectClass}
+            style={{ borderColor: errors.preferredPlatformLanguage ? "#ef4444" : "#e5e7eb" }}
+            value={data.preferredPlatformLanguage ?? ""}
+            onChange={(e) =>
+              onChange(
+                "preferredPlatformLanguage",
+                e.target.value as OnboardingFormData["preferredPlatformLanguage"]
+              )
+            }
+          >
+            <option value="">Selecciona una opción</option>
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field
+          label="¿En qué idioma quieres que tu negocio se comunique con tus clientes?"
+          required
+          error={errors.customerCommunicationLanguage}
+          hint="Este idioma nos guía para configurar mensajes, contenido y comunicación hacia tus clientes."
+        >
+          <select
+            className={selectClass}
+            style={{ borderColor: errors.customerCommunicationLanguage ? "#ef4444" : "#e5e7eb" }}
+            value={data.customerCommunicationLanguage ?? ""}
+            onChange={(e) =>
+              onChange(
+                "customerCommunicationLanguage",
+                e.target.value as OnboardingFormData["customerCommunicationLanguage"]
+              )
+            }
+          >
+            <option value="">Selecciona una opción</option>
+            {languageOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
       {/* ── Sección: estructura legal y datos adicionales ── */}
       <div className="pt-2 border-t border-slate-100">
         <p className="text-[13px] font-semibold mb-4" style={{ color: "#1E2C46" }}>
@@ -351,7 +416,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
             label="Identificación personal (Tax ID)"
             hint="¿Con qué número de identificación tributaria personal cuentas?"
           >
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex w-full gap-2">
               {([
                 { val: "ssn",  label: "Social Security Number" },
                 { val: "itin", label: "ITIN" },
@@ -359,7 +424,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
               ] as { val: OnboardingFormData["taxIdStatus"]; label: string }[]).map(({ val, label }) => (
                 <label
                   key={val}
-                  className="flex items-center justify-center gap-2 rounded-[14px] border px-3 py-3 cursor-pointer transition-colors text-sm text-center min-h-[76px]"
+                  className="flex min-w-0 flex-1 items-center gap-2 rounded-[14px] border px-3 py-3 cursor-pointer transition-colors text-sm min-h-[64px]"
                   style={{
                     borderColor: data.taxIdStatus === val ? "#F67D0A" : "#e5e7eb",
                     backgroundColor: data.taxIdStatus === val ? "#fff8f0" : "white",
@@ -373,7 +438,7 @@ export default function Step2Business({ data, errors, onChange }: Step2Props) {
                     onChange={() => onChange("taxIdStatus", val)}
                     className="accent-[#F67D0A]"
                   />
-                  {label}
+                  <span className="min-w-0 leading-snug">{label}</span>
                 </label>
               ))}
             </div>

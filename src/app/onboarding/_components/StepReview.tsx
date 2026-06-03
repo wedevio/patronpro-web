@@ -79,6 +79,12 @@ const TAX_ID_LABELS: Record<NonNullable<OnboardingFormData["taxIdStatus"]>, stri
   none: "No tiene uno todavía",
 };
 
+const LANGUAGE_LABELS: Record<NonNullable<OnboardingFormData["preferredPlatformLanguage"]>, string> = {
+  es: "Español",
+  en: "Inglés",
+  bilingual: "Español e inglés",
+};
+
 function formatTime(t: string): string {
   const [hh, mm] = t.split(":").map(Number);
   const period = hh >= 12 ? "PM" : "AM";
@@ -133,6 +139,14 @@ export default function StepReview({
           <Row
             label="Tax ID personal"
             value={data.taxIdStatus ? TAX_ID_LABELS[data.taxIdStatus] : undefined}
+          />
+          <Row
+            label="Idioma para usar la plataforma"
+            value={data.preferredPlatformLanguage ? LANGUAGE_LABELS[data.preferredPlatformLanguage] : undefined}
+          />
+          <Row
+            label="Idioma para comunicarse con clientes"
+            value={data.customerCommunicationLanguage ? LANGUAGE_LABELS[data.customerCommunicationLanguage] : undefined}
           />
         </div>
       </Section>

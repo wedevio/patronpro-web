@@ -55,6 +55,8 @@ export interface PanelSubmission {
   hasStripeAccount?:       boolean;
   taxIdStatus?:            string;
   teamSize?:               string;
+  preferredPlatformLanguage?: string;
+  customerCommunicationLanguage?: string;
 }
 
 export function defaultChecklist(): Record<ChecklistItemId, boolean> {
@@ -120,6 +122,8 @@ export async function saveSubmission(
     has_stripe_account:  data.hasStripeAccount ?? null,
     tax_id_status:       data.taxIdStatus ?? null,
     team_size:           data.teamSize ?? null,
+    preferred_platform_language: data.preferredPlatformLanguage ?? null,
+    customer_communication_language: data.customerCommunicationLanguage ?? null,
   });
 
   if (subErr) {
@@ -215,6 +219,8 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       hasStripeAccount:   sub.has_stripe_account as boolean | undefined,
       taxIdStatus:        (sub.tax_id_status as string) ?? undefined,
       teamSize:           (sub.team_size as string) ?? undefined,
+      preferredPlatformLanguage: (sub.preferred_platform_language as string) ?? undefined,
+      customerCommunicationLanguage: (sub.customer_communication_language as string) ?? undefined,
     };
   });
 }

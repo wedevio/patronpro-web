@@ -47,6 +47,8 @@ export interface OnboardingFormData {
   businessLegalStructure?: "llc" | "corporation" | "sole_proprietorship" | "partnership" | "none";
   taxIdStatus?: "ssn" | "itin" | "none"; // personal tax ID situation
   teamSize?: "solo" | "2-5" | "6-15" | "16+";
+  preferredPlatformLanguage?: "es" | "en" | "bilingual";
+  customerCommunicationLanguage?: "es" | "en" | "bilingual";
 
   // Step 1: Domain (also asked here for grouping convenience)
   hasStripeAccount?: boolean;

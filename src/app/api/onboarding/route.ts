@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
-import { updateBrandColors } from "@/lib/ghl/brand-board";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
 import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
 import { saveSubmission } from "@/lib/panel/store";
@@ -51,6 +50,8 @@ export async function POST(request: Request): Promise<Response> {
       teamSize: (fd.get("teamSize") as OnboardingFormData["teamSize"]) ?? undefined,
       hasStripeAccount: fd.has("hasStripeAccount") ? fd.get("hasStripeAccount") === "true" : undefined,
       taxIdStatus: (fd.get("taxIdStatus") as OnboardingFormData["taxIdStatus"]) ?? undefined,
+      preferredPlatformLanguage: (fd.get("preferredPlatformLanguage") as OnboardingFormData["preferredPlatformLanguage"]) ?? undefined,
+      customerCommunicationLanguage: (fd.get("customerCommunicationLanguage") as OnboardingFormData["customerCommunicationLanguage"]) ?? undefined,
       primaryColor: (fd.get("primaryColor") as string) ?? "",
       secondaryColor: (fd.get("secondaryColor") as string) ?? "",
       complementaryColor: (fd.get("complementaryColor") as string) ?? "",
@@ -232,6 +233,8 @@ export async function POST(request: Request): Promise<Response> {
         hasStripeAccount:       data.hasStripeAccount,
         taxIdStatus:            data.taxIdStatus,
         teamSize:               data.teamSize,
+        preferredPlatformLanguage: data.preferredPlatformLanguage,
+        customerCommunicationLanguage: data.customerCommunicationLanguage,
       });
     } catch (err) {
       console.error("[onboarding] saveSubmission failed:", err);

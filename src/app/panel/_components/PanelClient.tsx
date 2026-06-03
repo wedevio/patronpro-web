@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   CheckCircle2,
   Circle,
@@ -602,6 +601,20 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                         none: "Sin SSN ni ITIN",
                       }[submission.taxIdStatus] ?? submission.taxIdStatus} />
                     )}
+                    {submission.preferredPlatformLanguage && (
+                      <Row icon={<Tag size={14} />} label="Idioma preferido en la plataforma" value={{
+                        es: "Español",
+                        en: "Inglés",
+                        bilingual: "Español e inglés",
+                      }[submission.preferredPlatformLanguage] ?? submission.preferredPlatformLanguage} />
+                    )}
+                    {submission.customerCommunicationLanguage && (
+                      <Row icon={<Tag size={14} />} label="Idioma para comunicarse con clientes" value={{
+                        es: "Español",
+                        en: "Inglés",
+                        bilingual: "Español e inglés",
+                      }[submission.customerCommunicationLanguage] ?? submission.customerCommunicationLanguage} />
+                    )}
                   </div>
                 </div>
 
@@ -985,14 +998,5 @@ function Th({ children }: { children: React.ReactNode }) {
     <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-[#1E2C46] whitespace-nowrap">
       {children}
     </th>
-  );
-}
-
-function Chip({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1">
-      <span className="font-bold text-[15px]" style={{ color }}>{value}</span>
-      <span className="text-white/60 text-[12px]">{label}</span>
-    </div>
   );
 }

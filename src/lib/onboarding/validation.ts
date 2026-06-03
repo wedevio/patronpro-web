@@ -36,6 +36,12 @@ export function validateStep2(
   if (!data.city?.trim()) errors.city = "La ciudad es requerida";
   if (!data.state?.trim()) errors.state = "El estado es requerido";
   if (!data.zip?.trim()) errors.zip = "El código postal es requerido";
+  if (!data.preferredPlatformLanguage) {
+    errors.preferredPlatformLanguage = "Seleccioná el idioma que preferís usar en la plataforma";
+  }
+  if (!data.customerCommunicationLanguage) {
+    errors.customerCommunicationLanguage = "Seleccioná el idioma para comunicarte con tus clientes";
+  }
   if (data.ein?.trim() && !/^\d{9}$/.test(data.ein.trim())) {
     errors.ein = "El EIN debe tener exactamente 9 dígitos";
   }
@@ -65,7 +71,8 @@ export function validateStep3(
 
 // Step 4: Hours — no required fields (has defaults)
 export function validateStep4(
-  _data: Partial<OnboardingFormData>
+  data: Partial<OnboardingFormData>
 ): ValidationErrors {
+  void data;
   return {};
 }
