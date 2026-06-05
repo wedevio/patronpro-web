@@ -9,7 +9,7 @@
  */
 
 export const ONBOARDING_EMAIL_SUBJECT =
-  "¡Tu cuenta está lista! Completá tu perfil de negocio";
+  "Complete su formulario antes de su onboarding con PatronPro";
 
 /**
  * EMAIL — HTML completo.
@@ -40,16 +40,13 @@ export const ONBOARDING_EMAIL_HTML = `
           <tr>
             <td style="padding:40px 40px 32px;">
               <p style="margin:0 0 16px;font-size:18px;font-weight:600;color:#1E2C46;">
-                Hola, {{firstName}} 👋
+                Hola {{firstName}} 👋
               </p>
               <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">
-                Tu cuenta de <strong>{{businessName}}</strong> en PatronPro está creada y lista.
-                Solo necesitamos que completes un formulario corto (5 minutos) para configurar
-                tu perfil de negocio, subir tu logo y elegir los colores de tu marca.
+                Gracias por agendar su cita de onboarding con PatronPro.
               </p>
               <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
-                Con esa información vamos a armar tu landing page, tu sistema de citas y
-                todo lo que necesitás para empezar a recibir clientes.
+                Antes de la llamada, por favor complete este formulario corto. Nos ayudará a preparar la configuración inicial de su negocio y avanzar más rápido durante su onboarding.
               </p>
 
               <!-- CTA -->
@@ -94,8 +91,8 @@ export const ONBOARDING_EMAIL_HTML = `
  * Usa las variables {{firstName}}, {{businessName}}, {{link}}.
  */
 export const ONBOARDING_SMS_TEXT =
-  `Hola {{firstName}}, tu cuenta de {{businessName}} en PatronPro está lista. ` +
-  `Completá tu perfil aquí (5 min): {{link}}`;
+  `Hola {{firstName}}, gracias por agendar su onboarding con PatronPro. ` +
+  `Antes de la llamada, complete este formulario corto: {{link}}`;
 
 // ─── Interpolation helper ─────────────────────────────────────────────────────
 

@@ -4,11 +4,35 @@ import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
 import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
+import { addTagToPatronProContact } from "@/lib/ghl/contacts";
+import { verifyOnboardingLinkSignature } from "@/lib/onboarding/link-signature";
 import { saveSubmission } from "@/lib/panel/store";
 import { getAdminClient } from "@/lib/supabase/client";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 
 export const dynamic = "force-dynamic";
+
+const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
+
+class BadRequestError extends Error {}
+
+function validateImageFile(file: File, fieldName: string): void {
+  if (!file.type.startsWith("image/")) {
+    throw new BadRequestError(`${fieldName} must be an image file`);
+  }
+
+  if (file.size > MAX_IMAGE_FILE_SIZE) {
+    throw new BadRequestError(`${fieldName} exceeds the 5MB limit`);
+  }
+}
+
+function validateStrictFileType(file: File, fieldName: string, expectedType: string): void {
+  validateImageFile(file, fieldName);
+
+  if (file.type !== expectedType) {
+    throw new BadRequestError(`${fieldName} must use content type ${expectedType}`);
+  }
+}
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -16,11 +40,29 @@ export async function POST(request: Request): Promise<Response> {
 
     const locationId = fd.get("locationId") as string | null;
     const contactId = fd.get("contactId") as string | null;
+    const patronProContactId = fd.get("patronProContactId") as string | null;
+    const expiresAt = fd.get("expiresAt") as string | null;
+    const onboardingSig = fd.get("onboardingSig") as string | null;
+    const hasCompleteSignedContext = Boolean(patronProContactId && expiresAt && onboardingSig);
 
     if (!locationId || !contactId) {
       return NextResponse.json(
         { error: "locationId y contactId son requeridos" },
         { status: 400 }
+      );
+    }
+
+    if (!hasCompleteSignedContext) {
+      return NextResponse.json(
+        { error: "El link de onboarding es inválido, incompleto o expiró. Solicite uno nuevo." },
+        { status: 403 }
+      );
+    }
+
+    if (!verifyOnboardingLinkSignature({ locationId, contactId, patronProContactId: patronProContactId!, expiresAt: expiresAt! }, onboardingSig!)) {
+      return NextResponse.json(
+        { error: "El link de onboarding es inválido, incompleto o expiró. Solicite uno nuevo." },
+        { status: 403 }
       );
     }
 
@@ -99,6 +141,8 @@ export async function POST(request: Request): Promise<Response> {
 
     const logoFile = fd.get("logoFile");
     if (logoFile instanceof File && logoFile.size > 0) {
+      validateImageFile(logoFile, "logoFile");
+
       // Upload to GHL for custom values sync
       const ghlLogoUrl = await uploadMedia(locationId, logoFile, token);
       logoUrl = ghlLogoUrl ?? undefined;
@@ -128,6 +172,8 @@ export async function POST(request: Request): Promise<Response> {
     // --- Upload square logo (AI-generated) if present ---
     const logoSquareFile = fd.get("logoSquareFile");
     if (logoSquareFile instanceof File && logoSquareFile.size > 0) {
+      validateStrictFileType(logoSquareFile, "logoSquareFile", "image/png");
+
       try {
         const db = getAdminClient();
         const path = `logos/${locationId}/logo_square.png`;
@@ -191,6 +237,12 @@ export async function POST(request: Request): Promise<Response> {
       console.error("[onboarding] notifyOnboarder failed:", err);
     }
 
+    try {
+      await addTagToPatronProContact(patronProContactId!, "ob-form-ok");
+    } catch (err) {
+      console.error("[onboarding] PatronPro contact tagging failed:", err);
+    }
+
     // --- Save to panel store ---
     let savedAccountId: string | undefined;
     try {      // Determine domain type and value
@@ -209,8 +261,8 @@ export async function POST(request: Request): Promise<Response> {
         contactId,
         businessName:           data.businessName ?? "",
         legalName:              data.legalName ?? "",
-        email:                  "",
-        phone:                  "",
+        email:                  data.email ?? "",
+        phone:                  data.phone ?? "",
         address:                data.address ?? "",
         city:                   data.city ?? "",
         state:                  data.state ?? "",
@@ -275,6 +327,13 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/onboarding]", err);
+    if (err instanceof BadRequestError) {
+      return NextResponse.json(
+        { error: err.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 502 }

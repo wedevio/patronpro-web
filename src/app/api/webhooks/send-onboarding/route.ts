@@ -28,6 +28,7 @@
  *   PATRONPRO_LOCATION_ID   — PatronPro sub-account location ID
  *   PATRONPRO_PHONE_NUMBER  — Número desde el que sale el SMS
  *   WEBHOOK_SECRET          — Appended to URL as ?secret=
+ *   ONBOARDING_LINK_SECRET  — HMAC secret for signed onboarding links
  *   NEXT_PUBLIC_APP_URL     — Base URL (ya existe)
  */
 
@@ -35,12 +36,14 @@ import { NextResponse } from "next/server";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
 import { ghlFetch } from "@/lib/ghl/client";
+import { getPatronProLocationId } from "@/lib/ghl/contacts";
 import {
   ONBOARDING_EMAIL_SUBJECT,
   ONBOARDING_EMAIL_HTML,
   ONBOARDING_SMS_TEXT,
   interpolate,
 } from "@/lib/onboarding/message-templates";
+import { signOnboardingLink } from "@/lib/onboarding/link-signature";
 
 export const dynamic = "force-dynamic";
 
@@ -205,10 +208,14 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ error: "Server misconfiguration: PATRONPRO_PHONE_NUMBER not set" }, { status: 500 });
     }
 
+    if (!process.env.ONBOARDING_LINK_SECRET) {
+      console.error("[send-onboarding] ONBOARDING_LINK_SECRET env var is not set — cannot sign onboarding links");
+      return NextResponse.json({ error: "Server misconfiguration: ONBOARDING_LINK_SECRET not set" }, { status: 500 });
+    }
+
     // ── Parse ─────────────────────────────────────────────────────────────────
-    const raw    = await request.text();
-    console.info("[send-onboarding] raw payload:", raw);
-    const payload      = JSON.parse(raw) as WebhookPayload;
+    const raw = await request.text();
+    const payload = JSON.parse(raw) as WebhookPayload;
     const email        = payload.email?.toLowerCase().trim() ?? "";
     const phone        = payload.phone        ?? "";
 
@@ -216,7 +223,12 @@ export async function POST(request: Request): Promise<Response> {
     const firstName    = (payload.first_name  || payload.firstName || payload.full_name?.split(" ")[0] || "").trim();
     const businessName = (payload.company_name || payload.businessName || "").trim();
 
-    console.info("[send-onboarding] payload received:", { email, phone, firstName, businessName });
+    console.info("[send-onboarding] payload received", {
+      hasEmail: Boolean(email),
+      hasPhone: Boolean(phone),
+      hasFirstName: Boolean(firstName),
+      hasBusinessName: Boolean(businessName),
+    });
 
     if (!email) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
@@ -242,13 +254,10 @@ export async function POST(request: Request): Promise<Response> {
     );
 
     // ── Build onboarding link ─────────────────────────────────────────────────
-    const appUrl         = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
-    const onboardingLink = `${appUrl}/onboarding?locationId=${clientLocationId}&contactId=${clientContactId}`;
-
-    console.info("[send-onboarding] link built:", onboardingLink);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
 
     // ── PatronPro location token ──────────────────────────────────────────────
-    const ppLocationId = process.env.PATRONPRO_LOCATION_ID ?? "hHLZC7FaTtUINPf3cbHd";
+    const ppLocationId = getPatronProLocationId();
     const ppToken      = await getLocationAccessToken(ppLocationId);
 
     // ── Upsert contact in PatronPro location (needed to send from there) ──────
@@ -257,6 +266,18 @@ export async function POST(request: Request): Promise<Response> {
       { email, phone, firstName, businessName },
       ppToken
     );
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const onboardingSig = signOnboardingLink({
+      locationId: clientLocationId,
+      contactId: clientContactId,
+      patronProContactId: ppContactId,
+      expiresAt,
+    });
+    const onboardingLink = `${appUrl}/onboarding?locationId=${clientLocationId}&contactId=${clientContactId}&ppContactId=${ppContactId}&expiresAt=${encodeURIComponent(expiresAt)}&sig=${onboardingSig}`;
+
+    console.info("[send-onboarding] link built", { locationId: clientLocationId, hasSignature: true });
 
     const vars = { firstName: firstName || "ahí", businessName, link: onboardingLink };
 
@@ -291,10 +312,10 @@ export async function POST(request: Request): Promise<Response> {
       smsSent = true;
     }
 
-    console.info("[send-onboarding] done", { email, onboardingLink, smsSent, smsSkipReason });
+    console.info("[send-onboarding] done", { locationId: clientLocationId, smsSent, smsSkipReason });
 
     return NextResponse.json(
-      { success: true, onboardingLink, smsSent, ...(smsSkipReason && { reason: smsSkipReason }) },
+      { success: true, smsSent, ...(smsSkipReason && { reason: smsSkipReason }) },
       { status: 200 }
     );
 

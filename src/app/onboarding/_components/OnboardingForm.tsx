@@ -20,6 +20,9 @@ import SuccessScreen from "./SuccessScreen";
 interface OnboardingFormProps {
   locationId: string;
   contactId: string;
+  patronProContactId?: string;
+  expiresAt?: string;
+  onboardingSig?: string;
 }
 
 type FieldValue = string | boolean | File | HoursOfOperation | undefined;
@@ -27,6 +30,9 @@ type FieldValue = string | boolean | File | HoursOfOperation | undefined;
 export default function OnboardingForm({
   locationId,
   contactId,
+  patronProContactId,
+  expiresAt,
+  onboardingSig,
 }: OnboardingFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<OnboardingFormData>>({
@@ -80,6 +86,9 @@ export default function OnboardingForm({
       const fd = new FormData();
       fd.append("locationId", locationId);
       fd.append("contactId", contactId);
+      if (patronProContactId) fd.append("patronProContactId", patronProContactId);
+      if (expiresAt) fd.append("expiresAt", expiresAt);
+      if (onboardingSig) fd.append("onboardingSig", onboardingSig);
 
       const stringFields: Array<keyof OnboardingFormData> = [
         "businessName",
