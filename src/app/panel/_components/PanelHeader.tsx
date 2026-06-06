@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutList, TicketCheck, BookOpen, LogOut } from "lucide-react";
+import { LayoutList, TicketCheck, BookOpen, KanbanSquare, LogOut } from "lucide-react";
 
 const NAV = [
   { href: "/panel/onboarding",    label: "Onboarding",    icon: LayoutList },
+  { href: "/panel/roadmap",       label: "Roadmap",       icon: KanbanSquare },
   { href: "/panel/support",       label: "Soporte",       icon: TicketCheck },
   { href: "/panel/docs",          label: "Documentación", icon: BookOpen },
 ];
