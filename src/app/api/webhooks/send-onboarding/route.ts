@@ -37,13 +37,13 @@ import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
 import { ghlFetch } from "@/lib/ghl/client";
 import { getPatronProLocationId } from "@/lib/ghl/contacts";
+import { buildOnboardingLink } from "@/lib/onboarding/invite";
 import {
   ONBOARDING_EMAIL_SUBJECT,
   ONBOARDING_EMAIL_HTML,
   ONBOARDING_SMS_TEXT,
   interpolate,
 } from "@/lib/onboarding/message-templates";
-import { signOnboardingLink } from "@/lib/onboarding/link-signature";
 
 export const dynamic = "force-dynamic";
 
@@ -63,14 +63,6 @@ interface WebhookPayload {
   businessName?: string;
 }
 
-interface GHLContactsResponse {
-  contacts?: Array<{ id: string; email?: string }>;
-}
-
-interface GHLUpsertResponse {
-  contact?: { id: string };
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Find the client's sub-account locationId by matching their email */
@@ -80,76 +72,6 @@ async function findLocationByEmail(email: string): Promise<string | null> {
     (l) => l.email?.toLowerCase().trim() === email.toLowerCase().trim()
   );
   return match?.locationId ?? null;
-}
-
-/** Find or create a contact in the client's sub-account. Always returns a contactId. */
-async function findOrCreateContact(
-  locationId: string,
-  data: { email: string; phone: string; firstName: string; businessName: string },
-  token: string
-): Promise<string> {
-  // Try to find first
-  const res = await ghlFetch(
-    `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(data.email)}&limit=1`,
-    { method: "GET", token }
-  );
-
-  if (res.ok) {
-    const json = (await res.json()) as GHLContactsResponse;
-    const found = json.contacts?.[0]?.id;
-    if (found) return found;
-  }
-
-  // Not found → upsert (create)
-  console.info("[send-onboarding] contact not found in sub-account — creating:", data.email);
-  const upsertRes = await ghlFetch("/contacts/upsert", {
-    method: "POST",
-    token,
-    body: JSON.stringify({
-      locationId,
-      email:       data.email,
-      ...(data.phone        && { phone:       data.phone }),
-      ...(data.firstName    && { firstName:   data.firstName }),
-      ...(data.businessName && { companyName: data.businessName }),
-    }),
-  });
-
-  if (!upsertRes.ok) {
-    throw new Error(`Failed to create contact in sub-account: ${upsertRes.status} ${await upsertRes.text()}`);
-  }
-
-  const upsertJson = (await upsertRes.json()) as GHLUpsertResponse;
-  const id = upsertJson.contact?.id;
-  if (!id) throw new Error("Upsert in sub-account returned no contact id");
-  return id;
-}
-
-/** Upsert client as contact in PatronPro's location so we can send from there */
-async function upsertInPatronPro(
-  ppLocationId: string,
-  data: { email: string; phone: string; firstName: string; businessName: string },
-  token: string
-): Promise<string> {
-  const res = await ghlFetch("/contacts/upsert", {
-    method: "POST",
-    token,
-    body: JSON.stringify({
-      locationId:  ppLocationId,
-      email:       data.email,
-      ...(data.phone        && { phone:       data.phone }),
-      ...(data.firstName    && { firstName:   data.firstName }),
-      ...(data.businessName && { companyName: data.businessName }),
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Upsert contact failed: ${res.status} ${await res.text()}`);
-  }
-
-  const json = (await res.json()) as GHLUpsertResponse;
-  const id = json.contact?.id;
-  if (!id) throw new Error("Upsert returned no contact id");
-  return id;
 }
 
 /** Send email or SMS via GHL Conversations from PatronPro's location */
@@ -245,37 +167,21 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // ── Find contactId in client's sub-account ────────────────────────────────
-    const clientToken     = await getLocationAccessToken(clientLocationId);
-    const clientContactId = await findOrCreateContact(
-      clientLocationId,
-      { email, phone, firstName, businessName },
-      clientToken
-    );
-
-    // ── Build onboarding link ─────────────────────────────────────────────────
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
+    // ── Build onboarding link + ensure both contacts exist ───────────────────
+    const onboardingInvite = await buildOnboardingLink({
+      locationId: clientLocationId,
+      email,
+      phone,
+      firstName,
+      businessName,
+    });
 
     // ── PatronPro location token ──────────────────────────────────────────────
     const ppLocationId = getPatronProLocationId();
     const ppToken      = await getLocationAccessToken(ppLocationId);
 
-    // ── Upsert contact in PatronPro location (needed to send from there) ──────
-    const ppContactId = await upsertInPatronPro(
-      ppLocationId,
-      { email, phone, firstName, businessName },
-      ppToken
-    );
-
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-    const onboardingSig = signOnboardingLink({
-      locationId: clientLocationId,
-      contactId: clientContactId,
-      patronProContactId: ppContactId,
-      expiresAt,
-    });
-    const onboardingLink = `${appUrl}/onboarding?locationId=${clientLocationId}&contactId=${clientContactId}&ppContactId=${ppContactId}&expiresAt=${encodeURIComponent(expiresAt)}&sig=${onboardingSig}`;
+    const onboardingLink = onboardingInvite.onboardingLink;
+    const ppContactId = onboardingInvite.patronProContactId;
 
     console.info("[send-onboarding] link built", { locationId: clientLocationId, hasSignature: true });
 

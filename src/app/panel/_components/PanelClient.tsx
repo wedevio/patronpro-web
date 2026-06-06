@@ -409,6 +409,10 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
   const [isPending, startTransition] = useTransition();
   const [approvedAt, setApprovedAt] = useState<string | null>(submission?.approvedAt ?? null);
   const [approving, setApproving] = useState(false);
+  const [manualOnboardingLink, setManualOnboardingLink] = useState<string | null>(null);
+  const [manualLinkCopied, setManualLinkCopied] = useState(false);
+  const [manualLinkLoading, setManualLinkLoading] = useState(false);
+  const [manualLinkError, setManualLinkError] = useState<string | null>(null);
 
   const done = countDone(checklist);
   const pct  = progressPct(checklist);
@@ -450,6 +454,44 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
       // silent — user can retry
     } finally {
       setApproving(false);
+    }
+  }
+
+  async function generateManualOnboardingLink() {
+    setManualLinkLoading(true);
+    setManualLinkError(null);
+
+    try {
+      const res = await fetch(`/api/panel/accounts/${account.locationId}/onboarding-link`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: submission?.email ?? ghl.email,
+          phone: submission?.phone ?? ghl.phone,
+          businessName: submission?.businessName ?? ghl.name,
+        }),
+      });
+      const json = await res.json() as { link?: string; error?: string };
+
+      if (!res.ok || !json.link) {
+        throw new Error(json.error ?? "No se pudo generar el link de onboarding.");
+      }
+
+      setManualOnboardingLink(json.link);
+
+      try {
+        await navigator.clipboard.writeText(json.link);
+        setManualLinkCopied(true);
+        setTimeout(() => setManualLinkCopied(false), 2000);
+      } catch {
+        setManualLinkCopied(false);
+      }
+    } catch (err) {
+      setManualLinkError(
+        err instanceof Error ? err.message : "No se pudo generar el link de onboarding."
+      );
+    } finally {
+      setManualLinkLoading(false);
     }
   }
 
@@ -497,6 +539,46 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 py-6 space-y-8">
+
+          <section>
+            <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">Onboarding manual</h3>
+            <div className="space-y-3">
+              <button
+                onClick={generateManualOnboardingLink}
+                disabled={manualLinkLoading}
+                className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ backgroundColor: manualLinkCopied ? "#22c55e" : "#1E2C46" }}
+              >
+                {manualLinkLoading
+                  ? <><Loader2 size={14} className="animate-spin" />Generando link...</>
+                  : manualLinkCopied
+                    ? <><Check size={14} />Link copiado</>
+                    : <><Copy size={14} />Generar y copiar link</>}
+              </button>
+
+              <p className="text-[12px] text-slate-500">
+                Útil cuando falla el envío automático. Genera un link firmado nuevo y lo deja listo para copiar o abrir.
+              </p>
+
+              {manualLinkError && (
+                <p className="text-[12px] text-red-500 bg-red-50 rounded px-3 py-2">{manualLinkError}</p>
+              )}
+
+              {manualOnboardingLink && (
+                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 space-y-2">
+                  <a
+                    href={manualOnboardingLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center text-[12px] font-semibold text-[#1E2C46] hover:underline"
+                  >
+                    Abrir onboarding
+                  </a>
+                  <p className="text-[11px] text-slate-500 break-all">{manualOnboardingLink}</p>
+                </div>
+              )}
+            </div>
+          </section>
 
           {/* GHL Account */}
           <section>
