@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requirePpSession, requireAdmin } from "@/lib/auth/require-session";
+import { requirePpSession, requireDocsEditor } from "@/lib/auth/require-session";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +30,9 @@ export async function GET(): Promise<Response> {
   return NextResponse.json({ pages: data });
 }
 
-/** POST /api/panel/docs — create a new page (admin only) */
+/** POST /api/panel/docs — create a new page (admin or manager) */
 export async function POST(request: Request): Promise<Response> {
-  const auth = await requireAdmin();
+  const auth = await requireDocsEditor();
   if (auth instanceof NextResponse) return auth;
 
   let body: { slug?: string; title?: string; description?: string; position?: number };

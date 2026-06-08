@@ -33,7 +33,7 @@ export default async function DocsPage() {
   return (
     <DocsPageClient
       initialPages={pages}
-      isAdmin={session.role === "admin"}
+      isAdmin={session.role === "admin" || session.role === "manager"}
     />
   );
 }

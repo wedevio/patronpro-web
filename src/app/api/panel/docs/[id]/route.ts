@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { requirePpSession, requireAdmin } from "@/lib/auth/require-session";
+import { requirePpSession, requireAdmin, requireDocsEditor } from "@/lib/auth/require-session";
 import type { DocBlock } from "@/lib/docs/types";
 
 export const dynamic = "force-dynamic";
@@ -36,12 +36,12 @@ export async function GET(
   return NextResponse.json({ page: data });
 }
 
-/** PATCH /api/panel/docs/[id] — update title/description/blocks/published (admin only) */
+/** PATCH /api/panel/docs/[id] — update title/description/blocks/published (admin or manager) */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const auth = await requireAdmin();
+  const auth = await requireDocsEditor();
   if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;

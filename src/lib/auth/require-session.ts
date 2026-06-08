@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { verifyPpSession } from "@/lib/auth/session";
 
-export type PpSession = { email: string; sub: string; role: "admin" | "member" };
+export type PpSession = { email: string; sub: string; role: "admin" | "manager" | "member" };
 
 /**
  * Reusable auth guard for API routes under /api/panel/* and /api/support/*.
@@ -35,6 +35,21 @@ export async function requireAdmin(): Promise<
   const result = await requirePpSession();
   if (result instanceof NextResponse) return result;
   if (result.session.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return result;
+}
+
+/**
+ * Guard for documentation editing: allows admin and manager roles.
+ * Returns 403 for members.
+ */
+export async function requireDocsEditor(): Promise<
+  { session: PpSession } | NextResponse
+> {
+  const result = await requirePpSession();
+  if (result instanceof NextResponse) return result;
+  if (result.session.role !== "admin" && result.session.role !== "manager") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return result;

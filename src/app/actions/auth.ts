@@ -52,9 +52,13 @@ export async function loginAction(
 
     // Determine role from Supabase auth metadata (app_metadata.role).
     // The Supabase access token embeds app_metadata under the "app_metadata" claim.
-    // Any value other than "admin" (or missing) defaults to "member".
+    // Supported roles: "admin", "manager". Anything else defaults to "member".
     const appMeta = decoded["app_metadata"] as Record<string, unknown> | undefined;
-    const role: "admin" | "member" = appMeta?.["role"] === "admin" ? "admin" : "member";
+    const rawRole = appMeta?.["role"];
+    const role: "admin" | "manager" | "member" =
+      rawRole === "admin"   ? "admin"   :
+      rawRole === "manager" ? "manager" :
+      "member";
 
     // Create our own JWT signed with SUPPORT_SESSION_SECRET so proxy.ts can verify it
     const ppJwt = await new SignJWT({ email: decoded.email, sub: decoded.sub, role })

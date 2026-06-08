@@ -16,6 +16,8 @@ import {
   FileText,
   PlusCircle,
   X,
+  Menu,
+  BookOpen,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -156,6 +158,7 @@ export default function DocsPageClient({ initialPages, isAdmin }: Props) {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [showNewPage, setShowNewPage] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const page = pages.find((p) => p.slug === selectedSlug) ?? null;
   const blocks = editingBlocks ?? page?.blocks ?? [];
@@ -257,208 +260,275 @@ export default function DocsPageClient({ initialPages, isAdmin }: Props) {
     setDirty(false);
   }
 
+  function selectPage(slug: string) {
+    if (dirty && !confirm("¿Descartar cambios sin guardar?")) return;
+    setSelectedSlug(slug);
+    setEditingBlocks(null);
+    setEditingBlockId(null);
+    setDirty(false);
+    setMobileSidebarOpen(false);
+  }
+
   // ── render ─────────────────────────────────────────────────────────────────
   const isEditing = editingBlocks !== null;
 
   return (
-    <div className="flex h-[calc(100vh-56px)] overflow-hidden">
-      {/* ── Sidebar ── */}
-      <aside className="w-56 shrink-0 border-r border-slate-200 bg-white flex flex-col">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-          <span className="text-[12px] font-semibold uppercase tracking-widest text-slate-400">Páginas</span>
-          {isAdmin && (
-            <button onClick={() => setShowNewPage(true)} title="Nueva página" className="text-slate-400 hover:text-orange-600">
-              <PlusCircle size={15} />
-            </button>
-          )}
+    <div className="flex flex-col h-[calc(100vh-56px)] overflow-hidden">
+
+      {/* ── Mobile top bar ── */}
+      <div className="flex md:hidden items-center gap-3 px-4 py-2.5 border-b border-slate-100 bg-white shrink-0">
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+          aria-label="Ver páginas"
+        >
+          <Menu size={18} />
+        </button>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <BookOpen size={14} className="text-slate-400 shrink-0" />
+          <span className="text-[13px] font-medium text-slate-700 truncate">
+            {page?.title ?? "Seleccionar página"}
+          </span>
         </div>
-        <nav className="flex-1 overflow-y-auto py-2">
-          {pages.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => {
-                if (dirty && !confirm("¿Descartar cambios sin guardar?")) return;
-                setSelectedSlug(p.slug);
-                setEditingBlocks(null);
-                setEditingBlockId(null);
-                setDirty(false);
-              }}
-              className={`w-full text-left flex items-center gap-2 px-4 py-2 text-[13px] transition-colors ${
-                p.slug === selectedSlug
-                  ? "font-medium text-orange-600 bg-orange-50 border-r-2 border-orange-500"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <FileText size={13} className="shrink-0" />
-              {p.title}
-            </button>
-          ))}
-          {pages.length === 0 && (
-            <p className="px-4 py-3 text-[12px] text-slate-400">Sin páginas. Crea una.</p>
-          )}
-        </nav>
-      </aside>
-
-      {/* ── Main content ── */}
-      <main className="flex-1 overflow-y-auto bg-white">
-        {!page ? (
-          <div className="flex items-center justify-center h-full text-slate-400 text-[14px]">
-            Selecciona una página del panel izquierdo.
-          </div>
-        ) : (
-          <div className="max-w-[780px] mx-auto px-8 py-8 pb-24">
-            {/* Page header */}
-            <div className="mb-6">
-              <h1 className="text-[26px] font-bold mb-1" style={{ color: "#1E2C46" }}>
-                {page.title}
-              </h1>
-              {page.description && (
-                <p className="text-slate-500 text-[14px]">{page.description}</p>
-              )}
-            </div>
-
-            {/* Admin toolbar */}
-            {isAdmin && (
-              <div className="sticky top-0 z-20 mb-6 -mx-2 px-2 py-2 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200 shadow-sm">
-                {!isEditing ? (
-                  <button
-                    onClick={enterEditMode}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-white"
-                    style={{ background: "#1E2C46" }}
-                  >
-                    <Pencil size={13} />
-                    Editar página
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={savePage}
-                      disabled={saving}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-white disabled:opacity-60"
-                      style={{ background: "#F67D0A" }}
-                    >
-                      {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-                      {saving ? "Guardando…" : "Guardar cambios"}
-                    </button>
-                    <button
-                      onClick={cancelEditMode}
-                      className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded border border-slate-300 bg-white hover:bg-slate-50"
-                    >
-                      <X size={13} />
-                      Cancelar
-                    </button>
-                    {dirty && (
-                      <span className="text-[11px] text-orange-600 font-medium">Cambios sin guardar</span>
-                    )}
-                  </>
-                )}
-                </div>
-              </div>
-            )}
-
-            {/* Blocks */}
-            <div>
-              {isEditing && blocks.length === 0 && (
-                <div className="text-center py-12 text-slate-400">
-                  <p className="text-[14px]">Esta página no tiene bloques.</p>
-                  <button
-                    onClick={() => addBlock("text")}
-                    className="mt-3 flex items-center gap-1.5 mx-auto text-[13px] text-orange-600 hover:text-orange-700"
-                  >
-                    <Plus size={14} />
-                    Añadir el primer bloque
-                  </button>
-                </div>
-              )}
-
-              {blocks.map((block, idx) => (
-                <div key={block.id} className="group relative">
-                  {/* Editing state: show editor form instead of renderer */}
-                  {isEditing && editingBlockId === block.id ? (
-                    <BlockEditor
-                      block={block}
-                      onSave={saveBlock}
-                      onCancel={() => setEditingBlockId(null)}
-                    />
-                  ) : (
-                    <div className={`relative ${isEditing ? "hover:bg-slate-50 rounded" : ""}`}>
-                      <BlockRenderer block={block} />
-
-                      {/* Admin action buttons (edit mode only) */}
-                      {isEditing && (
-                        <div className="absolute right-0 top-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => setEditingBlockId(block.id)}
-                            className="p-1 rounded bg-white border border-slate-200 text-slate-500 hover:text-orange-600 shadow-sm"
-                            title="Editar"
-                          >
-                            <Pencil size={12} />
-                          </button>
-                          <button
-                            onClick={() => moveUp(block.id)}
-                            disabled={idx === 0}
-                            className="p-1 rounded bg-white border border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm disabled:opacity-30"
-                            title="Subir"
-                          >
-                            <ChevronUp size={12} />
-                          </button>
-                          <button
-                            onClick={() => moveDown(block.id)}
-                            disabled={idx === blocks.length - 1}
-                            className="p-1 rounded bg-white border border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm disabled:opacity-30"
-                            title="Bajar"
-                          >
-                            <ChevronDown size={12} />
-                          </button>
-                          <button
-                            onClick={() => deleteBlock(block.id)}
-                            className="p-1 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 shadow-sm"
-                            title="Eliminar"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Add block between items */}
-                  {isEditing && editingBlockId !== block.id && (
-                    <AddBlockButton onAdd={(type) => addBlock(type, block.id)} />
-                  )}
-                </div>
-              ))}
-
-              {/* Add block at the end */}
-              {isEditing && blocks.length > 0 && (
-                <div className="mt-4 flex justify-center">
-                  <button
-                    onClick={() => addBlock("text")}
-                    className="flex items-center gap-1.5 text-[12px] text-slate-400 hover:text-orange-600 transition-colors"
-                  >
-                    <Plus size={14} />
-                    Añadir bloque al final
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowNewPage(true)}
+            className="text-slate-400 hover:text-orange-600 transition-colors shrink-0"
+            title="Nueva página"
+          >
+            <PlusCircle size={16} />
+          </button>
         )}
-      </main>
+      </div>
 
-      {/* ── Right outline ── */}
-      {page && (
-        <aside className="w-52 shrink-0 border-l border-slate-200 bg-white overflow-y-auto hidden xl:block">
-          <div className="px-4 py-5">
-            <Outline
-              blocks={blocks}
-              activeId={outlineActive}
-              onSelect={setOutlineActive}
-            />
+      {/* ── Main content row ── */}
+      <div className="flex flex-1 overflow-hidden relative">
+
+        {/* Mobile backdrop */}
+        {mobileSidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40 md:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
+        {/* ── Sidebar ── */}
+        <aside
+          className={`
+            fixed md:static top-0 left-0 h-full md:h-auto z-40
+            w-[280px] md:w-56 shrink-0 border-r border-slate-200 bg-white flex flex-col
+            transition-transform duration-200 ease-in-out
+            ${mobileSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0"}
+          `}
+        >
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
+            <span className="text-[12px] font-semibold uppercase tracking-widest text-slate-400">Páginas</span>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <button
+                  onClick={() => { setShowNewPage(true); setMobileSidebarOpen(false); }}
+                  title="Nueva página"
+                  className="text-slate-400 hover:text-orange-600 transition-colors"
+                >
+                  <PlusCircle size={15} />
+                </button>
+              )}
+              {/* Close button — only visible on mobile */}
+              <button
+                className="md:hidden text-slate-400 hover:text-slate-700 transition-colors"
+                onClick={() => setMobileSidebarOpen(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
+          <nav className="flex-1 overflow-y-auto py-2">
+            {pages.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => selectPage(p.slug)}
+                className={`w-full text-left flex items-center gap-2 px-4 py-2.5 text-[13px] transition-colors ${
+                  p.slug === selectedSlug
+                    ? "font-medium text-orange-600 bg-orange-50 border-r-2 border-orange-500"
+                    : "text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                <FileText size={13} className="shrink-0" />
+                {p.title}
+              </button>
+            ))}
+            {pages.length === 0 && (
+              <p className="px-4 py-3 text-[12px] text-slate-400">Sin páginas. Crea una.</p>
+            )}
+          </nav>
         </aside>
-      )}
+
+        {/* ── Main content ── */}
+        <main className="flex-1 overflow-y-auto bg-white">
+          {!page ? (
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-[14px] gap-3 px-4 text-center">
+              <FileText size={36} className="text-slate-200" />
+              <p>Selecciona una página del panel izquierdo.</p>
+              {/* Mobile hint */}
+              <p className="md:hidden text-[12px] text-slate-300">
+                Toca el ícono de menú arriba para ver las páginas.
+              </p>
+            </div>
+          ) : (
+            <div className="max-w-[780px] mx-auto px-4 py-5 pb-24 sm:px-8 sm:py-8">
+              {/* Page header */}
+              <div className="mb-5 sm:mb-6">
+                <h1 className="text-[22px] sm:text-[26px] font-bold mb-1" style={{ color: "#1E2C46" }}>
+                  {page.title}
+                </h1>
+                {page.description && (
+                  <p className="text-slate-500 text-[13px] sm:text-[14px]">{page.description}</p>
+                )}
+              </div>
+
+              {/* Admin/manager toolbar */}
+              {isAdmin && (
+                <div className="sticky top-0 z-20 mb-5 sm:mb-6 -mx-2 px-2 py-2 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+                  <div className="flex flex-wrap items-center gap-2 p-3 rounded-lg bg-slate-50 border border-slate-200 shadow-sm">
+                  {!isEditing ? (
+                    <button
+                      onClick={enterEditMode}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-white"
+                      style={{ background: "#1E2C46" }}
+                    >
+                      <Pencil size={13} />
+                      Editar página
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={savePage}
+                        disabled={saving}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-white disabled:opacity-60"
+                        style={{ background: "#F67D0A" }}
+                      >
+                        {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
+                        {saving ? "Guardando…" : "Guardar cambios"}
+                      </button>
+                      <button
+                        onClick={cancelEditMode}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] rounded border border-slate-300 bg-white hover:bg-slate-50"
+                      >
+                        <X size={13} />
+                        Cancelar
+                      </button>
+                      {dirty && (
+                        <span className="text-[11px] text-orange-600 font-medium">Cambios sin guardar</span>
+                      )}
+                    </>
+                  )}
+                  </div>
+                </div>
+              )}
+
+              {/* Blocks */}
+              <div>
+                {isEditing && blocks.length === 0 && (
+                  <div className="text-center py-12 text-slate-400">
+                    <p className="text-[14px]">Esta página no tiene bloques.</p>
+                    <button
+                      onClick={() => addBlock("text")}
+                      className="mt-3 flex items-center gap-1.5 mx-auto text-[13px] text-orange-600 hover:text-orange-700"
+                    >
+                      <Plus size={14} />
+                      Añadir el primer bloque
+                    </button>
+                  </div>
+                )}
+
+                {blocks.map((block, idx) => (
+                  <div key={block.id} className="group relative">
+                    {/* Editing state: show editor form instead of renderer */}
+                    {isEditing && editingBlockId === block.id ? (
+                      <BlockEditor
+                        block={block}
+                        onSave={saveBlock}
+                        onCancel={() => setEditingBlockId(null)}
+                      />
+                    ) : (
+                      <div className={`relative ${isEditing ? "hover:bg-slate-50 rounded" : ""}`}>
+                        <BlockRenderer block={block} />
+
+                        {/* Admin action buttons (edit mode only) */}
+                        {isEditing && (
+                          <div className="absolute right-0 top-1 flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setEditingBlockId(block.id)}
+                              className="p-1.5 rounded bg-white border border-slate-200 text-slate-500 hover:text-orange-600 shadow-sm"
+                              title="Editar"
+                            >
+                              <Pencil size={12} />
+                            </button>
+                            <button
+                              onClick={() => moveUp(block.id)}
+                              disabled={idx === 0}
+                              className="p-1.5 rounded bg-white border border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm disabled:opacity-30"
+                              title="Subir"
+                            >
+                              <ChevronUp size={12} />
+                            </button>
+                            <button
+                              onClick={() => moveDown(block.id)}
+                              disabled={idx === blocks.length - 1}
+                              className="p-1.5 rounded bg-white border border-slate-200 text-slate-500 hover:text-blue-600 shadow-sm disabled:opacity-30"
+                              title="Bajar"
+                            >
+                              <ChevronDown size={12} />
+                            </button>
+                            <button
+                              onClick={() => deleteBlock(block.id)}
+                              className="p-1.5 rounded bg-white border border-slate-200 text-slate-500 hover:text-red-600 shadow-sm"
+                              title="Eliminar"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add block between items */}
+                    {isEditing && editingBlockId !== block.id && (
+                      <AddBlockButton onAdd={(type) => addBlock(type, block.id)} />
+                    )}
+                  </div>
+                ))}
+
+                {/* Add block at the end */}
+                {isEditing && blocks.length > 0 && (
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={() => addBlock("text")}
+                      className="flex items-center gap-1.5 text-[12px] text-slate-400 hover:text-orange-600 transition-colors"
+                    >
+                      <Plus size={14} />
+                      Añadir bloque al final
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* ── Right outline ── */}
+        {page && (
+          <aside className="w-52 shrink-0 border-l border-slate-200 bg-white overflow-y-auto hidden xl:block">
+            <div className="px-4 py-5">
+              <Outline
+                blocks={blocks}
+                activeId={outlineActive}
+                onSelect={setOutlineActive}
+              />
+            </div>
+          </aside>
+        )}
+      </div>
 
       {/* ── New page modal ── */}
       {showNewPage && (

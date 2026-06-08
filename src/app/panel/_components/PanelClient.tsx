@@ -508,7 +508,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
   return (
     <>
       <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-[50vw] min-w-[400px] max-w-[700px] bg-white z-50 flex flex-col shadow-2xl">
+      <div className="fixed right-0 top-0 h-full w-full sm:w-[50vw] sm:min-w-[400px] sm:max-w-[700px] bg-white z-50 flex flex-col shadow-2xl">
         <div
           className="flex items-center justify-between px-6 py-4 border-b shrink-0"
           style={{ background: "#1E2C46", borderColor: "rgba(255,255,255,0.1)" }}
@@ -922,7 +922,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
   return (
     <div>
       {/* Stats */}
-      <div className="max-w-[1400px] mx-auto px-6 pt-6 pb-2">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 pt-6 pb-2">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard label="Cuentas totales"  value={total}        color="#1E2C46" />
           <StatCard label="Activas"          value={active}       color="#22c55e" />
@@ -933,7 +933,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
 
       {/* Toolbar */}
       <div className="bg-white border-b border-slate-200 mt-4">
-        <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center gap-3 flex-wrap">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -968,7 +968,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
       </div>
 
       {/* Table */}
-      <div className="max-w-[1400px] mx-auto px-6 py-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
         {visible.length === 0 ? (
           <div className="text-center py-24 text-slate-400 text-[15px]">No se encontraron cuentas.</div>
         ) : (

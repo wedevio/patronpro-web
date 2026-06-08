@@ -67,7 +67,7 @@ export async function verifySupportSession(
  */
 export async function verifyPpSession(
   token: string
-): Promise<{ email: string; sub: string; role: "admin" | "member" }> {
+): Promise<{ email: string; sub: string; role: "admin" | "manager" | "member" }> {
   const { payload } = await jwtVerify(token, getPanelSecret());
 
   const email = payload["email"] ?? payload["sub"];
@@ -80,7 +80,11 @@ export async function verifyPpSession(
     throw new Error("Invalid pp-session: missing sub");
   }
 
-  const role = payload["role"] === "admin" ? "admin" : "member";
+  const rawRole = payload["role"];
+  const role: "admin" | "manager" | "member" =
+    rawRole === "admin"   ? "admin"   :
+    rawRole === "manager" ? "manager" :
+    "member";
 
   return { email, sub, role };
 }
