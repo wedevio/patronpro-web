@@ -3,7 +3,7 @@
 Date: 2026-06-09
 Location ID: `4cPIvLND9hFAIzWQ1ZbL`
 Bead: `ppweb-2`
-Artifact status: current API/browser access checkpoint
+Artifact status: current API/browser save checkpoint
 
 ## HTML Source Confirmation
 
@@ -54,19 +54,69 @@ Probe outcome:
 
 ## Browser Automation Status
 
-No Chrome CDP session is listening at `localhost:9222`.
+Initial status: no Chrome CDP session was listening at `localhost:9222`, and the local Chrome `Default` profile was not authenticated for GHL.
 
-The local Chrome `Default` profile has no GHL/HighLevel cookie hosts, so it is not currently authenticated for GHL.
+User then logged into Windows Chrome Profile 9, mapped in RLM as `devio/patron-pro [my job]`, and exposed it through Windows CDP on port `9222`.
 
-1Password vault `Picturelle` contains GHL API-key items, but no GHL/HighLevel username/password item was found by title search.
+Important CDP gotcha: Chrome bound CDP to Windows `127.0.0.1`; WSL could not connect directly. Browser automation ran from Windows Node via PowerShell against `http://127.0.0.1:9222`.
+
+## Browser Save Result
+
+The generated HTML was saved into the existing GHL Home Custom HTML block on 2026-06-09.
+
+Selectors and IDs used:
+
+- Wrapper URL: `https://app.gohighlevel.com/location/4cPIvLND9hFAIzWQ1ZbL/page-builder/JgrAMMXugg5Yi8QAnbDz?source=website`
+- Builder frame: `https://page-builder.leadconnectorhq.com/location/4cPIvLND9hFAIzWQ1ZbL/page-builder/JgrAMMXugg5Yi8QAnbDz`
+- Existing custom-code element: `#custom-code-MTo38o_zdB`
+- Settings sidebar button: `button.btn-open-editor`
+- Code modal: `#hl-builder-custom-code-modal`
+- CodeMirror editor: `#hl-builder-custom-code-modal .CodeMirror`
+- Modal Save button text: `Save`
+- Builder Save button: `#pg-website-builder__btn--save`
+
+Save proof:
+
+- Endpoint SHA-256 before insert: `94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd`
+- Endpoint HTML length: `33116` characters (`33244` UTF-8 bytes)
+- CodeMirror set verification: `33116` characters, hero marker present, `{{custom_values.landing_form}}` marker present
+- Modal Save closed successfully
+- Builder showed `Last saved Jun 09, 4:13 PM`
+- Observed successful save calls:
+  - `POST https://backend.leadconnectorhq.com/funnels/builder/element-template/sync/changes` -> `201`
+  - `POST https://backend.leadconnectorhq.com/funnels/builder/prebuilt-section/sync/changes` -> `201`
+  - `POST https://backend.leadconnectorhq.com/funnels/builder/autosave/JgrAMMXugg5Yi8QAnbDz` -> `201`
+  - `POST https://backend.leadconnectorhq.com/funnels/builder/global-sections/YJXYasKPALXkQkvezVyw` -> `201`
+- Reload verification from the builder backend:
+  - Length: `33116`
+  - SHA-256: `94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd`
+  - Title marker present: yes
+  - Hero marker present: yes
+  - Deferred `landing_form` marker present in editor: yes
+  - Color markers present: yes
+
+Public preview QA:
+
+- URL: `https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz`
+- Status: `200`
+- Response bytes: `91272`
+- Hero marker present: yes
+- Color markers present: yes
+- `Custom HTML/Javascript` placeholder absent: yes
+- `{{custom_values.landing_form}}` absent in served preview: expected, because the GHL custom value is intentionally empty until Twilio approval
+
+The top-level `Publish` button was not clicked in this pass. The GHL preview is serving the saved HTML, but final live-domain publication should wait for the operator's manual check and the remaining phone/domain/email readiness constraints.
 
 ## Current Conclusion
 
-The agent has the correct HTML and the target GHL page IDs, but cannot safely paste/publish it into the GHL Website editor without one of:
+The API boundary remains: official/public GHL API routes did not expose page-builder content writes. The reliable path for this account is browser automation through the authenticated GHL page builder:
 
-1. An authenticated browser session exposed through Chrome CDP on port `9222`.
-2. A GHL username/password or SSO path available in 1Password.
-3. A documented or validated GHL page-content write endpoint.
+1. Open Sites -> Websites -> `Construction Company` -> Home -> Edit.
+2. Select `#custom-code-MTo38o_zdB`.
+3. Open the settings sidebar code editor.
+4. Set CodeMirror value to the generated HTML from `https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL`.
+5. Click modal Save.
+6. Click builder Save.
+7. Reload and verify the CodeMirror content hash, then verify the public preview.
 
-Supabase access is not required for this specific HTML read because the public PatronPro endpoint already returns the generated HTML. Supabase access would still be useful for panel submissions, checklist state, account approval state, and live docs exports.
-
+Supabase access is not required for this specific HTML read because the public PatronPro endpoint already returns the generated HTML. Supabase access is still needed for panel submissions, checklist state, account approval state, and live docs exports.
