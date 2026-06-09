@@ -1,0 +1,15 @@
+{
+  "command": "preview-qa",
+  "generatedAt": "2026-06-09T22:27:40.233Z",
+  "url": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz",
+  "status": 200,
+  "bytes": 91272,
+  "sha256": "a1f9b42fc48ec30b4572c91d767f215df13d2c6a2d861a6ac706cf310e1d2bbb",
+  "markers": {
+    "hero": true,
+    "primary": true,
+    "accent": true,
+    "customHtmlPlaceholder": false,
+    "landingFormRawMergeTag": false
+  }
+}

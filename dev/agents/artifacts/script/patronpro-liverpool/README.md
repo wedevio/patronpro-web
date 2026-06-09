@@ -19,6 +19,15 @@ bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs export-docs --out-dir dev/agents/artifacts/doc/test/liverpool-digital
 ```
 
+Browser-only GHL Website Builder commands must run from Windows Node when Profile 9 CDP is bound to Windows `127.0.0.1`:
+
+```bash
+powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' map --out 'dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-website-builder-map.json'"
+powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' preview-qa --out 'dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-preview-qa.json'"
+powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' save-visible-modal --apply --coordinate-fallback --screenshot 'C:\Users\alast\AppData\Local\Temp\patronpro-after-save.png'"
+powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' save-html --apply"
+```
+
 ## Safety
 
 - The harness is read-only and dry-run except `assign-calendar-owner --apply`, `activate-calendars --apply`, and `apply-brand-board --apply`.
@@ -28,6 +37,11 @@ bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation
 - `website-assets` is read-only; it proves generated HTML/images and GHL website/page inventory but does not publish or edit the GHL page.
 - `apply-brand-board` derives the palette from the generated website HTML and verifies by reading `/brand-boards/{locationId}` after the write.
 - Brand Board list reads can omit `colors`; hydrate candidates with `GET /brand-boards/{locationId}/{brandBoardId}` before QA.
+- `ghl-profile9-website-builder.mjs map` and `preview-qa` are read-only.
+- `ghl-profile9-website-builder.mjs save-visible-modal --apply` only clicks the visible modal Save and builder save icon; use `--coordinate-fallback` only when the headed browser visibly shows the expected Save controls but CDP selector access is flaky.
+- `ghl-profile9-website-builder.mjs save-html --apply` writes generated HTML into the existing GHL Custom HTML block and clicks builder Save. It does not click Publish.
+- Never use browser scripts to read or store cookies, headers, passwords, tokens, localStorage, or Google account state.
+- The top-level GHL `Publish` button remains manual/operator-approved until domain, phone, email, Twilio, and final QA gates are ready.
 - Missing credentials are reported as `blocked` checks.
 - It does not refresh OAuth tokens.
 - Output paths are constrained to this repository.
@@ -42,3 +56,7 @@ bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation
 - `website-assets`: JSON generated HTML/images plus read-only GHL website/page inventory.
 - `apply-brand-board`: JSON dry-run/apply evidence and fresh Brand Board readback.
 - `export-docs`: Supabase `doc_pages` JSON and Markdown export when Supabase env exists.
+- `ghl-profile9-website-builder map`: JSON UI map of the current Profile 9 page-builder state.
+- `ghl-profile9-website-builder preview-qa`: JSON public preview marker check.
+- `ghl-profile9-website-builder save-visible-modal`: JSON evidence for closing/saving a visible Custom HTML modal.
+- `ghl-profile9-website-builder save-html`: JSON evidence for setting the generated Custom HTML in the GHL page builder.

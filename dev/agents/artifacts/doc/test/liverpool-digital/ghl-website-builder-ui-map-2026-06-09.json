@@ -1,0 +1,110 @@
+{
+  "artifactStatus": "current",
+  "artifactRole": "browser-ui-map",
+  "createdAt": "2026-06-09T22:23:00Z",
+  "project": "patron-pro",
+  "branch": "feature/liverpool-digital-docs-automation",
+  "client": "Liverpool Digital",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "websiteId": "YJXYasKPALXkQkvezVyw",
+  "pageId": "JgrAMMXugg5Yi8QAnbDz",
+  "stepId": "e7b3ea2b-65fb-47a5-aa70-176674788e11",
+  "browserProfile": {
+    "label": "devio/patron-pro [my job]",
+    "chromeProfile": "Windows Chrome Profile 9",
+    "cdp": "http://127.0.0.1:9222",
+    "executionHost": "Windows Node via PowerShell from WSL",
+    "guardrail": "Do not read, print, store, or commit cookies, headers, passwords, tokens, localStorage, or Google account state."
+  },
+  "sourceHtml": {
+    "endpoint": "https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL",
+    "characters": 33116,
+    "utf8Bytes": 33244,
+    "sha256": "94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd"
+  },
+  "urls": {
+    "builderWrapper": "https://app.gohighlevel.com/location/4cPIvLND9hFAIzWQ1ZbL/page-builder/JgrAMMXugg5Yi8QAnbDz?source=website",
+    "builderFrame": "https://page-builder.leadconnectorhq.com/location/4cPIvLND9hFAIzWQ1ZbL/page-builder/JgrAMMXugg5Yi8QAnbDz",
+    "preview": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz"
+  },
+  "selectors": {
+    "customCodeElement": "#custom-code-MTo38o_zdB",
+    "settingsSidebar": ".hl-builder-settings-sidebar",
+    "openCodeEditorButton": "button.btn-open-editor",
+    "codeModal": "#hl-builder-custom-code-modal",
+    "codeMirror": "#hl-builder-custom-code-modal .CodeMirror",
+    "modalSaveButton": "#hl-builder-custom-code-modal button >> text=Save",
+    "modalCancelButton": "#hl-builder-custom-code-modal button >> text=Cancel",
+    "builderSaveButton": "#pg-website-builder__btn--save",
+    "publishButton": "#pg-website-builder__btn--publish"
+  },
+  "visibleMap": {
+    "viewport": {
+      "width": 1858,
+      "height": 983
+    },
+    "afterFinalSaveState": {
+      "modalOpen": false,
+      "customHtmlBlockSelected": true,
+      "rightSidebarOpen": true,
+      "rightSidebarTitle": "Custom Code",
+      "topBarText": "Last saved Jun 09, 4:13 PM",
+      "publishClickedInThisPass": false,
+      "screenshot": "/tmp/profile9-after-coordinate-save.png"
+    },
+    "modalOpenStateFromUserScreenshot": {
+      "modalOpen": true,
+      "title": "Custom Javascript/HTML",
+      "codeStartsWith": "<!DOCTYPE html>",
+      "saveButtonVisible": true,
+      "userScreenshotSource": "H:\\My Drive\\_OscarBetancourt\\_2026\\06\\Screenshot 2026-06-09 161848.jpg",
+      "copiedScreenshot": "/tmp/profile9-screenshot-2026-06-09-161848.jpg"
+    }
+  },
+  "coordinateFallbacks": {
+    "whenToUse": "Use only when the headed browser visibly shows the expected control but the page-builder frame is exposed to CDP as an empty frame/body. Prefer selectors first.",
+    "viewport": {
+      "width": 1858,
+      "height": 983
+    },
+    "modalSaveButton": {
+      "x": 978,
+      "y": 755
+    },
+    "modalCancelButton": {
+      "x": 888,
+      "y": 755
+    },
+    "modalCloseIcon": {
+      "x": 1272,
+      "y": 219
+    },
+    "builderSaveIcon": {
+      "x": 1710,
+      "y": 29
+    },
+    "publishButton": {
+      "x": 1797,
+      "y": 29,
+      "guardrail": "Do not click until operator explicitly approves final live publish."
+    }
+  },
+  "stateProof": {
+    "modalWasLeftOpenDuringHashVerification": true,
+    "correctiveAction": "Clicked visible modal Save, then clicked the builder save icon. Fresh screenshot showed modal closed and Custom Code sidebar visible.",
+    "previewQa": {
+      "status": 200,
+      "heroMarker": true,
+      "primaryColorMarker": true,
+      "accentColorMarker": true,
+      "customHtmlPlaceholder": false,
+      "landingFormRawMergeTag": false,
+      "landingFormNote": "Expected false because landing_form remains empty until Twilio approval."
+    }
+  },
+  "gotchas": [
+    "The code editor can be reopened for verification after a successful save. If left open, the operator will still see a blue Save button even though the content has already persisted.",
+    "CDP can sometimes report the wrapper tab with an empty child frame while the headed Windows browser visibly shows the loaded builder UI. In that case, use a fresh screenshot and only guarded coordinate clicks for visible Save controls.",
+    "Builder save and preview proof are not the same as clicking top-level Publish. Publish remains a separate operator-approved step."
+  ]
+}
