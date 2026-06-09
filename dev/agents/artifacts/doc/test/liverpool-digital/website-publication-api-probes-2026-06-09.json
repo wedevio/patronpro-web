@@ -1,0 +1,134 @@
+{
+  "generatedAt": "2026-06-09T21:34:49.670Z",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "funnelId": "YJXYasKPALXkQkvezVyw",
+  "pageId": "JgrAMMXugg5Yi8QAnbDz",
+  "stepId": "e7b3ea2b-65fb-47a5-aa70-176674788e11",
+  "probes": [
+    {
+      "method": "GET",
+      "path": "/funnels/page/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/pages/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/pages/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/page/JgrAMMXugg5Yi8QAnbDz/content?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/page/JgrAMMXugg5Yi8QAnbDz/content?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/pages/JgrAMMXugg5Yi8QAnbDz/content?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/pages/JgrAMMXugg5Yi8QAnbDz/content?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw/page/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/funnel/YJXYasKPALXkQkvezVyw/page/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw/pages/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/funnel/YJXYasKPALXkQkvezVyw/pages/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw/step/e7b3ea2b-65fb-47a5-aa70-176674788e11?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw/steps/e7b3ea2b-65fb-47a5-aa70-176674788e11?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 404,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "bodyShape": "object",
+      "sample": "{\"message\":\"Cannot GET /funnels/funnel/YJXYasKPALXkQkvezVyw/steps/e7b3ea2b-65fb-47a5-aa70-176674788e11?locationId=4cPIvLND9hFAIzWQ1ZbL\",\"error\":\"Not Found\",\"statusCode\":404}"
+    },
+    {
+      "method": "GET",
+      "path": "/funnels/page?locationId=4cPIvLND9hFAIzWQ1ZbL&funnelId=YJXYasKPALXkQkvezVyw&name=Home&limit=20&offset=0",
+      "status": 200,
+      "ok": true,
+      "keys": [
+        "0"
+      ],
+      "bodyShape": "array:1",
+      "sample": "[{\"_id\":\"JgrAMMXugg5Yi8QAnbDz\",\"deleted\":false,\"funnelId\":\"YJXYasKPALXkQkvezVyw\",\"locationId\":\"4cPIvLND9hFAIzWQ1ZbL\",\"name\":\"Home\",\"stepId\":\"e7b3ea2b-65fb-47a5-aa70-176674788e11\",\"updatedAt\":\"2026-06-08T16:24:33.193Z\"}]"
+    }
+  ]
+}

@@ -16,12 +16,13 @@ The onboarding manual was converted into a section-by-section automation and QA 
 | Calendar activation | Pass | `Consulta Gratuita` and `On Site Visit` are active. Apply proof is in `calendar-activation-apply-2026-06-09.json`. |
 | Website HTML/images | Pass for generated assets | PatronPro public endpoint returns ready HTML, ready image URLs, synced GHL image custom values, and GHL can list the website/Home page inventory. |
 | Brand Board colors | Pass | Liverpool Digital Brand Board exists, is default, and contains Main `#471F23`, Accent `#F69309`, Complementary `#2F1417`. |
-| Website publication into GHL editor | Not proven | Official GHL funnel/page API docs expose list endpoints, but no documented page-content update/publish endpoint for replacing the Custom HTML block. Browser fallback is tracked in `ppweb-elk.7`. |
+| Website publication into GHL editor | Blocked by API/auth boundary | HTML was confirmed against the PatronPro public endpoint, but GHL page-content write routes are not available through the current tokens. Browser fallback is tracked in `ppweb-elk.7` and needs an authenticated Chrome/CDP session or GHL login path. |
 | Landing form | Deferred | `landing_form` remains empty because Twilio is not approved. This is the correct state. |
 
 ## Key Current State
 
 - Website HTML exists and is ready through the PatronPro public website endpoint: 33,116 bytes.
+- Website HTML SHA-256: `94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd`.
 - Website images are ready and synced to GHL image custom values.
 - GHL website inventory is readable: `Construction Company` (`YJXYasKPALXkQkvezVyw`) with Home page `JgrAMMXugg5Yi8QAnbDz`.
 - HTML exposes brand colors including `#471f23`, `#f69309`, and `#2f1417`.
@@ -37,6 +38,7 @@ The onboarding manual was converted into a section-by-section automation and QA 
 - Calendar activation proof: `dev/agents/artifacts/doc/test/liverpool-digital/calendar-activation-apply-2026-06-09.json`
 - Website asset proof: `dev/agents/artifacts/doc/test/liverpool-digital/website-assets-2026-06-09.json`
 - Brand Board proof: `dev/agents/artifacts/doc/test/liverpool-digital/brand-board-default-apply-2026-06-09.json`
+- Website publication API/browser attempt: `dev/agents/artifacts/doc/test/liverpool-digital/website-publication-attempt-2026-06-09.md`
 - Final QC proof: `dev/agents/artifacts/doc/test/liverpool-digital/qc-live-final-2026-06-09.json`
 - Reviewer findings: `dev/agents/artifacts/doc/sages/liverpool-digital-onboarding-quality-loop-20260609/`
 - Updated harness: `dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs`
@@ -45,7 +47,7 @@ The onboarding manual was converted into a section-by-section automation and QA 
 
 1. Provide Supabase/panel access for submissions, checklist, approval state, and live docs export.
 2. Confirm calendar availability/free-slot behavior. Calendars are active, but both API payloads report `openHoursCount: 0`, so availability still needs manual/client QA.
-3. Publish generated HTML into the correct GHL Website Home block and record proof, likely through browser automation unless a page-content write API is found.
+3. Publish generated HTML into the correct GHL Website Home block after providing an authenticated Chrome/CDP browser session or GHL login path.
 4. Connect domain/DNS and email sending domain; then set `automation_sender_email`.
 5. Complete Twilio approval and phone assignment; then set `company_phone`.
 6. After Twilio approval, set `landing_form` with the calendar embed.

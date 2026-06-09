@@ -18,3 +18,4 @@
 - Added and applied `activate-calendars`; both Liverpool Digital onboarding calendars are now active via GHL API with owner assignment unchanged.
 - Added `website-assets` read-only proof for generated HTML/images and GHL website/page inventory; GHL page-content publication remains unproven by documented API and is queued for browser fallback.
 - Added and applied `apply-brand-board`; Liverpool Digital now has a default Brand Board with the generated site palette, verified through detailed Brand Board readback.
+- Probed GHL Website Home publication for Liverpool Digital; generated HTML matches the pasted panel code, but current API tokens expose only page listing and no page-content write, and no authenticated Chrome/CDP session is available.

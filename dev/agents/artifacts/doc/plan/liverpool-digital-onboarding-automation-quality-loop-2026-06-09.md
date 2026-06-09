@@ -81,7 +81,7 @@ After calendar owner assignment, activation, website asset read, and Brand Board
 | 6.2 Contact creation form: language required, remove DND Channels | Manual/browser likely | No API endpoint found for customizing the Add Contact side-panel form. Contact API DND fields are not this UI configuration. | Manual check or future browser automation. QA needs screenshot or UI readback. |
 | 6.3 Calendars | API active pass; availability QA pending | `Consulta Gratuita` and `On Site Visit` now each have the main user assigned and `isActive: true`. | Owner and activation QA passed. Next check is availability/free-slot behavior because both payloads show `openHoursCount: 0`. |
 | 6.4 Domain/DNS | Manual/API provider-specific | `dominio_web = build.picturelle.com`; GHL `customDomain` empty. | Connect domain in GHL/registrar, then verify custom domain, DNS, SSL, and custom value match. |
-| 6.5 Website HTML/images | Generated assets pass, GHL publish pending | Public endpoint returns ready HTML (33,116 bytes), images ready, image custom values populated, and GHL can list website/page inventory. | Need GHL Website editor/page publication proof. Official API docs expose list endpoints but no documented Custom HTML/page-content update endpoint. Do not add form yet. |
+| 6.5 Website HTML/images | Generated assets pass, GHL publish blocked by auth/API boundary | Public endpoint returns ready HTML (33,116 bytes, SHA-256 `94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd`), images ready, image custom values populated, and GHL can list website/page inventory. | API probes confirm list-only page access; detail/content routes return 404 or IAM 401. Need authenticated browser/CDP session or a validated page-content write endpoint. Do not add form yet. |
 | 6.6 Branding | API write pass | HTML exposes colors `#471f23`, `#f69309`, `#2f1417`. A default Brand Board now exists for Liverpool Digital with those colors. | `brand-board-default-apply-2026-06-09.json` verifies the detailed board readback. Gotcha: the Brand Board list endpoint omits colors, so verification must hydrate each board with a detail read. |
 | 6.7 Platform language | Manual/browser likely | Not verified. | Requires Login As / My Profile UI or a confirmed user preference API. |
 | 6.8 Invoice/contract/document notifications | Manual/browser likely | Not verified. | Requires UI/API discovery for template selection and duplicate notification disabling. |
@@ -112,7 +112,7 @@ After calendar owner assignment, activation, website asset read, and Brand Board
 
 1. Provide Supabase service-role env or authenticated panel session so the app can read submissions, checklist, account approval state, and live docs.
 2. Confirm calendar availability/free-slot behavior now that calendars are active; both active calendar payloads report `openHoursCount: 0`.
-3. Connect/publish the generated HTML inside the correct GHL Website Home block, or use browser automation fallback if no page-content write API exists.
+3. Connect/publish the generated HTML inside the correct GHL Website Home block after providing an authenticated Chrome CDP session or GHL login path; current API probes cannot update the Custom HTML block.
 4. Complete domain/DNS setup and email sending domain setup; then set `automation_sender_email`.
 5. Complete Twilio approval/phone assignment; then set `company_phone`.
 6. Only after Twilio approval, add the calendar embed to `landing_form`.

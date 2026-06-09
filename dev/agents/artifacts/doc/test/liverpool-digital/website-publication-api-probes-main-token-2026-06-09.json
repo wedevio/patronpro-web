@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-06-09T21:36:00.324Z",
+  "tokenClass": "MAIN",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "funnelId": "YJXYasKPALXkQkvezVyw",
+  "pageId": "JgrAMMXugg5Yi8QAnbDz",
+  "stepId": "e7b3ea2b-65fb-47a5-aa70-176674788e11",
+  "probes": [
+    {
+      "path": "/locations/4cPIvLND9hFAIzWQ1ZbL",
+      "status": 403,
+      "ok": false,
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "sample": "{\"message\":\"Forbidden resource\",\"error\":\"Forbidden\",\"statusCode\":403}"
+    },
+    {
+      "path": "/funnels/page/JgrAMMXugg5Yi8QAnbDz?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "path": "/funnels/funnel/YJXYasKPALXkQkvezVyw/step/e7b3ea2b-65fb-47a5-aa70-176674788e11?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "status": 401,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "sample": "{\"statusCode\":401,\"message\":\"This route is not yet supported by the IAM Service. Please update your IAM config.\"}"
+    },
+    {
+      "path": "/funnels/page?locationId=4cPIvLND9hFAIzWQ1ZbL&funnelId=YJXYasKPALXkQkvezVyw&name=Home&limit=20&offset=0",
+      "status": 403,
+      "ok": false,
+      "keys": [
+        "statusCode",
+        "message"
+      ],
+      "sample": "{\"statusCode\":403,\"message\":\"The token does not have access to this location.\"}"
+    }
+  ]
+}
