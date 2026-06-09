@@ -1,0 +1,195 @@
+{
+  "metadata": {
+    "client": "Liverpool Digital",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "generatedAt": "2026-06-09T18:48:17.391Z",
+    "command": "plan",
+    "dryRun": true
+  },
+  "summary": {
+    "totalActions": 17,
+    "liveMutationAllowed": false,
+    "note": "This plan is dry-run output. No mutation is performed by this command."
+  },
+  "actions": [
+    {
+      "id": "supabase_env",
+      "status": "blocked",
+      "action": "Provide Supabase URL and service role key.",
+      "evidence": {
+        "missing": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "SUPABASE_SERVICE_ROLE_KEY"
+        ]
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "ghl_env",
+      "status": "blocked",
+      "action": "Provide a non-rotating GHL PIT/access token.",
+      "evidence": {
+        "missing": [
+          "GHL_LOCATION_PIT or GHL_MCP or GHL_AGENCY_ACCESS_TOKEN"
+        ]
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "location_exists",
+      "status": "blocked",
+      "action": "Verify location ID and GHL token scope.",
+      "evidence": {},
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "form",
+      "status": "blocked",
+      "action": "Generate link and submit/seed onboarding data.",
+      "evidence": {},
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "contact_ids_known",
+      "status": "blocked",
+      "action": "Generate/submit onboarding link so contact IDs are recorded.",
+      "evidence": {},
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "domain",
+      "status": "blocked",
+      "action": "Connect DNS/custom domain and sync dominio_web; both are required for pass.",
+      "evidence": {
+        "customDomain": "",
+        "dominioWeb": ""
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "phone",
+      "status": "blocked",
+      "action": "Assign GHL phone number and verify active phone-system account status.",
+      "evidence": {
+        "phoneNumbers": []
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "email",
+      "status": "blocked",
+      "action": "Connect business email and set automation_sender_email; both are required for pass.",
+      "evidence": {
+        "locationEmail": "",
+        "automationSenderEmail": ""
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "landing",
+      "status": "blocked",
+      "action": "Generate landing HTML/images and add GHL publication evidence.",
+      "evidence": {
+        "websiteStatus": null,
+        "htmlBytes": 0,
+        "imagesReady": false,
+        "publicationEvidence": ""
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "calendar",
+      "status": "blocked",
+      "action": "Create/verify both on-site and consultation calendars, then sync both booking custom values.",
+      "evidence": {
+        "calendars": [],
+        "hasOnSiteValue": false,
+        "hasConsultationValue": false
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "stripe",
+      "status": "blocked",
+      "action": "Connect Stripe or confirm with stronger proof than the form flag.",
+      "evidence": {
+        "transactionCount": 0,
+        "formHasStripeAccount": null
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "client_ok",
+      "status": "blocked",
+      "action": "Collect explicit client/operator sign-off.",
+      "evidence": {
+        "checked": false
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "account_approved",
+      "status": "blocked",
+      "action": "Approve account only after setup evidence passes.",
+      "evidence": {
+        "approvedAt": null
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "staff_permissions",
+      "status": "blocked",
+      "action": "Run or verify default staff permission hardening for this location.",
+      "evidence": {
+        "companyId": "",
+        "userCount": 0,
+        "violations": []
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "core_custom_values",
+      "status": "blocked",
+      "action": "Run custom value sync after onboarding data is complete.",
+      "evidence": {
+        "missing": [
+          "company_name",
+          "company_address",
+          "dominio_web",
+          "logo",
+          "logo_cuadrado",
+          "hours_of_operation",
+          "domain_purchase_authorized",
+          "on_site_visit_calendar",
+          "free_consultation_calendar"
+        ]
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "landing_custom_values",
+      "status": "blocked",
+      "action": "Create missing custom values used by landing generator/published page.",
+      "evidence": {
+        "missing": [
+          "company_phone",
+          "automation_sender_email",
+          "landing_form",
+          "website_hero_image",
+          "website_about_image",
+          "website_contact_image"
+        ]
+      },
+      "applyMode": "manual-review-required"
+    },
+    {
+      "id": "onboarding_workflow",
+      "status": "blocked",
+      "action": "Verify GHL workflow trigger tag ob-meeting-ok and webhook body in GHL UI.",
+      "evidence": {
+        "workflowNames": []
+      },
+      "applyMode": "manual-review-required"
+    }
+  ]
+}

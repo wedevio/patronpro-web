@@ -1,0 +1,218 @@
+{
+  "metadata": {
+    "client": "Liverpool Digital",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "generatedAt": "2026-06-09T18:48:17.364Z",
+    "command": "qc",
+    "dryRun": true
+  },
+  "env": {
+    "supabase": {
+      "ok": false,
+      "missing": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    "ghl": {
+      "ok": false,
+      "missing": [
+        "GHL_LOCATION_PIT or GHL_MCP or GHL_AGENCY_ACCESS_TOKEN"
+      ]
+    }
+  },
+  "statusCounts": {
+    "blocked": 17
+  },
+  "checklist": {
+    "form": false,
+    "domain": false,
+    "phone": false,
+    "email": false,
+    "landing": false,
+    "calendar": false,
+    "stripe": false,
+    "client_ok": false
+  },
+  "results": [
+    {
+      "id": "supabase_env",
+      "label": "Supabase access",
+      "status": "blocked",
+      "evidence": {
+        "missing": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "SUPABASE_SERVICE_ROLE_KEY"
+        ]
+      },
+      "remediation": "Provide Supabase URL and service role key."
+    },
+    {
+      "id": "ghl_env",
+      "label": "GHL access",
+      "status": "blocked",
+      "evidence": {
+        "missing": [
+          "GHL_LOCATION_PIT or GHL_MCP or GHL_AGENCY_ACCESS_TOKEN"
+        ]
+      },
+      "remediation": "Provide a non-rotating GHL PIT/access token."
+    },
+    {
+      "id": "location_exists",
+      "label": "GHL location exists",
+      "status": "blocked",
+      "evidence": {},
+      "remediation": "Verify location ID and GHL token scope."
+    },
+    {
+      "id": "form",
+      "label": "Onboarding submission received",
+      "status": "blocked",
+      "evidence": {},
+      "remediation": "Generate link and submit/seed onboarding data."
+    },
+    {
+      "id": "contact_ids_known",
+      "label": "Panel contact IDs known",
+      "status": "blocked",
+      "evidence": {},
+      "remediation": "Generate/submit onboarding link so contact IDs are recorded."
+    },
+    {
+      "id": "domain",
+      "label": "Domain connected / DNS configured",
+      "status": "blocked",
+      "evidence": {
+        "customDomain": "",
+        "dominioWeb": ""
+      },
+      "remediation": "Connect DNS/custom domain and sync dominio_web; both are required for pass."
+    },
+    {
+      "id": "phone",
+      "label": "Phone number assigned in GHL",
+      "status": "blocked",
+      "evidence": {
+        "phoneNumbers": []
+      },
+      "remediation": "Assign GHL phone number and verify active phone-system account status."
+    },
+    {
+      "id": "email",
+      "label": "Business email connected",
+      "status": "blocked",
+      "evidence": {
+        "locationEmail": "",
+        "automationSenderEmail": ""
+      },
+      "remediation": "Connect business email and set automation_sender_email; both are required for pass."
+    },
+    {
+      "id": "landing",
+      "label": "Landing page generated/published",
+      "status": "blocked",
+      "evidence": {
+        "websiteStatus": null,
+        "htmlBytes": 0,
+        "imagesReady": false,
+        "publicationEvidence": ""
+      },
+      "remediation": "Generate landing HTML/images and add GHL publication evidence."
+    },
+    {
+      "id": "calendar",
+      "label": "Calendar configured",
+      "status": "blocked",
+      "evidence": {
+        "calendars": [],
+        "hasOnSiteValue": false,
+        "hasConsultationValue": false
+      },
+      "remediation": "Create/verify both on-site and consultation calendars, then sync both booking custom values."
+    },
+    {
+      "id": "stripe",
+      "label": "Stripe connected",
+      "status": "blocked",
+      "evidence": {
+        "transactionCount": 0,
+        "formHasStripeAccount": null
+      },
+      "remediation": "Connect Stripe or confirm with stronger proof than the form flag."
+    },
+    {
+      "id": "client_ok",
+      "label": "Client access verified",
+      "status": "blocked",
+      "evidence": {
+        "checked": false
+      },
+      "remediation": "Collect explicit client/operator sign-off."
+    },
+    {
+      "id": "account_approved",
+      "label": "Panel account approved",
+      "status": "blocked",
+      "evidence": {
+        "approvedAt": null
+      },
+      "remediation": "Approve account only after setup evidence passes."
+    },
+    {
+      "id": "staff_permissions",
+      "label": "Default staff permissions disabled",
+      "status": "blocked",
+      "evidence": {
+        "companyId": "",
+        "userCount": 0,
+        "violations": []
+      },
+      "remediation": "Run or verify default staff permission hardening for this location."
+    },
+    {
+      "id": "core_custom_values",
+      "label": "Core custom values",
+      "status": "blocked",
+      "evidence": {
+        "missing": [
+          "company_name",
+          "company_address",
+          "dominio_web",
+          "logo",
+          "logo_cuadrado",
+          "hours_of_operation",
+          "domain_purchase_authorized",
+          "on_site_visit_calendar",
+          "free_consultation_calendar"
+        ]
+      },
+      "remediation": "Run custom value sync after onboarding data is complete."
+    },
+    {
+      "id": "landing_custom_values",
+      "label": "Landing custom values",
+      "status": "blocked",
+      "evidence": {
+        "missing": [
+          "company_phone",
+          "automation_sender_email",
+          "landing_form",
+          "website_hero_image",
+          "website_about_image",
+          "website_contact_image"
+        ]
+      },
+      "remediation": "Create missing custom values used by landing generator/published page."
+    },
+    {
+      "id": "onboarding_workflow",
+      "label": "Onboarding workflow present",
+      "status": "blocked",
+      "evidence": {
+        "workflowNames": []
+      },
+      "remediation": "Verify GHL workflow trigger tag ob-meeting-ok and webhook body in GHL UI."
+    }
+  ]
+}
