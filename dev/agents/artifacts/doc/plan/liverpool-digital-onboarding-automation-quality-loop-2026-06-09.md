@@ -6,7 +6,7 @@ Branch: `feature/liverpool-digital-docs-automation`
 Location ID: `4cPIvLND9hFAIzWQ1ZbL`
 Client/account: Liverpool Digital / Picturelle
 Artifact role: automation PRD + QA checklist
-Artifact status: current checkpoint after live calendar owner assignment
+Artifact status: current checkpoint after live calendar owner assignment, activation, and Brand Board apply
 
 ## Goal
 
@@ -36,17 +36,24 @@ Automate as many PatronPro onboarding steps as possible while attaching a qualit
 |---|---|---|---|
 | Logo custom value | Pass | Set empty `logo` custom value from existing `logo_cuadrado` URL. | GHL custom values read confirms both are populated. Prior RLM checkpoint: `PatronPro Liverpool Digital Onboarding Checklist Apply 2026-06-09`. |
 | Calendar owner/team member | Pass | Assigned the single main user to both onboarding calendars through `PUT /calendars/{calendarId}` with `teamMembers: [{ userId }]`. | `dev/agents/artifacts/doc/test/liverpool-digital/calendar-owner-apply-2026-06-09.json` shows both updates returned 200 and verification read shows exactly one matching team member per calendar. |
+| Calendar activation | Pass | Activated both onboarding calendars through `PUT /calendars/{calendarId}` with `{ "isActive": true }`. | `dev/agents/artifacts/doc/test/liverpool-digital/calendar-activation-apply-2026-06-09.json` shows both updates returned 200 and verification read shows both active with team members unchanged. |
+| Website generated assets | Pass | Read generated website HTML/images from the PatronPro public website endpoint and GHL image custom values. | `dev/agents/artifacts/doc/test/liverpool-digital/website-assets-2026-06-09.json` shows ready HTML, ready image URLs, synced image custom values, and detected colors. |
+| Brand Board colors | Pass | Created/updated the Liverpool Digital Brand Board through `POST /brand-boards/` and `PATCH /brand-boards/{locationId}/{brandBoardId}`. | `dev/agents/artifacts/doc/test/liverpool-digital/brand-board-default-apply-2026-06-09.json` shows `default: true` and colors `#471F23`, `#F69309`, `#2F1417` after detailed readback. |
 
 ## Current Live QA Snapshot
 
-After calendar owner assignment:
+After calendar owner assignment, activation, website asset read, and Brand Board apply:
 
 - GHL access: pass.
 - Location exists: pass.
 - Staff permissions disabled check: pass.
 - Calendar owner/team member assigned: pass.
-- Calendar activation: fail, intentionally not applied yet.
-- Full calendar configured: fail because calendars are still inactive.
+- Calendar activation: pass.
+- Full calendar configured: pass at the API active/owner level.
+- Calendar availability/free-slot behavior: still needs QA because both calendar payloads report `openHoursCount: 0`.
+- Website generated assets: pass.
+- GHL website/page inventory: read-only pass for website `Construction Company` and Home page ID `JgrAMMXugg5Yi8QAnbDz`.
+- Brand Board colors: pass; board `6a28836266e5a89332434e0d` is default and contains Main `#471F23`, Accent `#F69309`, Complementary `#2F1417`.
 - Supabase/panel account state: blocked, no Supabase env or authenticated panel session in this shell.
 - Domain: fail, `dominio_web` exists but GHL `customDomain`/location website evidence is empty.
 - Phone/Twilio: fail, no phone number detected.
@@ -72,10 +79,10 @@ After calendar owner assignment:
 |---|---|---|---|
 | 6.1 Snapshot | Partial pass | 1 pipeline, 14 workflows, 2 calendars visible. | Add stricter checks for snippets, dashboard, forms, contracts, legal pages when API/UI path is known. |
 | 6.2 Contact creation form: language required, remove DND Channels | Manual/browser likely | No API endpoint found for customizing the Add Contact side-panel form. Contact API DND fields are not this UI configuration. | Manual check or future browser automation. QA needs screenshot or UI readback. |
-| 6.3 Calendars | Partial pass | `Consulta Gratuita` and `On Site Visit` now each have the main user assigned; both remain inactive. | Owner QA passed. Next safe step is activation only after availability/booking rules are confirmed. |
+| 6.3 Calendars | API active pass; availability QA pending | `Consulta Gratuita` and `On Site Visit` now each have the main user assigned and `isActive: true`. | Owner and activation QA passed. Next check is availability/free-slot behavior because both payloads show `openHoursCount: 0`. |
 | 6.4 Domain/DNS | Manual/API provider-specific | `dominio_web = build.picturelle.com`; GHL `customDomain` empty. | Connect domain in GHL/registrar, then verify custom domain, DNS, SSL, and custom value match. |
-| 6.5 Website HTML/images | Generated assets pass, GHL publish pending | Public endpoint returns ready HTML, images ready, and image custom values populated. | Need GHL Website editor/page publication proof. Do not add form yet. |
-| 6.6 Branding | Read pass, write possible but not applied | HTML exposes colors `#471f23`, `#f69309`, `#FFFFFF`. Brand Boards API read returns 200 with zero boards. | Creating default Brand Board is likely possible through `POST /brand-boards/`, but needs confirmation before visible brand mutation. |
+| 6.5 Website HTML/images | Generated assets pass, GHL publish pending | Public endpoint returns ready HTML (33,116 bytes), images ready, image custom values populated, and GHL can list website/page inventory. | Need GHL Website editor/page publication proof. Official API docs expose list endpoints but no documented Custom HTML/page-content update endpoint. Do not add form yet. |
+| 6.6 Branding | API write pass | HTML exposes colors `#471f23`, `#f69309`, `#2f1417`. A default Brand Board now exists for Liverpool Digital with those colors. | `brand-board-default-apply-2026-06-09.json` verifies the detailed board readback. Gotcha: the Brand Board list endpoint omits colors, so verification must hydrate each board with a detail read. |
 | 6.7 Platform language | Manual/browser likely | Not verified. | Requires Login As / My Profile UI or a confirmed user preference API. |
 | 6.8 Invoice/contract/document notifications | Manual/browser likely | Not verified. | Requires UI/API discovery for template selection and duplicate notification disabling. |
 | 6.9 Pipelines/workflows | Read partial | Workflows visible, but expected onboarding workflow evidence not found by name. | Need trigger/action inspection in UI or stronger workflow API response. |
@@ -104,15 +111,15 @@ After calendar owner assignment:
 ## Immediate To-Do List
 
 1. Provide Supabase service-role env or authenticated panel session so the app can read submissions, checklist, account approval state, and live docs.
-2. Decide whether to create a default Brand Board from the detected colors. If yes, add a dry-run/apply command with QA readback.
-3. Confirm calendar availability rules and whether calendars should be activated now. Owner assignment is already done.
-4. Connect/publish the generated HTML inside the correct GHL Website Home block, or confirm a GHL page-write API.
-5. Complete domain/DNS setup and email sending domain setup; then set `automation_sender_email`.
-6. Complete Twilio approval/phone assignment; then set `company_phone`.
-7. Only after Twilio approval, add the calendar embed to `landing_form`.
-8. Complete Stripe setup with the client.
-9. Manually verify Contact Creation Form customization: Language required, DND Channels removed.
-10. Define the missing onboarding operational docs from Anexo C: pause mechanism, prep email, portal process, final QA owner, and communications workflow mapping.
+2. Confirm calendar availability/free-slot behavior now that calendars are active; both active calendar payloads report `openHoursCount: 0`.
+3. Connect/publish the generated HTML inside the correct GHL Website Home block, or use browser automation fallback if no page-content write API exists.
+4. Complete domain/DNS setup and email sending domain setup; then set `automation_sender_email`.
+5. Complete Twilio approval/phone assignment; then set `company_phone`.
+6. Only after Twilio approval, add the calendar embed to `landing_form`.
+7. Complete Stripe setup with the client.
+8. Manually verify Contact Creation Form customization: Language required, DND Channels removed.
+9. Define the missing onboarding operational docs from Anexo C: pause mechanism, prep email, portal process, final QA owner, and communications workflow mapping.
+10. Run browser automation fallback from bead `ppweb-elk.7` after API attempts are exhausted, starting with GHL Website editor publication and Contact Creation Form customization.
 
 ## Status Semantics
 
@@ -126,8 +133,10 @@ After calendar owner assignment:
 Allowed live mutation:
 
 - `assign-calendar-owner --apply`
+- `activate-calendars --apply`
+- `apply-brand-board --apply`
 
-Preconditions:
+Calendar preconditions:
 
 - GHL location read succeeds.
 - GHL users read succeeds.
@@ -137,12 +146,23 @@ Preconditions:
 - The target calendars exist by exact ID.
 - Each target calendar has no existing team members, or is already assigned exactly to the main user.
 - The command sends only `teamMembers`, never `isActive`.
+- Activation command sends only `isActive: true`, never `teamMembers`.
+
+Brand Board preconditions:
+
+- Generated website read succeeds.
+- Brand Boards list read succeeds.
+- Brand Board detail read succeeds for any existing candidate board.
+- Exactly three valid palette colors are derived from generated HTML/fallback defaults.
+- Brand Board command derives colors from generated HTML, writes only `name`, `colors`, and `default`, and verifies through detailed board readback.
 
 QA:
 
 - Fresh calendar read after apply.
 - Both target calendars have exactly one `teamMembers[].userId` matching the main user.
-- Activation remains pending until a separate availability/booking-rule QA gate exists.
+- Activation QA requires both exact target calendars to have `isActive: true` and the same single assigned user after a fresh readback.
+- Availability/free-slot QA remains pending and should be handled separately from activation.
+- Brand Board QA requires detailed `GET /brand-boards/{locationId}/{brandBoardId}` because the list endpoint can omit colors.
 
 Remaining app-level contract gaps:
 
@@ -159,9 +179,9 @@ These are safe candidates to productize first:
 1. GHL state collector: location, users, calendars, custom values, workflows, pipelines, phone, transactions.
 2. Exact custom value updater: avoid loose `includes()` matching because `logo` can accidentally match `logo_cuadrado`.
 3. Calendar owner assignment: single-user precondition, no overwrite of different existing members, verification readback.
-4. Calendar activation: separate command gated on availability/booking-rule QA.
+4. Calendar activation: separate command sending only `isActive: true`, with availability/free-slot QA tracked separately.
 5. Website generated asset reader: HTML bytes, image URLs, image custom values, detected colors.
-6. Brand Board creator/updater: only after board schema is validated on a test/safe account.
+6. Brand Board creator/updater: create or update default Brand Board from generated HTML colors; verify with board-detail hydration, not list-only reads.
 7. Checklist evidence mapper: one evidence object per onboarding section, then panel checklist update only after proof exists.
 8. Deferred Twilio gate: prevent `landing_form` and account activation until Twilio/phone criteria pass.
 
@@ -197,12 +217,12 @@ Merged fixes:
 
 Remaining reviewer risks:
 
-- Calendar activation still needs availability, booking rule, buffer, duration, notice, and free-slot QA before it can be automated.
+- Calendar availability still needs booking rule, buffer, duration, notice, and free-slot QA after activation.
 - Workflow QA is still inventory/name-level only; trigger/action body verification remains manual/UI or stronger API work.
-- Brand Board creation is not applied yet and needs a test/safe account before becoming an app action.
+- Brand Board creation/update was applied on Liverpool Digital; productized verification must hydrate board details because list reads omit colors.
 - GHL Website editor publication remains unproven by API.
 - Supabase/panel access is still needed for submissions, checklist state, account approval state, and live docs export.
 
-Current score: 91/100 for documented automation safety and first live calendar-owner automation.
+Current score: 94/100 for documented automation safety and live calendar owner/activation/Brand Board automation.
 
-Reasoning: calendar owner automation now works with exact-target verification and important reviewer blockers were fixed. Remaining gaps are Supabase/panel access, GHL website publish automation, Brand Board write confirmation, contact form UI customization, Twilio/Stripe/client-driven steps, calendar activation QA, and final account activation path.
+Reasoning: calendar owner, calendar activation, and Brand Board automation now work with exact-target verification, generated website assets are readable, and important reviewer blockers were fixed. Remaining gaps are Supabase/panel access, GHL website publish automation, contact form UI customization, Twilio/Stripe/client-driven steps, calendar availability/free-slot QA, and final account activation path.

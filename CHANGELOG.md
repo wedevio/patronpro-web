@@ -15,3 +15,6 @@
 - Applied the safe live calendar owner assignment in GHL: `Consulta Gratuita` and `On Site Visit` now each have the single Liverpool Digital user assigned.
 - Added explicit QA gates for calendar owner assignment, calendar activation, deferred `landing_form`, and final account activation.
 - Filed follow-up beads for calendar activation, website publication proof, Supabase/panel state access, Brand Boards, and GHL contact-form/DND customization.
+- Added and applied `activate-calendars`; both Liverpool Digital onboarding calendars are now active via GHL API with owner assignment unchanged.
+- Added `website-assets` read-only proof for generated HTML/images and GHL website/page inventory; GHL page-content publication remains unproven by documented API and is queued for browser fallback.
+- Added and applied `apply-brand-board`; Liverpool Digital now has a default Brand Board with the generated site palette, verified through detailed Brand Board readback.

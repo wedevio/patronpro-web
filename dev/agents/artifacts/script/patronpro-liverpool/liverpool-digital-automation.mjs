@@ -7,6 +7,8 @@ const DEFAULT_CLIENT = "Liverpool Digital";
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const GHL_VERSION = "2021-07-28";
 const GHL_CALENDAR_VERSION = "2021-04-15";
+const GHL_BRAND_BOARD_VERSION = "2023-02-21";
+const PATRONPRO_BASE = "https://www.getpatronpro.com";
 
 const CHECKLIST_ITEMS = [
   ["form", "Formulario de onboarding recibido"],
@@ -52,6 +54,12 @@ const DEFAULT_DISABLED_PERMISSIONS = [
   "gokollabEnabled",
   "wordpressEnabled",
   "botService",
+];
+
+const DEFAULT_BRAND_COLORS = [
+  { id: "main", label: "Main", hex: "#471F23" },
+  { id: "accent", label: "Accent", hex: "#F69309" },
+  { id: "complementary", label: "Complementary", hex: "#2F1417" },
 ];
 
 function parseArgs(argv) {
@@ -255,6 +263,41 @@ async function fetchWorkflows(locationId) {
   return ghlFetch(`/workflows/?locationId=${encodeURIComponent(locationId)}`);
 }
 
+async function fetchPublicWebsite(locationId) {
+  try {
+    const res = await fetch(`${PATRONPRO_BASE}/api/website/${encodeURIComponent(locationId)}`, {
+      signal: timeoutSignal(),
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    const body = await safeJson(res);
+    return { ok: res.ok, status: res.status, body };
+  } catch (err) {
+    return {
+      ok: false,
+      blocked: true,
+      reason: err instanceof Error ? err.message : "Public website request failed",
+    };
+  }
+}
+
+async function fetchFunnels(locationId) {
+  return ghlFetch(`/funnels/funnel/list?locationId=${encodeURIComponent(locationId)}&limit=50&offset=0`);
+}
+
+async function fetchFunnelPages(locationId, funnelId) {
+  return ghlFetch(`/funnels/page?locationId=${encodeURIComponent(locationId)}&funnelId=${encodeURIComponent(funnelId)}&limit=20&offset=0`);
+}
+
+async function fetchBrandBoards(locationId) {
+  return ghlFetch(`/brand-boards/${encodeURIComponent(locationId)}?limit=20&offset=0`, { version: GHL_BRAND_BOARD_VERSION });
+}
+
+async function fetchBrandBoard(locationId, brandBoardId) {
+  return ghlFetch(`/brand-boards/${encodeURIComponent(locationId)}/${encodeURIComponent(brandBoardId)}`, { version: GHL_BRAND_BOARD_VERSION });
+}
+
 async function fetchUsers(companyId, locationId) {
   if (!companyId) {
     return { blocked: true, reason: "Location companyId unavailable; cannot query users." };
@@ -287,6 +330,125 @@ function firstWebsite(account) {
     })[0] ?? null;
   }
   return websites ?? null;
+}
+
+function websiteFromPublicResult(result) {
+  return result?.body?.website ?? null;
+}
+
+function hexColorsFromHtml(html) {
+  return [...new Set(String(html ?? "").match(/#[0-9a-fA-F]{3,8}\b/g) ?? [])];
+}
+
+function normalizeHexColor(value) {
+  const raw = String(value ?? "").trim();
+  const match = raw.match(/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/);
+  if (!match) return "";
+  const hex = match[1];
+  const expanded = hex.length === 3
+    ? hex.split("").map((char) => `${char}${char}`).join("")
+    : hex.slice(0, 6);
+  return `#${expanded.toUpperCase()}`;
+}
+
+function rgbFromHex(hexValue) {
+  const hex = normalizeHexColor(hexValue).replace("#", "");
+  if (hex.length !== 6) return null;
+  return {
+    r: Number.parseInt(hex.slice(0, 2), 16),
+    g: Number.parseInt(hex.slice(2, 4), 16),
+    b: Number.parseInt(hex.slice(4, 6), 16),
+  };
+}
+
+function brandColorObject(color) {
+  const hex = normalizeHexColor(color.hex);
+  const rgb = rgbFromHex(hex);
+  if (!hex || !rgb) return null;
+  const rgbText = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+  return {
+    id: color.id,
+    label: color.label,
+    hex,
+    hexa: `${hex}FF`,
+    rgb: rgbText,
+    rgba: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)`,
+  };
+}
+
+function brandPaletteFromHtml(html) {
+  const htmlColors = new Set(hexColorsFromHtml(html).map(normalizeHexColor).filter(Boolean));
+  const palette = DEFAULT_BRAND_COLORS.map((color) => {
+    const normalized = normalizeHexColor(color.hex);
+    return {
+      ...color,
+      source: htmlColors.has(normalized) ? "generated_html" : "fallback_default",
+    };
+  });
+  return palette.map(brandColorObject).filter(Boolean);
+}
+
+function brandBoardsFromResult(result) {
+  const body = result?.body ?? {};
+  const boards = body.brandBoards ?? body.boards ?? body.data ?? (Array.isArray(body) ? body : []);
+  return Array.isArray(boards) ? boards : [];
+}
+
+function brandBoardId(board) {
+  return board?._id ?? board?.id ?? "";
+}
+
+function colorHexFromBoardColor(color) {
+  return normalizeHexColor(color?.hex ?? color?.value ?? color?.hexa ?? "");
+}
+
+function brandBoardColorHexes(board) {
+  return (Array.isArray(board?.colors) ? board.colors : [])
+    .map(colorHexFromBoardColor)
+    .filter(Boolean);
+}
+
+function brandBoardHasPalette(board, palette) {
+  const existing = new Set(brandBoardColorHexes(board));
+  return palette.every((color) => existing.has(normalizeHexColor(color.hex)));
+}
+
+function brandBoardIsDefault(board) {
+  return board?.default === true || board?.isDefault === true;
+}
+
+function brandBoardMatchesTarget(board, palette) {
+  return brandBoardHasPalette(board, palette) && brandBoardIsDefault(board);
+}
+
+function brandBoardSummary(board) {
+  return {
+    id: brandBoardId(board),
+    name: board?.name ?? "",
+    default: board?.default ?? board?.isDefault ?? null,
+    type: board?.type ?? null,
+    colors: (Array.isArray(board?.colors) ? board.colors : []).map((color) => ({
+      id: color.id ?? "",
+      label: color.label ?? color.name ?? "",
+      hex: colorHexFromBoardColor(color),
+      rgb: color.rgb ?? "",
+      rgba: color.rgba ?? "",
+    })),
+  };
+}
+
+async function hydrateBrandBoards(locationId, boards) {
+  const hydrated = [];
+  for (const board of boards) {
+    const id = brandBoardId(board);
+    if (!id || (Array.isArray(board?.colors) && board.colors.length > 0)) {
+      hydrated.push(board);
+      continue;
+    }
+    const detailResult = await fetchBrandBoard(locationId, id);
+    hydrated.push(detailResult.ok ? detailResult.body : board);
+  }
+  return hydrated;
 }
 
 function locationPayload(locationResult) {
@@ -342,6 +504,24 @@ function publicUser(user) {
   };
 }
 
+function calendarSchedulingSummary(calendar) {
+  return {
+    slotDuration: calendar?.slotDuration ?? null,
+    slotDurationUnit: calendar?.slotDurationUnit ?? null,
+    slotInterval: calendar?.slotInterval ?? null,
+    slotIntervalUnit: calendar?.slotIntervalUnit ?? null,
+    allowBookingAfter: calendar?.allowBookingAfter ?? null,
+    allowBookingAfterUnit: calendar?.allowBookingAfterUnit ?? null,
+    preBuffer: calendar?.preBuffer ?? null,
+    preBufferUnit: calendar?.preBufferUnit ?? null,
+    slotBuffer: calendar?.slotBuffer ?? null,
+    formId: calendar?.formId ?? "",
+    openHoursCount: Array.isArray(calendar?.openHours) ? calendar.openHours.length : 0,
+    availabilityType: calendar?.availabilityType ?? null,
+    autoConfirm: calendar?.autoConfirm ?? null,
+  };
+}
+
 function transactionCount(txResult) {
   const body = txResult?.body ?? {};
   if (typeof body.totalCount === "number") return body.totalCount;
@@ -363,7 +543,7 @@ async function buildQcReport(args) {
   const startedAt = new Date().toISOString();
   const env = envStatus();
 
-  const [accountResult, locationResult, customValuesResult, calendarsResult, phonesResult, txResult, workflowResult] = await Promise.all([
+  const [accountResult, locationResult, customValuesResult, calendarsResult, phonesResult, txResult, workflowResult, publicWebsiteResult, brandBoardsResult] = await Promise.all([
     fetchAccount(args.locationId),
     fetchLocation(args.locationId),
     fetchCustomValues(args.locationId),
@@ -371,12 +551,15 @@ async function buildQcReport(args) {
     fetchPhoneNumbers(args.locationId),
     fetchTransactions(args.locationId),
     fetchWorkflows(args.locationId),
+    fetchPublicWebsite(args.locationId),
+    fetchBrandBoards(args.locationId),
   ]);
 
   const account = accountResult.ok ? accountResult.body : null;
   const submission = latestSubmission(account);
   const checklist = checklistMap(account);
-  const website = firstWebsite(account);
+  const publicWebsite = websiteFromPublicResult(publicWebsiteResult);
+  const website = firstWebsite(account) ?? publicWebsite;
   const location = locationResult.ok ? locationPayload(locationResult) : null;
   const companyId = location?.companyId ?? location?.company_id ?? location?.company?.id ?? "";
   const usersResult = await fetchUsers(companyId, args.locationId);
@@ -390,6 +573,9 @@ async function buildQcReport(args) {
   const twilioActive = phonesResult.ok && phonesResult.body?.accountStatus === "active";
   const transactions = txResult.ok ? transactionCount(txResult) : 0;
   const workflows = workflowResult.ok ? (workflowResult.body?.workflows ?? workflowResult.body?.data ?? []) : [];
+  const brandBoardList = brandBoardsFromResult(brandBoardsResult);
+  const brandBoards = brandBoardsResult.ok ? await hydrateBrandBoards(args.locationId, brandBoardList) : brandBoardList;
+  const brandPalette = brandPaletteFromHtml(publicWebsite?.html ?? "");
 
   const results = [];
 
@@ -467,7 +653,40 @@ async function buildQcReport(args) {
       }, "Connect business email and set automation_sender_email; both are required for pass."));
 
   const htmlLen = typeof website?.html === "string" ? website.html.length : 0;
+  const publicHtmlLen = typeof publicWebsite?.html === "string" ? publicWebsite.html.length : 0;
+  const publicImagesReady = Boolean(publicWebsite?.hero_image_url && publicWebsite?.about_image_url && publicWebsite?.contact_image_url);
   const imagesReady = ["website_hero_image", "website_about_image", "website_contact_image"].every((key) => Boolean(customValues.get(key)?.value));
+  results.push(publicWebsite?.status === "ready" && publicHtmlLen > 0 && publicImagesReady && imagesReady
+    ? createResult("website_generated_assets", "Website HTML/images generated", "pass", {
+        source: `${PATRONPRO_BASE}/api/website/${args.locationId}`,
+        websiteStatus: publicWebsite.status,
+        htmlBytes: publicHtmlLen,
+        imagesStatus: publicWebsite.images_status ?? null,
+        publicImageUrlsReady: publicImagesReady,
+        imageCustomValuesReady: imagesReady,
+        colors: hexColorsFromHtml(publicWebsite.html),
+      })
+    : createResult("website_generated_assets", "Website HTML/images generated", publicWebsiteResult.blocked ? "blocked" : "fail", {
+        publicStatus: publicWebsiteResult.status,
+        websiteStatus: publicWebsite?.status ?? website?.status ?? null,
+        htmlBytes: publicHtmlLen || htmlLen,
+        publicImageUrlsReady: publicImagesReady,
+        imageCustomValuesReady: imagesReady,
+      }, "Generate or repair website HTML/images before attempting GHL publication."));
+
+  const matchingBrandBoard = brandBoards.find((board) => brandBoardMatchesTarget(board, brandPalette));
+  results.push(matchingBrandBoard
+    ? createResult("brand_board", "Brand Board colors configured", "pass", {
+        board: brandBoardSummary(matchingBrandBoard),
+        expectedColors: brandPalette.map((color) => ({ id: color.id, label: color.label, hex: color.hex })),
+      })
+    : createResult("brand_board", "Brand Board colors configured", brandBoardsResult.blocked ? "blocked" : "fail", {
+        status: brandBoardsResult.status,
+        boardCount: brandBoards.length,
+        boards: brandBoards.map(brandBoardSummary),
+        expectedColors: brandPalette.map((color) => ({ id: color.id, label: color.label, hex: color.hex })),
+      }, "Create or update a Brand Board with the generated website palette and verify by readback."));
+
   const generatedReady = website?.status === "ready" && htmlLen > 0 && imagesReady;
   const publicationEvidence = customValues.get("landing_published_url")?.value ?? "";
   results.push(generatedReady && publicationEvidence
@@ -675,6 +894,90 @@ function plannedActionsFromReport(report) {
   };
 }
 
+async function buildWebsiteAssetsReport(args) {
+  const generatedAt = new Date().toISOString();
+  const [publicWebsiteResult, customValuesResult, funnelsResult] = await Promise.all([
+    fetchPublicWebsite(args.locationId),
+    fetchCustomValues(args.locationId),
+    fetchFunnels(args.locationId),
+  ]);
+
+  const publicWebsite = websiteFromPublicResult(publicWebsiteResult);
+  const html = String(publicWebsite?.html ?? "");
+  const customValues = normalizeCustomValues(customValuesResult.ok ? customValuesResult.body?.customValues : []);
+  const funnels = Array.isArray(funnelsResult.body?.funnels) ? funnelsResult.body.funnels : [];
+  const websites = funnels.filter((funnel) => funnel.type === "website");
+  const targetWebsite = websites.find((funnel) => /construction company/i.test(String(funnel.name ?? ""))) ?? websites[0] ?? null;
+  const pagesResult = targetWebsite?._id ? await fetchFunnelPages(args.locationId, targetWebsite._id) : null;
+  const pages = Array.isArray(pagesResult?.body) ? pagesResult.body : [];
+  const homePage = pages.find((page) => /home/i.test(String(page.name ?? ""))) ?? null;
+
+  return {
+    metadata: {
+      client: args.client,
+      locationId: args.locationId,
+      generatedAt,
+      command: "website-assets",
+      dryRun: true,
+    },
+    publicWebsite: {
+      ok: publicWebsiteResult.ok,
+      status: publicWebsiteResult.status,
+      endpoint: `${PATRONPRO_BASE}/api/website/${args.locationId}`,
+      websiteStatus: publicWebsite?.status ?? null,
+      imagesStatus: publicWebsite?.images_status ?? null,
+      htmlBytes: html.length,
+      colors: hexColorsFromHtml(html),
+      heroImageUrl: publicWebsite?.hero_image_url ?? "",
+      aboutImageUrl: publicWebsite?.about_image_url ?? "",
+      contactImageUrl: publicWebsite?.contact_image_url ?? "",
+      html,
+    },
+    ghlCustomValues: {
+      ok: customValuesResult.ok,
+      status: customValuesResult.status,
+      imageValues: {
+        website_hero_image: customValues.get("website_hero_image")?.value ?? "",
+        website_about_image: customValues.get("website_about_image")?.value ?? "",
+        website_contact_image: customValues.get("website_contact_image")?.value ?? "",
+      },
+      publicationEvidence: customValues.get("landing_published_url")?.value ?? "",
+      landingFormDeferred: !customValues.get("landing_form")?.value,
+    },
+    ghlWebsiteInventory: {
+      ok: funnelsResult.ok,
+      status: funnelsResult.status,
+      websiteCount: websites.length,
+      targetWebsite: targetWebsite ? {
+        id: targetWebsite._id ?? targetWebsite.id ?? "",
+        name: targetWebsite.name ?? "",
+        type: targetWebsite.type ?? "",
+        url: targetWebsite.url ?? "",
+        stepCount: Array.isArray(targetWebsite.steps) ? targetWebsite.steps.length : 0,
+      } : null,
+      pagesStatus: pagesResult?.status ?? null,
+      pages: pages.map((page) => ({
+        id: page._id ?? page.id ?? "",
+        name: page.name ?? "",
+        stepId: page.stepId ?? "",
+        updatedAt: page.updatedAt ?? "",
+      })),
+      homePage: homePage ? {
+        id: homePage._id ?? homePage.id ?? "",
+        name: homePage.name ?? "",
+        stepId: homePage.stepId ?? "",
+        updatedAt: homePage.updatedAt ?? "",
+      } : null,
+    },
+    publicationAutomation: {
+      apiWriteEndpointDocumented: false,
+      status: "not_proven",
+      note: "Official HighLevel funnels docs in this workspace expose funnel/page list endpoints, but no documented page content update/publish endpoint for replacing the GHL Custom HTML block.",
+      browserFallbackBead: "ppweb-elk.7",
+    },
+  };
+}
+
 async function buildCalendarOwnerPlan(args) {
   const generatedAt = new Date().toISOString();
   const locationResult = await fetchLocation(args.locationId);
@@ -718,6 +1021,7 @@ async function buildCalendarOwnerPlan(args) {
       targetTeamMembers: mainUserId ? [{ userId: mainUserId }] : [],
       alreadyAssigned,
       eligible,
+      scheduling: calendarSchedulingSummary(calendar),
       reason: hasDifferentMember
         ? "Calendar already has a different assigned team member; refusing to overwrite automatically."
         : hasUnsafeExistingMembers
@@ -743,6 +1047,34 @@ async function buildCalendarOwnerPlan(args) {
     },
     calendars: plannedCalendars,
     plannedAction: "Set teamMembers to the single main user for each onboarding calendar. Calendar activation is intentionally separate.",
+  };
+}
+
+async function buildCalendarActivationPlan(args) {
+  const ownerPlan = await buildCalendarOwnerPlan(args);
+  return {
+    ...ownerPlan,
+    metadata: {
+      ...ownerPlan.metadata,
+      command: "activate-calendars",
+      dryRun: !args.apply,
+    },
+    preconditions: {
+      ...ownerPlan.preconditions,
+      ok: ownerPlan.preconditions.ok && ownerPlan.calendars.every((calendar) => calendar.alreadyAssigned),
+      blockers: [
+        ...ownerPlan.preconditions.blockers,
+        ...ownerPlan.calendars
+          .filter((calendar) => !calendar.alreadyAssigned)
+          .map((calendar) => `${calendar.name} is not assigned to the single main user; run assign-calendar-owner first.`),
+      ],
+    },
+    calendars: ownerPlan.calendars.map((calendar) => ({
+      ...calendar,
+      alreadyActive: calendar.isActive === true,
+      targetIsActive: true,
+    })),
+    plannedAction: "Set isActive to true for each exact onboarding calendar. Owner/teamMembers remain unchanged.",
   };
 }
 
@@ -814,6 +1146,223 @@ async function assignCalendarOwner(args) {
       ok: verified,
       status: verificationResult.status,
       calendars: verificationCalendars,
+    },
+  };
+}
+
+async function activateCalendars(args) {
+  const plan = await buildCalendarActivationPlan(args);
+  if (!args.apply) {
+    return {
+      ...plan,
+      status: "dry_run",
+      note: "No GHL mutation performed. Re-run with --apply to activate the onboarding calendars.",
+    };
+  }
+
+  if (!plan.preconditions.ok) {
+    return {
+      ...plan,
+      status: "blocked",
+      note: "No GHL mutation performed because preconditions failed.",
+    };
+  }
+
+  const updates = [];
+  for (const calendar of plan.calendars) {
+    if (calendar.alreadyActive) {
+      updates.push({ id: calendar.id, name: calendar.name, status: "skipped", reason: "already active" });
+      continue;
+    }
+
+    const result = await ghlFetch(`/calendars/${encodeURIComponent(calendar.id)}`, {
+      method: "PUT",
+      version: GHL_CALENDAR_VERSION,
+      body: JSON.stringify({
+        isActive: true,
+      }),
+    });
+    updates.push({
+      id: calendar.id,
+      name: calendar.name,
+      status: result.ok ? "updated" : "failed",
+      statusCode: result.status,
+      error: result.ok ? null : result.body,
+    });
+  }
+
+  const verificationResult = await fetchCalendars(args.locationId);
+  const targetIdSet = new Set(plan.preconditions.targetCalendarIds);
+  const expectedUserId = plan.preconditions.mainUser?.id ?? "";
+  const verificationCalendars = calendarItems(verificationResult)
+    .filter((calendar) => targetIdSet.has(String(calendar.id ?? "")))
+    .map((calendar) => ({
+      id: calendar.id,
+      name: calendar.name,
+      isActive: calendar.isActive === true,
+      teamMemberIds: teamMemberIds(calendar),
+      scheduling: calendarSchedulingSummary(calendar),
+    }));
+  const verified = verificationResult.ok && verificationCalendars.length === targetIdSet.size && targetIdSet.size >= 2 && verificationCalendars.every((calendar) => {
+    return calendar.isActive === true && calendar.teamMemberIds.length === 1 && calendar.teamMemberIds[0] === expectedUserId;
+  });
+
+  return {
+    ...plan,
+    metadata: {
+      ...plan.metadata,
+      dryRun: false,
+    },
+    status: verified ? "pass" : "fail",
+    updates,
+    verification: {
+      ok: verified,
+      status: verificationResult.status,
+      calendars: verificationCalendars,
+    },
+  };
+}
+
+async function buildBrandBoardPlan(args) {
+  const generatedAt = new Date().toISOString();
+  const [publicWebsiteResult, brandBoardsResult] = await Promise.all([
+    fetchPublicWebsite(args.locationId),
+    fetchBrandBoards(args.locationId),
+  ]);
+  const publicWebsite = websiteFromPublicResult(publicWebsiteResult);
+  const palette = brandPaletteFromHtml(publicWebsite?.html ?? "");
+  const boardList = brandBoardsFromResult(brandBoardsResult);
+  const boards = brandBoardsResult.ok ? await hydrateBrandBoards(args.locationId, boardList) : boardList;
+  const matchingBoard = boards.find((board) => brandBoardMatchesTarget(board, palette));
+  const paletteOnlyBoard = boards.find((board) => brandBoardHasPalette(board, palette));
+  const namedBoard = boards.find((board) => String(board?.name ?? "").trim().toLowerCase() === String(args.client).trim().toLowerCase());
+  const targetBoard = matchingBoard ?? paletteOnlyBoard ?? namedBoard ?? boards[0] ?? null;
+  const targetBoardId = brandBoardId(targetBoard);
+  const blockers = [];
+
+  if (publicWebsiteResult.blocked || !publicWebsiteResult.ok) blockers.push("Generated website read failed; cannot derive brand palette.");
+  if (brandBoardsResult.blocked || !brandBoardsResult.ok) blockers.push("Brand Boards read failed.");
+  if (palette.length !== DEFAULT_BRAND_COLORS.length) blockers.push(`Expected ${DEFAULT_BRAND_COLORS.length} valid brand colors, found ${palette.length}.`);
+
+  const action = matchingBoard ? "noop" : targetBoardId ? "update" : "create";
+  const createPayload = {
+    locationId: args.locationId,
+    name: args.client,
+    colors: palette,
+    default: true,
+  };
+  const updatePayload = {
+    name: targetBoard?.name || args.client,
+    colors: palette,
+    default: true,
+  };
+
+  return {
+    metadata: {
+      client: args.client,
+      locationId: args.locationId,
+      generatedAt,
+      command: "apply-brand-board",
+      dryRun: !args.apply,
+    },
+    preconditions: {
+      ok: blockers.length === 0,
+      blockers,
+      publicWebsiteStatus: publicWebsiteResult.status,
+      brandBoardsStatus: brandBoardsResult.status,
+      htmlBytes: String(publicWebsite?.html ?? "").length,
+    },
+    current: {
+      boardCount: boards.length,
+      boards: boards.map(brandBoardSummary),
+    },
+    palette: palette.map((color) => ({ id: color.id, label: color.label, hex: color.hex, rgb: color.rgb, rgba: color.rgba })),
+    plannedAction: {
+      action,
+      endpoint: action === "create"
+        ? "POST /brand-boards/"
+        : action === "update"
+          ? `PATCH /brand-boards/${args.locationId}/${targetBoardId}`
+          : "none",
+      targetBoard: targetBoard ? brandBoardSummary(targetBoard) : null,
+      payload: action === "create" ? createPayload : action === "update" ? updatePayload : null,
+    },
+  };
+}
+
+async function applyBrandBoard(args) {
+  const plan = await buildBrandBoardPlan(args);
+  if (!args.apply) {
+    return {
+      ...plan,
+      status: "dry_run",
+      note: "No GHL mutation performed. Re-run with --apply to create or update the Brand Board colors.",
+    };
+  }
+
+  if (!plan.preconditions.ok) {
+    return {
+      ...plan,
+      status: "blocked",
+      note: "No GHL mutation performed because preconditions failed.",
+    };
+  }
+
+  if (plan.plannedAction.action === "noop") {
+    return {
+      ...plan,
+      metadata: {
+        ...plan.metadata,
+        dryRun: false,
+      },
+      status: "pass",
+      updates: [{ status: "skipped", reason: "Brand Board already contains expected palette." }],
+      verification: {
+        ok: true,
+        boards: plan.current.boards,
+      },
+    };
+  }
+
+  const result = plan.plannedAction.action === "create"
+    ? await ghlFetch("/brand-boards/", {
+        method: "POST",
+        version: GHL_BRAND_BOARD_VERSION,
+        body: JSON.stringify(plan.plannedAction.payload),
+      })
+    : await ghlFetch(`/brand-boards/${encodeURIComponent(args.locationId)}/${encodeURIComponent(plan.plannedAction.targetBoard.id)}`, {
+        method: "PATCH",
+        version: GHL_BRAND_BOARD_VERSION,
+        body: JSON.stringify(plan.plannedAction.payload),
+      });
+
+  const verificationResult = await fetchBrandBoards(args.locationId);
+  const verifiedBoardList = brandBoardsFromResult(verificationResult);
+  const verifiedBoards = verificationResult.ok ? await hydrateBrandBoards(args.locationId, verifiedBoardList) : verifiedBoardList;
+  const matchingBoard = verifiedBoards.find((board) => brandBoardMatchesTarget(board, plan.palette));
+  const verified = result.ok && verificationResult.ok && Boolean(matchingBoard);
+
+  return {
+    ...plan,
+    metadata: {
+      ...plan.metadata,
+      dryRun: false,
+    },
+    status: verified ? "pass" : "fail",
+    updates: [{
+      action: plan.plannedAction.action,
+      status: result.ok ? (plan.plannedAction.action === "create" ? "created" : "updated") : "failed",
+      statusCode: result.status,
+      response: result.ok ? {
+        keys: Object.keys(result.body ?? {}),
+        id: brandBoardId(result.body?.brandBoard ?? result.body),
+      } : result.body,
+    }],
+    verification: {
+      ok: verified,
+      status: verificationResult.status,
+      matchingBoard: matchingBoard ? brandBoardSummary(matchingBoard) : null,
+      boards: verifiedBoards.map(brandBoardSummary),
     },
   };
 }
@@ -907,12 +1456,18 @@ Usage:
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs qc [--location ${DEFAULT_LOCATION_ID}] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs plan [--out plan.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs assign-calendar-owner [--apply] [--out report.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs activate-calendars [--apply] [--out report.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs website-assets [--out report.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs apply-brand-board [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs export-docs [--out-dir dev/agents/artifacts/doc/test/liverpool-digital]
 
 Commands:
   qc                     Read-only QC across Supabase and GHL. Missing env becomes blocked checks.
   plan                   Read-only planned actions based on QC failures/blockers.
   assign-calendar-owner  Dry-run by default. With --apply, assigns the single main user to onboarding calendars.
+  activate-calendars     Dry-run by default. With --apply, sets onboarding calendars active after owner QA.
+  website-assets         Read-only proof for generated HTML/images and GHL website/page inventory.
+  apply-brand-board      Dry-run by default. With --apply, creates or updates a Brand Board from generated colors.
   export-docs            Export Supabase doc_pages to JSON and Markdown when Supabase env exists.
 
 Environment:
@@ -920,7 +1475,7 @@ Environment:
   GHL reads need GHL_LOCATION_PIT, GHL_MCP, or GHL_AGENCY_ACCESS_TOKEN.
 
 Safety:
-  This script is dry-run/read-only unless assign-calendar-owner is run with --apply.
+  This script is dry-run/read-only unless assign-calendar-owner, activate-calendars, or apply-brand-board is run with --apply.
 `);
 }
 
@@ -934,7 +1489,10 @@ async function main() {
   let payload;
   if (args.command === "qc") payload = await buildQcReport(args);
   else if (args.command === "plan") payload = plannedActionsFromReport(await buildQcReport(args));
+  else if (args.command === "website-assets") payload = await buildWebsiteAssetsReport(args);
   else if (args.command === "assign-calendar-owner") payload = await assignCalendarOwner(args);
+  else if (args.command === "activate-calendars") payload = await activateCalendars(args);
+  else if (args.command === "apply-brand-board") payload = await applyBrandBoard(args);
   else if (args.command === "export-docs") payload = await exportDocs(args);
   else throw new Error(`Unknown command: ${args.command}`);
 

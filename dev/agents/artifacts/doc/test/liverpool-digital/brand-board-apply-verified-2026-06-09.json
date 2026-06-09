@@ -1,0 +1,148 @@
+{
+  "metadata": {
+    "client": "Liverpool Digital",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "generatedAt": "2026-06-09T21:21:05.504Z",
+    "command": "apply-brand-board",
+    "dryRun": false
+  },
+  "preconditions": {
+    "ok": true,
+    "blockers": [],
+    "publicWebsiteStatus": 200,
+    "brandBoardsStatus": 200,
+    "htmlBytes": 33116
+  },
+  "current": {
+    "boardCount": 1,
+    "boards": [
+      {
+        "id": "6a28836266e5a89332434e0d",
+        "name": "Liverpool Digital",
+        "default": false,
+        "type": null,
+        "colors": [
+          {
+            "id": "",
+            "label": "Main",
+            "hex": "#471F23",
+            "rgb": "rgb(71, 31, 35)",
+            "rgba": "rgba(71, 31, 35, 1)"
+          },
+          {
+            "id": "",
+            "label": "Accent",
+            "hex": "#F69309",
+            "rgb": "rgb(246, 147, 9)",
+            "rgba": "rgba(246, 147, 9, 1)"
+          },
+          {
+            "id": "",
+            "label": "Complementary",
+            "hex": "#2F1417",
+            "rgb": "rgb(47, 20, 23)",
+            "rgba": "rgba(47, 20, 23, 1)"
+          }
+        ]
+      }
+    ]
+  },
+  "palette": [
+    {
+      "id": "main",
+      "label": "Main",
+      "hex": "#471F23",
+      "rgb": "rgb(71, 31, 35)",
+      "rgba": "rgba(71, 31, 35, 1)"
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "hex": "#F69309",
+      "rgb": "rgb(246, 147, 9)",
+      "rgba": "rgba(246, 147, 9, 1)"
+    },
+    {
+      "id": "complementary",
+      "label": "Complementary",
+      "hex": "#2F1417",
+      "rgb": "rgb(47, 20, 23)",
+      "rgba": "rgba(47, 20, 23, 1)"
+    }
+  ],
+  "plannedAction": {
+    "action": "noop",
+    "endpoint": "none",
+    "targetBoard": {
+      "id": "6a28836266e5a89332434e0d",
+      "name": "Liverpool Digital",
+      "default": false,
+      "type": null,
+      "colors": [
+        {
+          "id": "",
+          "label": "Main",
+          "hex": "#471F23",
+          "rgb": "rgb(71, 31, 35)",
+          "rgba": "rgba(71, 31, 35, 1)"
+        },
+        {
+          "id": "",
+          "label": "Accent",
+          "hex": "#F69309",
+          "rgb": "rgb(246, 147, 9)",
+          "rgba": "rgba(246, 147, 9, 1)"
+        },
+        {
+          "id": "",
+          "label": "Complementary",
+          "hex": "#2F1417",
+          "rgb": "rgb(47, 20, 23)",
+          "rgba": "rgba(47, 20, 23, 1)"
+        }
+      ]
+    },
+    "payload": null
+  },
+  "status": "pass",
+  "updates": [
+    {
+      "status": "skipped",
+      "reason": "Brand Board already contains expected palette."
+    }
+  ],
+  "verification": {
+    "ok": true,
+    "boards": [
+      {
+        "id": "6a28836266e5a89332434e0d",
+        "name": "Liverpool Digital",
+        "default": false,
+        "type": null,
+        "colors": [
+          {
+            "id": "",
+            "label": "Main",
+            "hex": "#471F23",
+            "rgb": "rgb(71, 31, 35)",
+            "rgba": "rgba(71, 31, 35, 1)"
+          },
+          {
+            "id": "",
+            "label": "Accent",
+            "hex": "#F69309",
+            "rgb": "rgb(246, 147, 9)",
+            "rgba": "rgba(246, 147, 9, 1)"
+          },
+          {
+            "id": "",
+            "label": "Complementary",
+            "hex": "#2F1417",
+            "rgb": "rgb(47, 20, 23)",
+            "rgba": "rgba(47, 20, 23, 1)"
+          }
+        ]
+      }
+    ]
+  }
+}

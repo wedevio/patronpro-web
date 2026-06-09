@@ -2,7 +2,7 @@
   "metadata": {
     "client": "Liverpool Digital",
     "locationId": "4cPIvLND9hFAIzWQ1ZbL",
-    "generatedAt": "2026-06-09T21:23:09.747Z",
+    "generatedAt": "2026-06-09T21:02:27.660Z",
     "command": "qc",
     "dryRun": true
   },
@@ -21,7 +21,7 @@
   },
   "statusCounts": {
     "blocked": 7,
-    "pass": 9,
+    "pass": 7,
     "fail": 7
   },
   "checklist": {
@@ -116,95 +116,12 @@
       "remediation": "Connect business email and set automation_sender_email; both are required for pass."
     },
     {
-      "id": "website_generated_assets",
-      "label": "Website HTML/images generated",
-      "status": "pass",
-      "evidence": {
-        "source": "https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL",
-        "websiteStatus": "ready",
-        "htmlBytes": 33116,
-        "imagesStatus": "ready",
-        "publicImageUrlsReady": true,
-        "imageCustomValuesReady": true,
-        "colors": [
-          "#f5f5f5",
-          "#ece8e8",
-          "#ffffff",
-          "#471f23",
-          "#2f1417",
-          "#f69309",
-          "#FFFFFF",
-          "#1c1c1c",
-          "#666666",
-          "#ddd6d6",
-          "#fff",
-          "#1f1f1f",
-          "#111"
-        ]
-      },
-      "remediation": ""
-    },
-    {
-      "id": "brand_board",
-      "label": "Brand Board colors configured",
-      "status": "pass",
-      "evidence": {
-        "board": {
-          "id": "6a28836266e5a89332434e0d",
-          "name": "Liverpool Digital",
-          "default": true,
-          "type": null,
-          "colors": [
-            {
-              "id": "",
-              "label": "Main",
-              "hex": "#471F23",
-              "rgb": "rgb(71, 31, 35)",
-              "rgba": "rgba(71, 31, 35, 1)"
-            },
-            {
-              "id": "",
-              "label": "Accent",
-              "hex": "#F69309",
-              "rgb": "rgb(246, 147, 9)",
-              "rgba": "rgba(246, 147, 9, 1)"
-            },
-            {
-              "id": "",
-              "label": "Complementary",
-              "hex": "#2F1417",
-              "rgb": "rgb(47, 20, 23)",
-              "rgba": "rgba(47, 20, 23, 1)"
-            }
-          ]
-        },
-        "expectedColors": [
-          {
-            "id": "main",
-            "label": "Main",
-            "hex": "#471F23"
-          },
-          {
-            "id": "accent",
-            "label": "Accent",
-            "hex": "#F69309"
-          },
-          {
-            "id": "complementary",
-            "label": "Complementary",
-            "hex": "#2F1417"
-          }
-        ]
-      },
-      "remediation": ""
-    },
-    {
       "id": "landing",
       "label": "Landing page generated/published",
       "status": "blocked",
       "evidence": {
-        "websiteStatus": "ready",
-        "htmlBytes": 33116,
+        "websiteStatus": null,
+        "htmlBytes": 0,
         "imagesReady": true,
         "publicationEvidence": "",
         "locationWebsite": ""
