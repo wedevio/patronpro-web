@@ -1,0 +1,302 @@
+{
+  "metadata": {
+    "client": "Liverpool Digital",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "generatedAt": "2026-06-09T20:34:12.591Z",
+    "command": "qc",
+    "dryRun": true
+  },
+  "env": {
+    "supabase": {
+      "ok": false,
+      "missing": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY"
+      ]
+    },
+    "ghl": {
+      "ok": true,
+      "missing": []
+    }
+  },
+  "statusCounts": {
+    "blocked": 6,
+    "pass": 4,
+    "fail": 9
+  },
+  "checklist": {
+    "form": false,
+    "domain": false,
+    "phone": false,
+    "email": false,
+    "landing": false,
+    "calendar": false,
+    "stripe": false,
+    "client_ok": false
+  },
+  "results": [
+    {
+      "id": "supabase_env",
+      "label": "Supabase access",
+      "status": "blocked",
+      "evidence": {
+        "missing": [
+          "NEXT_PUBLIC_SUPABASE_URL",
+          "SUPABASE_SERVICE_ROLE_KEY"
+        ]
+      },
+      "remediation": "Provide Supabase URL and service role key."
+    },
+    {
+      "id": "ghl_env",
+      "label": "GHL access",
+      "status": "pass",
+      "evidence": {
+        "tokenConfigured": true
+      },
+      "remediation": ""
+    },
+    {
+      "id": "location_exists",
+      "label": "GHL location exists",
+      "status": "pass",
+      "evidence": {
+        "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+        "name": "Liverpool Digital's Account",
+        "email": "info@picturelle.com",
+        "phone": "",
+        "website": "",
+        "customDomain": ""
+      },
+      "remediation": ""
+    },
+    {
+      "id": "form",
+      "label": "Onboarding submission received",
+      "status": "blocked",
+      "evidence": {},
+      "remediation": "Generate link and submit/seed onboarding data."
+    },
+    {
+      "id": "contact_ids_known",
+      "label": "Panel contact IDs known",
+      "status": "blocked",
+      "evidence": {},
+      "remediation": "Generate/submit onboarding link so contact IDs are recorded."
+    },
+    {
+      "id": "domain",
+      "label": "Domain connected / DNS configured",
+      "status": "fail",
+      "evidence": {
+        "customDomain": "",
+        "dominioWeb": "build.picturelle.com"
+      },
+      "remediation": "Connect DNS/custom domain and sync dominio_web; both are required for pass."
+    },
+    {
+      "id": "phone",
+      "label": "Phone number assigned in GHL",
+      "status": "fail",
+      "evidence": {
+        "status": 404,
+        "phoneNumbers": [],
+        "twilioActive": false
+      },
+      "remediation": "Assign GHL phone number and verify active phone-system account status."
+    },
+    {
+      "id": "email",
+      "label": "Business email connected",
+      "status": "fail",
+      "evidence": {
+        "locationEmail": "info@picturelle.com",
+        "automationSenderEmail": ""
+      },
+      "remediation": "Connect business email and set automation_sender_email; both are required for pass."
+    },
+    {
+      "id": "landing",
+      "label": "Landing page generated/published",
+      "status": "blocked",
+      "evidence": {
+        "websiteStatus": null,
+        "htmlBytes": 0,
+        "imagesReady": true,
+        "publicationEvidence": ""
+      },
+      "remediation": "Generate landing HTML/images and add GHL publication evidence."
+    },
+    {
+      "id": "calendar_owner_assignment",
+      "label": "Calendar owner/team member assigned",
+      "status": "pass",
+      "evidence": {
+        "mainUser": {
+          "id": "7f3lxWXzcFRp3QMYqotT",
+          "name": "Liverpool Digital",
+          "emailPresent": true
+        },
+        "calendars": [
+          {
+            "id": "a2rL0hFhXf2sIdKZecoM",
+            "name": "Consulta Gratuita",
+            "isActive": false,
+            "teamMemberIds": [
+              "7f3lxWXzcFRp3QMYqotT"
+            ],
+            "calendarType": "personal"
+          },
+          {
+            "id": "tWEirh80FGFIuCAIXGWb",
+            "name": "On Site Visit",
+            "isActive": false,
+            "teamMemberIds": [
+              "7f3lxWXzcFRp3QMYqotT"
+            ],
+            "calendarType": "round_robin"
+          }
+        ]
+      },
+      "remediation": ""
+    },
+    {
+      "id": "calendar_activation",
+      "label": "Calendars active",
+      "status": "fail",
+      "evidence": {
+        "calendars": [
+          {
+            "id": "a2rL0hFhXf2sIdKZecoM",
+            "name": "Consulta Gratuita",
+            "isActive": false,
+            "teamMemberIds": [
+              "7f3lxWXzcFRp3QMYqotT"
+            ],
+            "calendarType": "personal"
+          },
+          {
+            "id": "tWEirh80FGFIuCAIXGWb",
+            "name": "On Site Visit",
+            "isActive": false,
+            "teamMemberIds": [
+              "7f3lxWXzcFRp3QMYqotT"
+            ],
+            "calendarType": "round_robin"
+          }
+        ]
+      },
+      "remediation": "Activate calendars only after owner assignment and availability/booking rules are confirmed."
+    },
+    {
+      "id": "calendar",
+      "label": "Calendar configured",
+      "status": "fail",
+      "evidence": {
+        "calendars": [
+          "Consulta Gratuita",
+          "On Site Visit"
+        ],
+        "hasOnSiteValue": true,
+        "hasConsultationValue": true,
+        "ownerAssigned": true,
+        "active": false
+      },
+      "remediation": "Verify both calendars, booking custom values, owner assignment, and active state."
+    },
+    {
+      "id": "stripe",
+      "label": "Stripe connected",
+      "status": "fail",
+      "evidence": {
+        "transactionCount": 0,
+        "formHasStripeAccount": null
+      },
+      "remediation": "Connect Stripe or confirm with stronger proof than the form flag."
+    },
+    {
+      "id": "client_ok",
+      "label": "Client access verified",
+      "status": "blocked",
+      "evidence": {
+        "checked": false
+      },
+      "remediation": "Collect explicit client/operator sign-off."
+    },
+    {
+      "id": "account_approved",
+      "label": "Panel account approved",
+      "status": "blocked",
+      "evidence": {
+        "approvedAt": null
+      },
+      "remediation": "Approve account only after setup evidence passes."
+    },
+    {
+      "id": "staff_permissions",
+      "label": "Default staff permissions disabled",
+      "status": "pass",
+      "evidence": {
+        "userCount": 1,
+        "disabledPermissions": [
+          "adPublishingEnabled",
+          "adPublishingReadOnly",
+          "adwordsReportingEnabled",
+          "contentAiEnabled",
+          "gokollabEnabled",
+          "wordpressEnabled",
+          "botService"
+        ]
+      },
+      "remediation": ""
+    },
+    {
+      "id": "core_custom_values",
+      "label": "Core custom values",
+      "status": "fail",
+      "evidence": {
+        "missing": [
+          "domain_purchase_authorized"
+        ]
+      },
+      "remediation": "Run custom value sync after onboarding data is complete."
+    },
+    {
+      "id": "landing_custom_values",
+      "label": "Landing custom values",
+      "status": "fail",
+      "evidence": {
+        "missing": [
+          "company_phone",
+          "automation_sender_email",
+          "landing_form"
+        ]
+      },
+      "remediation": "Create missing custom values used by landing generator/published page."
+    },
+    {
+      "id": "onboarding_workflow",
+      "label": "Onboarding workflow present",
+      "status": "fail",
+      "evidence": {
+        "workflowNames": [
+          "6. Stale Leads",
+          "Booked Appointment [Stage to Appointment Scheduled]",
+          "[EN] 1. New Lead Registered - Through LP",
+          "[EN] 2. Free Consultation Call - No Show",
+          "[EN] 4. Invoice Paid - Invoice Task Created",
+          "[EN] New Contracts Reminders",
+          "[EN] New Estimate Reminders",
+          "[EN] New Invoice Reminders",
+          "[ES] 1. New Lead Registered - Through LP",
+          "[ES] 2 Free Consultation Call - No Show",
+          "[ES] 4. Invoice Paid - Invoice Task Created",
+          "[ES] New Contracts Reminders",
+          "[ES] New Estimate Reminders",
+          "[ES] New Invoice Reminders"
+        ]
+      },
+      "remediation": "Verify GHL workflow trigger tag ob-meeting-ok and webhook body in GHL UI."
+    }
+  ]
+}

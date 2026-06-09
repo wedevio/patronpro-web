@@ -10,3 +10,8 @@
 - Stored source index, required change list, and FSN1 runbook in RLM under `patron-pro/docs/patronpro-web`.
 - Added dry-run automation harness for `qc`, `plan`, and `export-docs` modes.
 - Ran quality-loop review with Codex and Mini reviewers; merged must-fix findings into the harness.
+- Added a quality-loop onboarding automation report for Liverpool Digital with section-by-section automation/QC mapping.
+- Added `assign-calendar-owner` harness command with dry-run default and exact calendar targeting from booking custom values.
+- Applied the safe live calendar owner assignment in GHL: `Consulta Gratuita` and `On Site Visit` now each have the single Liverpool Digital user assigned.
+- Added explicit QA gates for calendar owner assignment, calendar activation, deferred `landing_form`, and final account activation.
+- Filed follow-up beads for calendar activation, website publication proof, Supabase/panel state access, Brand Boards, and GHL contact-form/DND customization.

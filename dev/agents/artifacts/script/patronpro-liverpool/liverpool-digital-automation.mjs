@@ -1,11 +1,12 @@
 #!/usr/bin/env bun
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 const DEFAULT_LOCATION_ID = "4cPIvLND9hFAIzWQ1ZbL";
 const DEFAULT_CLIENT = "Liverpool Digital";
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const GHL_VERSION = "2021-07-28";
+const GHL_CALENDAR_VERSION = "2021-04-15";
 
 const CHECKLIST_ITEMS = [
   ["form", "Formulario de onboarding recibido"],
@@ -61,14 +62,22 @@ function parseArgs(argv) {
     client: DEFAULT_CLIENT,
     out: "",
     outDir: "dev/agents/artifacts/doc/test/liverpool-digital",
+    apply: false,
   };
+
+  function readFlagValue(index, flag) {
+    const value = argv[index + 1];
+    if (!value || value.startsWith("-")) throw new Error(`${flag} requires a value.`);
+    return value;
+  }
 
   for (let i = first && !first.startsWith("-") ? 3 : 2; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--location" || arg === "--location-id") args.locationId = argv[++i] ?? args.locationId;
-    else if (arg === "--client") args.client = argv[++i] ?? args.client;
-    else if (arg === "--out") args.out = argv[++i] ?? args.out;
-    else if (arg === "--out-dir") args.outDir = argv[++i] ?? args.outDir;
+    if (arg === "--location" || arg === "--location-id") args.locationId = readFlagValue(i++, arg);
+    else if (arg === "--client") args.client = readFlagValue(i++, arg);
+    else if (arg === "--out") args.out = readFlagValue(i++, arg);
+    else if (arg === "--out-dir") args.outDir = readFlagValue(i++, arg);
+    else if (arg === "--apply") args.apply = true;
     else if (arg === "--help" || arg === "-h") args.command = "help";
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -127,17 +136,25 @@ function createResult(id, label, status, evidence = {}, remediation = "") {
   return { id, label, status, evidence, remediation };
 }
 
+function normalizeFieldKey(input) {
+  return String(input ?? "")
+    .replace(/[{}]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/^custom_values\./, "")
+    .trim();
+}
+
 function normalizeCustomValues(values) {
   const map = new Map();
+  const knownKeys = [...CORE_CUSTOM_VALUES, ...LANDING_CUSTOM_VALUES, ...PUBLICATION_CUSTOM_VALUES];
   for (const value of values ?? []) {
     const fieldKey = String(value.fieldKey ?? value.field_key ?? value.name ?? "");
     const name = String(value.name ?? fieldKey);
+    const normalizedFieldKey = normalizeFieldKey(fieldKey);
+    const normalizedName = normalizeFieldKey(name);
     const raw = value.value ?? "";
-    for (const key of [...CORE_CUSTOM_VALUES, ...LANDING_CUSTOM_VALUES, ...PUBLICATION_CUSTOM_VALUES]) {
-      if (fieldKey.includes(key) || name === key) {
-        map.set(key, { ...value, value: raw });
-      }
-    }
+    const key = knownKeys.find((item) => normalizedFieldKey === item || normalizedName === item);
+    if (key) map.set(key, { ...value, value: raw });
   }
   return map;
 }
@@ -223,7 +240,7 @@ async function fetchCustomValues(locationId) {
 }
 
 async function fetchCalendars(locationId) {
-  return ghlFetch(`/calendars/?locationId=${encodeURIComponent(locationId)}`);
+  return ghlFetch(`/calendars/?locationId=${encodeURIComponent(locationId)}&showDrafted=true`, { version: GHL_CALENDAR_VERSION });
 }
 
 async function fetchPhoneNumbers(locationId) {
@@ -282,12 +299,64 @@ function calendarNames(calendarResult) {
   return Array.isArray(calendars) ? calendars.map((cal) => String(cal.name ?? "")) : [];
 }
 
+function calendarItems(calendarResult) {
+  const calendars = calendarResult?.body?.calendars ?? calendarResult?.body?.data ?? [];
+  return Array.isArray(calendars) ? calendars : [];
+}
+
+function calendarIdFromBookingUrl(value) {
+  const match = String(value ?? "").match(/\/booking\/([^/?#\s]+)/);
+  return match?.[1] ?? "";
+}
+
+function targetCalendarIdsFromCustomValues(customValues) {
+  return [
+    calendarIdFromBookingUrl(customValues?.get("free_consultation_calendar")?.value),
+    calendarIdFromBookingUrl(customValues?.get("on_site_visit_calendar")?.value),
+  ].filter(Boolean);
+}
+
+function targetOnboardingCalendars(calendars, customValues = null) {
+  const targetIds = new Set(targetCalendarIdsFromCustomValues(customValues));
+  if (targetIds.size > 0) {
+    return calendars.filter((calendar) => targetIds.has(String(calendar.id ?? "")));
+  }
+
+  return calendars.filter((calendar) => {
+    const name = String(calendar.name ?? "");
+    return /on[- ]?site/i.test(name) || /consultation|consulta/i.test(name);
+  });
+}
+
+function teamMemberIds(calendar) {
+  return Array.isArray(calendar?.teamMembers)
+    ? calendar.teamMembers.map((member) => member?.userId).filter(Boolean)
+    : [];
+}
+
+function publicUser(user) {
+  return {
+    id: user.id ?? "",
+    name: [user.firstName, user.lastName].filter(Boolean).join(" ") || user.name || "",
+    emailPresent: Boolean(user.email),
+  };
+}
+
 function transactionCount(txResult) {
   const body = txResult?.body ?? {};
   if (typeof body.totalCount === "number") return body.totalCount;
   if (Array.isArray(body.data)) return body.data.length;
   if (Array.isArray(body.transactions)) return body.transactions.length;
   return 0;
+}
+
+function normalizeDomain(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/.*$/, "")
+    .toLowerCase();
 }
 
 async function buildQcReport(args) {
@@ -314,6 +383,8 @@ async function buildQcReport(args) {
   const users = usersResult.ok ? (usersResult.body?.users ?? usersResult.body?.data ?? []) : [];
   const customValues = normalizeCustomValues(customValuesResult.ok ? customValuesResult.body?.customValues : []);
   const calendars = calendarNames(calendarsResult);
+  const calendarRecords = calendarItems(calendarsResult);
+  const onboardingCalendars = targetOnboardingCalendars(calendarRecords, customValues);
   const phones = phonesResult.ok ? (phonesResult.body?.numbers ?? phonesResult.body?.data ?? []) : [];
   const phoneNumbers = Array.isArray(phones) ? phones.map((item) => item.phoneNumber ?? item.number ?? item.phone).filter(Boolean) : [];
   const twilioActive = phonesResult.ok && phonesResult.body?.accountStatus === "active";
@@ -364,16 +435,17 @@ async function buildQcReport(args) {
     : createResult("contact_ids_known", "Panel contact IDs known", accountResult.blocked ? "blocked" : "fail", {}, "Generate/submit onboarding link so contact IDs are recorded."));
 
   const domainValue = customValues.get("dominio_web")?.value ?? submission?.domain ?? "";
-  const domainReady = Boolean(location?.customDomain && domainValue);
+  const customDomain = location?.customDomain ?? "";
+  const domainReady = Boolean(customDomain && domainValue && normalizeDomain(customDomain) === normalizeDomain(domainValue));
   results.push(domainReady
     ? createResult("domain", "Domain connected / DNS configured", "pass", {
-        customDomain: location?.customDomain ?? "",
+        customDomain,
         dominioWeb: domainValue,
       })
     : createResult("domain", "Domain connected / DNS configured", customValuesResult.blocked || locationResult.blocked ? "blocked" : "fail", {
-        customDomain: location?.customDomain ?? "",
+        customDomain,
         dominioWeb: domainValue,
-      }, "Connect DNS/custom domain and sync dominio_web; both are required for pass."));
+      }, "Connect DNS/custom domain and ensure customDomain matches dominio_web; DNS/SSL/public reachability still require separate proof."));
 
   results.push(phoneNumbers.length > 0 && twilioActive
     ? createResult("phone", "Phone number assigned in GHL", "pass", { phoneNumbers, twilioActive })
@@ -397,7 +469,7 @@ async function buildQcReport(args) {
   const htmlLen = typeof website?.html === "string" ? website.html.length : 0;
   const imagesReady = ["website_hero_image", "website_about_image", "website_contact_image"].every((key) => Boolean(customValues.get(key)?.value));
   const generatedReady = website?.status === "ready" && htmlLen > 0 && imagesReady;
-  const publicationEvidence = customValues.get("landing_published_url")?.value ?? location?.website ?? "";
+  const publicationEvidence = customValues.get("landing_published_url")?.value ?? "";
   results.push(generatedReady && publicationEvidence
     ? createResult("landing", "Landing page generated/published", "pass", {
         websiteStatus: website.status,
@@ -411,23 +483,62 @@ async function buildQcReport(args) {
         htmlBytes: htmlLen,
         imagesReady,
         publicationEvidence,
-      }, "Generate landing HTML/images and add GHL publication evidence."));
+        locationWebsite: location?.website ?? "",
+      }, "Generate landing HTML/images and add explicit GHL publication evidence; location.website alone is not proof."));
 
   const hasOnSiteCalendar = calendars.some((name) => /on[- ]?site/i.test(name));
   const hasConsultationCalendar = calendars.some((name) => /consultation|consulta/i.test(name));
   const hasOnSiteValue = Boolean(customValues.get("on_site_visit_calendar")?.value);
   const hasConsultationValue = Boolean(customValues.get("free_consultation_calendar")?.value);
-  results.push(hasOnSiteCalendar && hasConsultationCalendar && hasOnSiteValue && hasConsultationValue
+  const mainUser = Array.isArray(users) && users.length === 1 ? users[0] : null;
+  const mainUserId = mainUser?.id ?? "";
+  const targetCalendarEvidence = onboardingCalendars.map((calendar) => ({
+    id: calendar.id,
+    name: calendar.name,
+    isActive: calendar.isActive === true,
+    teamMemberIds: teamMemberIds(calendar),
+    calendarType: calendar.calendarType ?? null,
+  }));
+  const calendarOwnerReady = Boolean(mainUserId)
+    && onboardingCalendars.length >= 2
+    && onboardingCalendars.every((calendar) => {
+      const ids = teamMemberIds(calendar);
+      return ids.length === 1 && ids[0] === mainUserId;
+    });
+  const calendarActivationReady = onboardingCalendars.length >= 2 && onboardingCalendars.every((calendar) => calendar.isActive === true);
+
+  results.push(calendarOwnerReady
+    ? createResult("calendar_owner_assignment", "Calendar owner/team member assigned", "pass", {
+        mainUser: publicUser(mainUser),
+        calendars: targetCalendarEvidence,
+      })
+    : createResult("calendar_owner_assignment", "Calendar owner/team member assigned", calendarsResult.blocked || usersResult.blocked ? "blocked" : "fail", {
+        mainUser: mainUser ? publicUser(mainUser) : null,
+        userCount: Array.isArray(users) ? users.length : 0,
+        calendars: targetCalendarEvidence,
+      }, "Assign the single main user to each onboarding calendar through teamMembers before activation."));
+
+  results.push(calendarActivationReady
+    ? createResult("calendar_activation", "Calendars active", "pass", { calendars: targetCalendarEvidence })
+    : createResult("calendar_activation", "Calendars active", calendarsResult.blocked ? "blocked" : "fail", {
+        calendars: targetCalendarEvidence,
+      }, "Activate calendars only after owner assignment and availability/booking rules are confirmed."));
+
+  results.push(hasOnSiteCalendar && hasConsultationCalendar && hasOnSiteValue && hasConsultationValue && calendarOwnerReady && calendarActivationReady
     ? createResult("calendar", "Calendar configured", "pass", {
         calendars,
         onSiteValue: customValues.get("on_site_visit_calendar")?.value ?? "",
         consultationValue: customValues.get("free_consultation_calendar")?.value ?? "",
+        ownerAssigned: true,
+        active: true,
       })
     : createResult("calendar", "Calendar configured", calendarsResult.blocked ? "blocked" : "fail", {
         calendars,
         hasOnSiteValue,
         hasConsultationValue,
-      }, "Create/verify both on-site and consultation calendars, then sync both booking custom values."));
+        ownerAssigned: calendarOwnerReady,
+        active: calendarActivationReady,
+      }, "Verify both calendars, booking custom values, owner assignment, and active state."));
 
   results.push(transactions > 0
     ? createResult("stripe", "Stripe connected", "pass", { transactionCount: transactions })
@@ -469,16 +580,50 @@ async function buildQcReport(args) {
     ? createResult("core_custom_values", "Core custom values", "pass", { keys: CORE_CUSTOM_VALUES })
     : createResult("core_custom_values", "Core custom values", customValuesResult.blocked ? "blocked" : "fail", { missing: missingCore }, "Run custom value sync after onboarding data is complete."));
 
-  const missingLanding = LANDING_CUSTOM_VALUES.filter((key) => !customValues.get(key)?.value);
+  const landingFormValue = customValues.get("landing_form")?.value ?? "";
+  const landingFormGateOk = (!twilioActive && !landingFormValue) || (twilioActive && Boolean(landingFormValue));
+  results.push(landingFormGateOk
+    ? createResult("landing_form_gate", "Landing form Twilio gate", "pass", {
+        twilioActive,
+        landingFormPresent: Boolean(landingFormValue),
+        deferred: !twilioActive && !landingFormValue,
+      })
+    : createResult("landing_form_gate", "Landing form Twilio gate", phonesResult.blocked ? "blocked" : "fail", {
+        twilioActive,
+        landingFormPresent: Boolean(landingFormValue),
+      }, "Keep landing_form empty until Twilio/Trust Center is approved; set it only after phone/Twilio approval."));
+
+  const missingLanding = LANDING_CUSTOM_VALUES
+    .filter((key) => key !== "landing_form")
+    .filter((key) => !customValues.get(key)?.value);
   results.push(missingLanding.length === 0
-    ? createResult("landing_custom_values", "Landing custom values", "pass", { keys: LANDING_CUSTOM_VALUES })
-    : createResult("landing_custom_values", "Landing custom values", customValuesResult.blocked ? "blocked" : "fail", { missing: missingLanding }, "Create missing custom values used by landing generator/published page."));
+    ? createResult("landing_custom_values", "Landing custom values excluding deferred form", "pass", {
+        keys: LANDING_CUSTOM_VALUES.filter((key) => key !== "landing_form"),
+        deferred: ["landing_form"],
+      })
+    : createResult("landing_custom_values", "Landing custom values excluding deferred form", customValuesResult.blocked ? "blocked" : "fail", {
+        missing: missingLanding,
+        deferred: ["landing_form"],
+      }, "Create only non-deferred custom values used by the landing page; landing_form is gated by Twilio approval."));
 
   const workflowNames = Array.isArray(workflows) ? workflows.map((workflow) => String(workflow.name ?? workflow.title ?? "")) : [];
   const hasOnboardingWorkflow = workflowNames.some((name) => /onboarding|ob-meeting-ok|send onboarding/i.test(name));
   results.push(hasOnboardingWorkflow
     ? createResult("onboarding_workflow", "Onboarding workflow present", "pass", { workflowNames })
     : createResult("onboarding_workflow", "Onboarding workflow present", workflowResult.blocked ? "blocked" : "fail", { workflowNames }, "Verify GHL workflow trigger tag ob-meeting-ok and webhook body in GHL UI."));
+
+  const criticalActivationIds = ["domain", "phone", "email", "landing", "calendar", "stripe", "client_ok", "landing_form_gate"];
+  const criticalRows = results.filter((row) => criticalActivationIds.includes(row.id));
+  const criticalReady = criticalRows.every((row) => row.status === "pass");
+  results.push(account?.approved_at && criticalReady
+    ? createResult("account_activation_gate", "Final account activation gate", "pass", {
+        approvedAt: account.approved_at,
+        criticalIds: criticalActivationIds,
+      })
+    : createResult("account_activation_gate", "Final account activation gate", accountResult.blocked ? "blocked" : "fail", {
+        approvedAt: account?.approved_at ?? null,
+        criticalStatuses: Object.fromEntries(criticalRows.map((row) => [row.id, row.status])),
+      }, "Do not activate/approve access until all critical setup, Twilio/form, Stripe, calendar, landing, and client sign-off gates pass."));
 
   const statusCounts = results.reduce((acc, row) => {
     acc[row.status] = (acc[row.status] ?? 0) + 1;
@@ -527,6 +672,149 @@ function plannedActionsFromReport(report) {
       note: "This plan is dry-run output. No mutation is performed by this command.",
     },
     actions,
+  };
+}
+
+async function buildCalendarOwnerPlan(args) {
+  const generatedAt = new Date().toISOString();
+  const locationResult = await fetchLocation(args.locationId);
+  const location = locationResult.ok ? locationPayload(locationResult) : null;
+  const companyId = location?.companyId ?? location?.company_id ?? location?.company?.id ?? "";
+  const [usersResult, calendarsResult, customValuesResult] = await Promise.all([
+    fetchUsers(companyId, args.locationId),
+    fetchCalendars(args.locationId),
+    fetchCustomValues(args.locationId),
+  ]);
+
+  const users = usersResult.ok ? (usersResult.body?.users ?? usersResult.body?.data ?? []) : [];
+  const customValues = normalizeCustomValues(customValuesResult.ok ? customValuesResult.body?.customValues : []);
+  const calendars = calendarItems(calendarsResult);
+  const targetCalendarIds = targetCalendarIdsFromCustomValues(customValues);
+  const onboardingCalendars = targetOnboardingCalendars(calendars, customValues);
+  const mainUser = Array.isArray(users) && users.length === 1 ? users[0] : null;
+  const mainUserId = mainUser?.id ?? "";
+  const blockers = [];
+
+  if (locationResult.blocked || !locationResult.ok) blockers.push("GHL location read failed.");
+  if (usersResult.blocked || !usersResult.ok) blockers.push("GHL users read failed.");
+  if (calendarsResult.blocked || !calendarsResult.ok) blockers.push("GHL calendars read failed.");
+  if (customValuesResult.blocked || !customValuesResult.ok) blockers.push("GHL custom values read failed.");
+  if (!mainUserId) blockers.push(`Expected exactly one location user, found ${Array.isArray(users) ? users.length : 0}.`);
+  if (targetCalendarIds.length < 2) blockers.push(`Expected 2 target calendar IDs from booking custom values, found ${targetCalendarIds.length}.`);
+  if (onboardingCalendars.length !== targetCalendarIds.length) blockers.push(`Expected ${targetCalendarIds.length} target calendars by exact custom value IDs, found ${onboardingCalendars.length}.`);
+
+  const plannedCalendars = onboardingCalendars.map((calendar) => {
+    const currentTeamMemberIds = teamMemberIds(calendar);
+    const hasDifferentMember = currentTeamMemberIds.some((id) => id !== mainUserId);
+    const alreadyAssigned = currentTeamMemberIds.length === 1 && currentTeamMemberIds[0] === mainUserId;
+    const hasUnsafeExistingMembers = currentTeamMemberIds.length > 0 && !alreadyAssigned;
+    const eligible = Boolean(mainUserId) && !hasDifferentMember && !hasUnsafeExistingMembers;
+    return {
+      id: calendar.id,
+      name: calendar.name,
+      calendarType: calendar.calendarType ?? null,
+      isActive: calendar.isActive === true,
+      currentTeamMemberIds,
+      targetTeamMembers: mainUserId ? [{ userId: mainUserId }] : [],
+      alreadyAssigned,
+      eligible,
+      reason: hasDifferentMember
+        ? "Calendar already has a different assigned team member; refusing to overwrite automatically."
+        : hasUnsafeExistingMembers
+          ? "Calendar has an unexpected existing team member shape; refusing to reduce or rewrite automatically."
+          : "",
+    };
+  });
+
+  return {
+    metadata: {
+      client: args.client,
+      locationId: args.locationId,
+      generatedAt,
+      command: "assign-calendar-owner",
+      dryRun: !args.apply,
+    },
+    preconditions: {
+      ok: blockers.length === 0 && plannedCalendars.every((calendar) => calendar.eligible),
+      blockers,
+      mainUser: mainUser ? publicUser(mainUser) : null,
+      userCount: Array.isArray(users) ? users.length : 0,
+      targetCalendarIds,
+    },
+    calendars: plannedCalendars,
+    plannedAction: "Set teamMembers to the single main user for each onboarding calendar. Calendar activation is intentionally separate.",
+  };
+}
+
+async function assignCalendarOwner(args) {
+  const plan = await buildCalendarOwnerPlan(args);
+  if (!args.apply) {
+    return {
+      ...plan,
+      status: "dry_run",
+      note: "No GHL mutation performed. Re-run with --apply to assign the calendar owner/team member.",
+    };
+  }
+
+  if (!plan.preconditions.ok) {
+    return {
+      ...plan,
+      status: "blocked",
+      note: "No GHL mutation performed because preconditions failed.",
+    };
+  }
+
+  const updates = [];
+  for (const calendar of plan.calendars) {
+    if (calendar.alreadyAssigned) {
+      updates.push({ id: calendar.id, name: calendar.name, status: "skipped", reason: "already assigned" });
+      continue;
+    }
+
+    const result = await ghlFetch(`/calendars/${encodeURIComponent(calendar.id)}`, {
+      method: "PUT",
+      version: GHL_CALENDAR_VERSION,
+      body: JSON.stringify({
+        teamMembers: calendar.targetTeamMembers,
+      }),
+    });
+    updates.push({
+      id: calendar.id,
+      name: calendar.name,
+      status: result.ok ? "updated" : "failed",
+      statusCode: result.status,
+      error: result.ok ? null : result.body,
+    });
+  }
+
+  const verificationResult = await fetchCalendars(args.locationId);
+  const targetIdSet = new Set(plan.preconditions.targetCalendarIds);
+  const verificationCalendars = calendarItems(verificationResult)
+    .filter((calendar) => targetIdSet.has(String(calendar.id ?? "")))
+    .map((calendar) => ({
+    id: calendar.id,
+    name: calendar.name,
+    isActive: calendar.isActive === true,
+    teamMemberIds: teamMemberIds(calendar),
+  }));
+  const expectedUserId = plan.preconditions.mainUser?.id ?? "";
+  const verified = verificationResult.ok && verificationCalendars.length === targetIdSet.size && targetIdSet.size >= 2 && verificationCalendars.every((calendar) => {
+    return calendar.teamMemberIds.length === 1 && calendar.teamMemberIds[0] === expectedUserId;
+  });
+
+  return {
+    ...plan,
+    metadata: {
+      ...plan.metadata,
+      dryRun: false,
+    },
+    status: verified ? "pass" : "fail",
+    updates,
+    verification: {
+      ok: verified,
+      status: verificationResult.status,
+      calendars: verificationCalendars,
+    },
   };
 }
 
@@ -599,6 +887,11 @@ async function writeOutput(args, payload) {
   const text = JSON.stringify(payload, null, 2);
   if (args.out) {
     const target = resolve(args.out);
+    const repoRoot = process.cwd();
+    const rel = relative(repoRoot, target);
+    if (rel.startsWith("..") || isAbsolute(rel)) {
+      throw new Error(`Refusing to write outside the repository: ${target}`);
+    }
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${text}\n`);
     return target;
@@ -613,19 +906,21 @@ function printHelp() {
 Usage:
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs qc [--location ${DEFAULT_LOCATION_ID}] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs plan [--out plan.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs assign-calendar-owner [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs export-docs [--out-dir dev/agents/artifacts/doc/test/liverpool-digital]
 
 Commands:
-  qc           Read-only QC across Supabase and GHL. Missing env becomes blocked checks.
-  plan         Read-only planned actions based on QC failures/blockers.
-  export-docs  Export Supabase doc_pages to JSON and Markdown when Supabase env exists.
+  qc                     Read-only QC across Supabase and GHL. Missing env becomes blocked checks.
+  plan                   Read-only planned actions based on QC failures/blockers.
+  assign-calendar-owner  Dry-run by default. With --apply, assigns the single main user to onboarding calendars.
+  export-docs            Export Supabase doc_pages to JSON and Markdown when Supabase env exists.
 
 Environment:
   Supabase reads need NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
   GHL reads need GHL_LOCATION_PIT, GHL_MCP, or GHL_AGENCY_ACCESS_TOKEN.
 
 Safety:
-  This script is dry-run/read-only. It performs no live mutation.
+  This script is dry-run/read-only unless assign-calendar-owner is run with --apply.
 `);
 }
 
@@ -639,6 +934,7 @@ async function main() {
   let payload;
   if (args.command === "qc") payload = await buildQcReport(args);
   else if (args.command === "plan") payload = plannedActionsFromReport(await buildQcReport(args));
+  else if (args.command === "assign-calendar-owner") payload = await assignCalendarOwner(args);
   else if (args.command === "export-docs") payload = await exportDocs(args);
   else throw new Error(`Unknown command: ${args.command}`);
 

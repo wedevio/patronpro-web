@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "client": "Liverpool Digital",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "generatedAt": "2026-06-09T20:52:43.894Z",
+    "command": "assign-calendar-owner",
+    "dryRun": false
+  },
+  "preconditions": {
+    "ok": true,
+    "blockers": [],
+    "mainUser": {
+      "id": "7f3lxWXzcFRp3QMYqotT",
+      "name": "Liverpool Digital",
+      "emailPresent": true
+    },
+    "userCount": 1,
+    "targetCalendarIds": [
+      "a2rL0hFhXf2sIdKZecoM",
+      "tWEirh80FGFIuCAIXGWb"
+    ]
+  },
+  "calendars": [
+    {
+      "id": "a2rL0hFhXf2sIdKZecoM",
+      "name": "Consulta Gratuita",
+      "calendarType": "personal",
+      "isActive": false,
+      "currentTeamMemberIds": [
+        "7f3lxWXzcFRp3QMYqotT"
+      ],
+      "targetTeamMembers": [
+        {
+          "userId": "7f3lxWXzcFRp3QMYqotT"
+        }
+      ],
+      "alreadyAssigned": true,
+      "eligible": true,
+      "reason": ""
+    },
+    {
+      "id": "tWEirh80FGFIuCAIXGWb",
+      "name": "On Site Visit",
+      "calendarType": "round_robin",
+      "isActive": false,
+      "currentTeamMemberIds": [
+        "7f3lxWXzcFRp3QMYqotT"
+      ],
+      "targetTeamMembers": [
+        {
+          "userId": "7f3lxWXzcFRp3QMYqotT"
+        }
+      ],
+      "alreadyAssigned": true,
+      "eligible": true,
+      "reason": ""
+    }
+  ],
+  "plannedAction": "Set teamMembers to the single main user for each onboarding calendar. Calendar activation is intentionally separate.",
+  "status": "pass",
+  "updates": [
+    {
+      "id": "a2rL0hFhXf2sIdKZecoM",
+      "name": "Consulta Gratuita",
+      "status": "skipped",
+      "reason": "already assigned"
+    },
+    {
+      "id": "tWEirh80FGFIuCAIXGWb",
+      "name": "On Site Visit",
+      "status": "skipped",
+      "reason": "already assigned"
+    }
+  ],
+  "verification": {
+    "ok": true,
+    "status": 200,
+    "calendars": [
+      {
+        "id": "a2rL0hFhXf2sIdKZecoM",
+        "name": "Consulta Gratuita",
+        "isActive": false,
+        "teamMemberIds": [
+          "7f3lxWXzcFRp3QMYqotT"
+        ]
+      },
+      {
+        "id": "tWEirh80FGFIuCAIXGWb",
+        "name": "On Site Visit",
+        "isActive": false,
+        "teamMemberIds": [
+          "7f3lxWXzcFRp3QMYqotT"
+        ]
+      }
+    ]
+  }
+}
