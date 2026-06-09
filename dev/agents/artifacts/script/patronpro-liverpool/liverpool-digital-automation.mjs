@@ -40,6 +40,18 @@ const LANDING_CUSTOM_VALUES = [
   "website_hero_image",
   "website_about_image",
   "website_contact_image",
+  "website_hero_image_avif_srcset",
+  "website_hero_image_webp_srcset",
+  "website_hero_image_jpeg_srcset",
+  "website_hero_image_jpeg_fallback",
+  "website_about_image_avif_srcset",
+  "website_about_image_webp_srcset",
+  "website_about_image_jpeg_srcset",
+  "website_about_image_jpeg_fallback",
+  "website_contact_image_avif_srcset",
+  "website_contact_image_webp_srcset",
+  "website_contact_image_jpeg_srcset",
+  "website_contact_image_jpeg_fallback",
 ];
 
 const PUBLICATION_CUSTOM_VALUES = [

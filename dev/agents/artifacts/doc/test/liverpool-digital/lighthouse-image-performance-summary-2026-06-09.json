@@ -1,0 +1,378 @@
+{
+  "generatedAt": "2026-06-09T23:45:01.596609Z",
+  "sourceDir": "/mnt/m/picturelle/devio/onboarding/doc/test-website",
+  "reports": [
+    {
+      "file": "api.getpatronpro.com-20260609T162555.json",
+      "url": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+      "fetchTime": "2026-06-09T22:25:55.794Z",
+      "lighthouseVersion": "13.2.0",
+      "formFactor": "mobile",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": true
+      },
+      "scores": {
+        "performance": 65,
+        "accessibility": 94,
+        "best-practices": 77,
+        "seo": 58
+      },
+      "metrics": {
+        "first-contentful-paint": "4.2 s",
+        "largest-contentful-paint": "31.2 s",
+        "speed-index": "4.2 s",
+        "total-blocking-time": "50 ms",
+        "cumulative-layout-shift": "0.001"
+      },
+      "lcpElement": {
+        "present": false,
+        "score": null,
+        "displayValue": null,
+        "items": [],
+        "note": "Lighthouse did not include a largest-contentful-paint-element audit item in this JSON export."
+      },
+      "resourceSummary": {
+        "total": {
+          "requestCount": 32,
+          "transferSize": 8658511
+        },
+        "image": {
+          "requestCount": 4,
+          "transferSize": 8255736
+        },
+        "script": {
+          "requestCount": 20,
+          "transferSize": 300141
+        },
+        "font": {
+          "requestCount": 2,
+          "transferSize": 69905
+        },
+        "document": {
+          "requestCount": 1,
+          "transferSize": 21925
+        },
+        "stylesheet": {
+          "requestCount": 3,
+          "transferSize": 9771
+        },
+        "third-party": {
+          "requestCount": 30,
+          "transferSize": 8635853
+        }
+      },
+      "imageRequests": [
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "mimeType": "image/png",
+          "transferSize": 685570,
+          "resourceSize": 684766,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "mimeType": "image/png",
+          "transferSize": 2669399,
+          "resourceSize": 2668265,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "mimeType": "image/png",
+          "transferSize": 2548921,
+          "resourceSize": 2547808,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "mimeType": "image/png",
+          "transferSize": 2351846,
+          "resourceSize": 2350721,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico",
+          "mimeType": "image/x-icon",
+          "transferSize": 157,
+          "resourceSize": 37,
+          "resourceType": "Other",
+          "statusCode": 200
+        }
+      ],
+      "topPayloads": [
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "totalBytes": 2669399
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "totalBytes": 2548921
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "totalBytes": 2351846
+        },
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "totalBytes": 685570
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/_preview/DdMdIBUb.js",
+          "totalBytes": 119602
+        },
+        {
+          "url": "https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js",
+          "totalBytes": 108890
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+          "totalBytes": 48464
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/_preview/DuD0R0k5.js",
+          "totalBytes": 25044
+        },
+        {
+          "url": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+          "totalBytes": 21925
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/oswald/v57/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYjMdZwl.woff2",
+          "totalBytes": 21441
+        }
+      ],
+      "imageOpportunities": {
+        "uses-responsive-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "uses-optimized-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "uses-webp-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "modern-image-formats": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "offscreen-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "prioritize-lcp-image": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        }
+      }
+    },
+    {
+      "file": "api.getpatronpro.com-20260609T163042.json",
+      "url": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+      "fetchTime": "2026-06-09T22:30:42.132Z",
+      "lighthouseVersion": "13.2.0",
+      "formFactor": "desktop",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": true
+      },
+      "scores": {
+        "performance": 74,
+        "accessibility": 93,
+        "best-practices": 77,
+        "seo": 58
+      },
+      "metrics": {
+        "first-contentful-paint": "1.3 s",
+        "largest-contentful-paint": "4.4 s",
+        "speed-index": "1.3 s",
+        "total-blocking-time": "0 ms",
+        "cumulative-layout-shift": "0.011"
+      },
+      "lcpElement": {
+        "present": false,
+        "score": null,
+        "displayValue": null,
+        "items": [],
+        "note": "Lighthouse did not include a largest-contentful-paint-element audit item in this JSON export."
+      },
+      "resourceSummary": {
+        "total": {
+          "requestCount": 32,
+          "transferSize": 8662691
+        },
+        "image": {
+          "requestCount": 4,
+          "transferSize": 8259024
+        },
+        "script": {
+          "requestCount": 20,
+          "transferSize": 299892
+        },
+        "font": {
+          "requestCount": 2,
+          "transferSize": 69905
+        },
+        "document": {
+          "requestCount": 1,
+          "transferSize": 22014
+        },
+        "stylesheet": {
+          "requestCount": 3,
+          "transferSize": 10765
+        },
+        "third-party": {
+          "requestCount": 30,
+          "transferSize": 8639868
+        }
+      },
+      "imageRequests": [
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "mimeType": "image/png",
+          "transferSize": 685602,
+          "resourceSize": 684766,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "mimeType": "image/png",
+          "transferSize": 2669935,
+          "resourceSize": 2668265,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "mimeType": "image/png",
+          "transferSize": 2551697,
+          "resourceSize": 2547808,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "mimeType": "image/png",
+          "transferSize": 2351790,
+          "resourceSize": 2350721,
+          "resourceType": "Image",
+          "statusCode": 200
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico",
+          "mimeType": "image/x-icon",
+          "transferSize": 958,
+          "resourceSize": 37,
+          "resourceType": "Other",
+          "statusCode": 200
+        }
+      ],
+      "topPayloads": [
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "totalBytes": 2669935
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "totalBytes": 2551697
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "totalBytes": 2351790
+        },
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "totalBytes": 685602
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/_preview/DdMdIBUb.js",
+          "totalBytes": 119605
+        },
+        {
+          "url": "https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js",
+          "totalBytes": 108899
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+          "totalBytes": 48464
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/_preview/DuD0R0k5.js",
+          "totalBytes": 24767
+        },
+        {
+          "url": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+          "totalBytes": 22014
+        },
+        {
+          "url": "https://fonts.gstatic.com/s/oswald/v57/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYjMdZwl.woff2",
+          "totalBytes": 21441
+        }
+      ],
+      "imageOpportunities": {
+        "uses-responsive-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "uses-optimized-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "uses-webp-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "modern-image-formats": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "offscreen-images": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        },
+        "prioritize-lcp-image": {
+          "present": false,
+          "score": null,
+          "displayValue": null,
+          "items": []
+        }
+      }
+    }
+  ]
+}

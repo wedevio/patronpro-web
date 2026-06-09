@@ -5,8 +5,16 @@ import { getAdminClient } from "@/lib/supabase/client";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { uploadMediaFromBuffer } from "@/lib/ghl/media";
 import { upsertCustomValue } from "@/lib/ghl/custom-values";
+import {
+  buildVariantSet,
+  createWebsiteImageVariants,
+  websiteImageCustomValueMappings,
+  type WebsiteImageSubject,
+  type WebsiteImageVariantSet,
+} from "@/lib/website/image-variants";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export const maxDuration = 300;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,9 +34,10 @@ interface OpenAIImageResponse {
   error?: { message: string };
 }
 
-interface GeneratedAsset {
-  buffer: Buffer;
-  publicUrl: string;
+type GeneratedImageSet = WebsiteImageVariantSet;
+
+function isNonNull<T>(value: T | null): value is T {
+  return value !== null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -132,41 +141,76 @@ export async function POST(request: Request): Promise<Response> {
     );
 
     // Generate 3 images in parallel
-    const subjects = ["hero", "about", "contact"] as const;
+    const subjects: WebsiteImageSubject[] = ["hero", "about", "contact"];
 
-    async function processSubject(subject: typeof subjects[number]): Promise<GeneratedAsset | null> {
+    async function processSubject(subject: WebsiteImageSubject): Promise<GeneratedImageSet | null> {
       const prompt = buildImagePrompt(subject, body);
       const buffer = await generateImage(prompt, openaiKey!);
       if (!buffer) return null;
 
-      // Upload to Supabase Storage (our copy)
-      const storagePath = `${locationId}/${subject}.png`;
-      const { error } = await db.storage
-        .from("website-assets")
-        .upload(storagePath, buffer, { contentType: "image/png", upsert: true });
+      const set = await createWebsiteImageVariants(subject, buffer);
+      const uploadedVariants = await Promise.all(
+        set.variants.map(async (variant) => {
+          const storagePath = `${locationId}/${variant.filename}`;
+          const { error } = await db.storage
+            .from("website-assets")
+            .upload(storagePath, variant.buffer, {
+              contentType: variant.contentType,
+              upsert: true,
+            });
 
-      if (error) {
-        console.error(`[generate-images] Supabase upload error (${subject}):`, error.message);
+          if (error) {
+            console.error(
+              `[generate-images] Supabase upload error (${variant.filename}):`,
+              error.message,
+            );
+            return null;
+          }
+
+          const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
+          return {
+            ...variant,
+            publicUrl: urlData.publicUrl,
+          };
+        })
+      );
+
+      const variants = uploadedVariants.filter(isNonNull);
+      if (variants.length !== set.variants.length) {
         return null;
       }
 
-      const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
-      return {
-        buffer,
-        publicUrl: urlData.publicUrl,
-      };
+      return buildVariantSet(subject, variants);
     }
 
-    const [heroAsset, aboutAsset, contactAsset] = await Promise.all([
-      processSubject("hero"),
-      processSubject("about"),
-      processSubject("contact"),
-    ]);
+    const [heroAsset, aboutAsset, contactAsset] = await Promise.all(
+      subjects.map(processSubject),
+    );
 
     const results = {
-      hero: heroAsset?.publicUrl ?? null,
-      about: aboutAsset?.publicUrl ?? null,
-      contact: contactAsset?.publicUrl ?? null,
+      hero: heroAsset?.legacyUrl ?? null,
+      about: aboutAsset?.legacyUrl ?? null,
+      contact: contactAsset?.legacyUrl ?? null,
+    };
+    const responsiveResults = {
+      hero: heroAsset ? {
+        avifSrcset: heroAsset.srcsets.avif,
+        webpSrcset: heroAsset.srcsets.webp,
+        jpegSrcset: heroAsset.srcsets.jpg,
+        jpegFallback: heroAsset.jpegFallbackUrl,
+      } : null,
+      about: aboutAsset ? {
+        avifSrcset: aboutAsset.srcsets.avif,
+        webpSrcset: aboutAsset.srcsets.webp,
+        jpegSrcset: aboutAsset.srcsets.jpg,
+        jpegFallback: aboutAsset.jpegFallbackUrl,
+      } : null,
+      contact: contactAsset ? {
+        avifSrcset: contactAsset.srcsets.avif,
+        webpSrcset: contactAsset.srcsets.webp,
+        jpegSrcset: contactAsset.srcsets.jpg,
+        jpegFallback: contactAsset.jpegFallbackUrl,
+      } : null,
     };
     const anyGenerated = Boolean(results.hero || results.about || results.contact);
 
@@ -191,33 +235,52 @@ export async function POST(request: Request): Promise<Response> {
           { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
         ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
 
-        const syncAssetToGhl = async (
-          asset: GeneratedAsset | null,
-          filename: string,
-          customValueKey: string,
+        const syncAssetSetToGhl = async (
+          asset: GeneratedImageSet | null,
         ): Promise<boolean> => {
           if (!asset) return true;
 
-          const ghlUrl = await uploadMediaFromBuffer(
-            locationId,
-            asset.buffer,
-            filename,
-            "image/png",
-            token,
+          const uploadedVariants = await Promise.all(
+            asset.variants.map(async (variant) => {
+              const ghlUrl = await uploadMediaFromBuffer(
+                locationId,
+                variant.buffer,
+                variant.filename,
+                variant.contentType,
+                token,
+              );
+
+              if (!ghlUrl) {
+                console.error(`[generate-images] GHL media upload failed for ${variant.filename}`);
+                return null;
+              }
+
+              return {
+                ...variant,
+                ghlUrl,
+              };
+            })
           );
 
-          if (!ghlUrl) {
-            console.error(`[generate-images] GHL media upload failed for ${filename}`);
+          const variants = uploadedVariants.filter(isNonNull);
+          if (variants.length !== asset.variants.length) {
             return false;
           }
 
-          return upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
+          const syncedSet = buildVariantSet(asset.subject, variants);
+          const mappings = websiteImageCustomValueMappings(syncedSet);
+          const results = await Promise.all(
+            mappings.map(([fieldKey, value]) =>
+              upsertCustomValue(locationId, fieldKey, value, token, existing)
+            )
+          );
+          return results.every(Boolean);
         };
 
         const syncResults = await Promise.all([
-          syncAssetToGhl(heroAsset, "website_hero_image.png", "website_hero_image"),
-          syncAssetToGhl(aboutAsset, "website_about_image.png", "website_about_image"),
-          syncAssetToGhl(contactAsset, "website_contact_image.png", "website_contact_image"),
+          syncAssetSetToGhl(heroAsset),
+          syncAssetSetToGhl(aboutAsset),
+          syncAssetSetToGhl(contactAsset),
         ]);
 
         const ghlSyncOk = syncResults.every(Boolean);
@@ -241,7 +304,10 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    return NextResponse.json({ success: true, images: results }, { status: 200 });
+    return NextResponse.json(
+      { success: true, images: results, responsiveImages: responsiveResults },
+      { status: 200 },
+    );
 
   } catch (err) {
     console.error("[POST /api/website/generate-images]", err);

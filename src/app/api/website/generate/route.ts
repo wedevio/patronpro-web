@@ -51,6 +51,25 @@ Custom values disponibles:
 - {{custom_values.logo_cuadrado}}
 - {{custom_values.landing_form}}
 
+Imágenes responsive disponibles:
+- {{custom_values.website_hero_image_avif_srcset}}
+- {{custom_values.website_hero_image_webp_srcset}}
+- {{custom_values.website_hero_image_jpeg_srcset}}
+- {{custom_values.website_hero_image_jpeg_fallback}}
+- {{custom_values.website_about_image_avif_srcset}}
+- {{custom_values.website_about_image_webp_srcset}}
+- {{custom_values.website_about_image_jpeg_srcset}}
+- {{custom_values.website_about_image_jpeg_fallback}}
+- {{custom_values.website_contact_image_avif_srcset}}
+- {{custom_values.website_contact_image_webp_srcset}}
+- {{custom_values.website_contact_image_jpeg_srcset}}
+- {{custom_values.website_contact_image_jpeg_fallback}}
+
+Valores legacy de imagen — solo fallback si necesitas compatibilidad:
+- {{custom_values.website_hero_image}}
+- {{custom_values.website_about_image}}
+- {{custom_values.website_contact_image}}
+
 Teléfono (siempre clickeable):
 <a href="tel:{{custom_values.company_phone}}">{{custom_values.company_phone}}</a>
 
@@ -93,17 +112,44 @@ Al final del body, antes de </body>:
 
 Elige iconos apropiados al sector. Para construcción: hard-hat, hammer, wrench, drill, home, building-2, shield-check, truck, etc.
 
-IMÁGENES — siempre usa estos tres custom values como fuentes de imagen:
-- Hero background:   {{custom_values.website_hero_image}}
-- Sección Nosotros:  {{custom_values.website_about_image}}
-- CTA de urgencia:   {{custom_values.website_contact_image}}
+IMÁGENES — usa SIEMPRE <picture>, nunca PNG directo como background-image.
+Orden obligatorio de formatos:
+1. AVIF primero
+2. WebP segundo
+3. JPEG comprimido como fallback final
 
-Hero con imagen y overlay:
+Hero/LCP — debe ser eager y high priority:
 
-<section style="background-image:url('{{custom_values.website_hero_image}}');background-size:cover;background-position:center;position:relative;">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);"></div>
-  <div style="position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:80px 24px;"><!-- contenido --></div>
+<picture class="responsive-bg hero-bg" aria-hidden="true">
+  <source type="image/avif" srcset="{{custom_values.website_hero_image_avif_srcset}}" sizes="100vw">
+  <source type="image/webp" srcset="{{custom_values.website_hero_image_webp_srcset}}" sizes="100vw">
+  <img src="{{custom_values.website_hero_image_jpeg_fallback}}" srcset="{{custom_values.website_hero_image_jpeg_srcset}}" sizes="100vw" width="1440" height="960" alt="" loading="eager" fetchpriority="high" decoding="async">
+</picture>
+
+Imágenes below-fold — siempre lazy:
+
+<picture class="responsive-bg" aria-hidden="true">
+  <source type="image/avif" srcset="{{custom_values.website_about_image_avif_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
+  <source type="image/webp" srcset="{{custom_values.website_about_image_webp_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
+  <img src="{{custom_values.website_about_image_jpeg_fallback}}" srcset="{{custom_values.website_about_image_jpeg_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw" width="960" height="640" alt="" loading="lazy" decoding="async">
+</picture>
+
+CSS obligatorio para imágenes tipo background:
+
+.image-shell{position:relative;overflow:hidden;background-color:var(--primary);}
+.responsive-bg{position:absolute;inset:0;z-index:0;}
+.responsive-bg img{width:100%;height:100%;object-fit:cover;}
+.image-overlay{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.55);}
+.image-content{position:relative;z-index:2;}
+
+Usa esta estructura para HERO y CTA de urgencia:
+
+<section class="hero image-shell">
+  <!-- picture responsive + overlay -->
+  <div class="image-content"><!-- contenido --></div>
 </section>
+
+Usa la misma lógica para la imagen de Nosotros dentro del bloque visual.
 
 El headline del hero NUNCA supera font-size:3.5rem en desktop. En móvil usa clamp o media query para reducirlo (máx 2.2rem en mobile). El subtítulo no supera 1.1rem. Todo el contenido del hero (textos, CTAs, stats) va dentro del div con max-width:1200px — el fondo de imagen/color puede ser full-width pero el texto NUNCA.
 
