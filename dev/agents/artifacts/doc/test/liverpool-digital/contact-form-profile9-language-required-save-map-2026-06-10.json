@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "actions": [
+      "enabled required-contact.language",
+      "clicked page Save"
+    ],
+    "checkedBefore": "false",
+    "saveStateBefore": {
+      "disabled": false,
+      "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--primary hr-button--xs",
+      "ariaDisabled": null,
+      "text": "Save"
+    },
+    "idState": {
+      "required-contact.language": {
+        "role": "checkbox",
+        "ariaChecked": "true",
+        "ariaDisabled": "false",
+        "className": "hr-checkbox hr-checkbox--checked hr-checkbox-xs hr-checkbox__container",
+        "text": "",
+        "rect": {
+          "x": 1215,
+          "y": 576,
+          "w": 14,
+          "h": 14
+        }
+      },
+      "required-contact.first_name": {
+        "role": "checkbox",
+        "ariaChecked": "true",
+        "ariaDisabled": "true",
+        "className": "hr-checkbox hr-checkbox--checked hr-checkbox--disabled hr-checkbox-xs hr-checkbox__container",
+        "text": "",
+        "rect": {
+          "x": 1215,
+          "y": 360,
+          "w": 14,
+          "h": 14
+        }
+      },
+      "save-button": {
+        "role": null,
+        "ariaChecked": null,
+        "disabled": true,
+        "ariaDisabled": null,
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--disabled hr-button--primary hr-button--xs",
+        "text": "Save",
+        "rect": {
+          "x": 1355,
+          "y": 952,
+          "w": 55,
+          "h": 32
+        }
+      }
+    },
+    "hasLanguage": true,
+    "hasDnd": false,
+    "textTail": "Liverpool Digital's Account\nQueretaro, Querétaro\nSearch\nctrlK\nGo Back\nSettings\n\nMY BUSINESS\n\nBusiness Profile\nBilling\nMy Staff\nOpportunities & Pipelines\n\nBUSINESS SERVICES\n\nCalendars\nEmail Services\nPhone System\nWhatsApp\n\nOTHER SETTINGS\n\nObjects\nCustom Fields\nCustom Values\nImport Data\nManage Scoring\nDomains & URL Redirects\nExternal Tracking\nIntegrations\nPrivate Integrations\nTags\nLabs\nNew\nAudit Logs\nBrand Boards\n1/1\nSummer of AI: Your AI tools are free all summer.\nActivate now\nAsk AI\nView Changelog\nNotifications\nSupport\nOB\n\nContacts\n\nDetails\n\nAssociations\n\nCustomize fields for add Contact\n\nCustomize contact detail view\n\nCustomize fields for add Contact\n\nControl which fields show up when adding a contacts. Mark required fields, change their order, or remove them\n\nReset to default\n\nPreview\n\nManage fields\n\nSearch\n\nField name\n\nField type\n\nRequired\n\nAction\n\nFirst name\n\nText\n\n \n\nLast name\n\nText\n\n \n\nEmail\n\nEmail\n\n \n\nPhone\n\nPhone\n\n \n\nContact type\n\nSingle options\n\n \n\nTime zone\n\nSingle options\n\n \n\nLanguage\n\nSingle options\n\n \n\nCancel\n\nSave\n\nAll changes are already saved"
+  },
+  "data": {
+    "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/settings/objects/6a26effcef5e1353b56f0e22/customize-record-modal",
+    "bodyTextHead": "Liverpool Digital's Account\nQueretaro, Querétaro\nSearch\nctrlK\nGo Back\nSettings\n\nMY BUSINESS\n\nBusiness Profile\nBilling\nMy Staff\nOpportunities & Pipelines\n\nBUSINESS SERVICES\n\nCalendars\nEmail Services\nPhone System\nWhatsApp\n\nOTHER SETTINGS\n\nObjects\nCustom Fields\nCustom Values\nImport Data\nManage Scoring\nDomains & URL Redirects\nExternal Tracking\nIntegrations\nPrivate Integrations\nTags\nLabs\nNew\nAudit Logs\nBrand Boards\n1/1\nSummer of AI: Your AI tools are free all summer.\nActivate now\nAsk AI\nView Changelog\nNotifications\nSupport\nOB\n\nContacts\n\nDetails\n\nAssociations\n\nCustomize fields for add Contact\n\nCustomize contact detail view\n\nCustomize fields for add Contact\n\nControl which fields show up when adding a contacts. Mark required fields, change their order, or remove them\n\nReset to default\n\nPreview\n\nManage fields\n\nSearch\n\nField name\n\nField type\n\nRequired\n\nAction\n\nFirst name\n\nText\n\n \n\nLast name\n\nText\n\n \n\nEmail\n\nEmail\n\n \n\nPhone\n\nPhone\n\n \n\nContact type\n\nSingle options\n\n \n\nTime zone\n\nSingle options\n\n \n\nLanguage\n\nSingle options\n\n \n\nCancel\n\nSave\n\nAll changes are already saved",
+    "hasLanguage": true,
+    "hasDnd": false,
+    "idState": {
+      "required-contact.language": {
+        "role": "checkbox",
+        "ariaChecked": "true",
+        "ariaDisabled": "false",
+        "className": "hr-checkbox hr-checkbox--checked hr-checkbox-xs hr-checkbox__container",
+        "text": "",
+        "rect": {
+          "x": 1215,
+          "y": 576,
+          "w": 14,
+          "h": 14
+        }
+      },
+      "required-contact.first_name": {
+        "role": "checkbox",
+        "ariaChecked": "true",
+        "ariaDisabled": "true",
+        "className": "hr-checkbox hr-checkbox--checked hr-checkbox--disabled hr-checkbox-xs hr-checkbox__container",
+        "text": "",
+        "rect": {
+          "x": 1215,
+          "y": 360,
+          "w": 14,
+          "h": 14
+        }
+      },
+      "save-button": {
+        "role": null,
+        "ariaChecked": null,
+        "disabled": true,
+        "ariaDisabled": null,
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--disabled hr-button--primary hr-button--xs",
+        "text": "Save",
+        "rect": {
+          "x": 1355,
+          "y": 952,
+          "w": 55,
+          "h": 32
+        }
+      }
+    }
+  }
+}

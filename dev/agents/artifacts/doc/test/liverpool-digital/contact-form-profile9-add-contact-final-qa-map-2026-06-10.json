@@ -1,0 +1,7363 @@
+{
+  "summary": {
+    "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/contacts/smart_list/All",
+    "hasLanguage": true,
+    "hasDnd": false,
+    "languageContext": "ress\n+ Add email\nPhone\n \nSelect\nEnter phone number\n+ Add phone\nContact type\nSelect an option\nTime zone\nSelect an option\nLanguage\n *\nSelect an option\nSave and add another\n\nCancel\n\nSave",
+    "dndContext": null,
+    "relevantElements": [
+      {
+        "i": 0,
+        "tag": "HTML",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 2,
+        "tag": "BODY",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "botpress-widget-closed",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 855,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-container addRecordForm hr-v-3-4-1 hr-detached-container",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 857,
+        "tag": "DIV",
+        "role": "dialog",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-form-drawer-contact",
+        "className": "hr-drawer hr-drawer--right-placement hr-drawer--native-scrollbar",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 858,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-content-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 859,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-form-drawer-content",
+        "className": "hr-drawer-content",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 865,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-body hr-scrollbar",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 902
+        },
+        "visible": true
+      },
+      {
+        "i": 866,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-scrollbar-container",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 902
+        },
+        "visible": true
+      },
+      {
+        "i": 867,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-scrollbar-content hr-drawer-body-content-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 591
+        },
+        "visible": true
+      },
+      {
+        "i": 868,
+        "tag": "FORM",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form hr-form-md",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 567
+        },
+        "visible": true
+      },
+      {
+        "i": 869,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "relative",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 86
+        },
+        "visible": true
+      },
+      {
+        "i": 870,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row justify-between pb-1",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 22
+        },
+        "visible": true
+      },
+      {
+        "i": 871,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Contact image",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "profile-photo-label",
+        "className": "hr-text hr-text-md hr-text-bold",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 85,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 879,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "First name * Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.first_name",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container mb-1",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 880,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "First name *",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 881,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 67,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 883,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 884,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 885,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "form-input-contact.first_name",
+        "className": "hr-input hr-input--resizable hr-input--focus hr-input--stateful hr-input--2xs",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 886,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 887,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__input",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 888,
+        "tag": "INPUT",
+        "role": null,
+        "type": "text",
+        "text": "",
+        "aria": null,
+        "placeholder": "Enter First name",
+        "name": null,
+        "id": null,
+        "className": "hr-input__input-el",
+        "checked": false,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 889,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__placeholder",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1025,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.language",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 1026,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Language *",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 1027,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Language",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 62,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 1031,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "contact.language",
+        "className": "hr-select",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1047,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-footer",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 943,
+          "w": 360,
+          "h": 57
+        },
+        "visible": true
+      },
+      {
+        "i": 1048,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex justify-between items-center w-full",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 956,
+          "w": 344,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1049,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Save and add another",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "save-and-add-another-btn",
+        "className": "font-semibold pl-1 cursor-not-allowed text-gray-400 flex items-center justify-center gap-2",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 961,
+          "w": 140,
+          "h": 22
+        },
+        "visible": true
+      },
+      {
+        "i": 1050,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex gap-3",
+        "checked": null,
+        "rect": {
+          "x": 1312,
+          "y": 956,
+          "w": 120,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1051,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Cancel",
+        "aria": "",
+        "placeholder": null,
+        "name": null,
+        "id": "cancel-record-save-btn",
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--secondary hr-button--xs",
+        "checked": null,
+        "rect": {
+          "x": 1312,
+          "y": 956,
+          "w": 60,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1052,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Cancel",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1322,
+          "y": 963,
+          "w": 40,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1053,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Cancel",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "cancel-record-save-btn-label",
+        "className": "hr-text hr-text-md hr-text-semibold hr-button__content-default-slot",
+        "checked": null,
+        "rect": {
+          "x": 1322,
+          "y": 963,
+          "w": 40,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1057,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Save",
+        "aria": "",
+        "placeholder": null,
+        "name": null,
+        "id": "save-record-btn",
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--disabled hr-button--primary hr-button--xs",
+        "checked": null,
+        "rect": {
+          "x": 1384,
+          "y": 956,
+          "w": 48,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1058,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1394,
+          "y": 963,
+          "w": 28,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1059,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "save-record-btn-label",
+        "className": "hr-text hr-text-md hr-text-semibold hr-button__content-default-slot",
+        "checked": null,
+        "rect": {
+          "x": 1394,
+          "y": 963,
+          "w": 28,
+          "h": 18
+        },
+        "visible": true
+      }
+    ]
+  },
+  "data": {
+    "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/contacts/smart_list/All",
+    "title": "Patron Pro",
+    "bodyTextHead": "Liverpool Digital's Account\nQueretaro, Querétaro\nSearch\nctrlK\nAsk AI\nDashboard\nConversations\nCalendars\nContacts\nOpportunities\nPayments\n\nAI Agents\nMarketing\nAutomation\nSites\nMedia Storage\nReputation\nApp Marketplace\nMobile App\nSoporte Técnico\nSettings\n1/1\nSummer of AI: Your AI tools are free all summer.\nActivate now\nWhat's new\nContact updates\nAsk AI\nView Changelog\nNotifications\nSupport\nOB\nContacts\nSmart Lists\nBulk Actions\nTasks\nCompanies\nContacts\n1 Contact\nImport\nAdd Contact\nAll\nAdd smart list\nAdvanced Filters\nSort\nManage fields\nContact name\nPhone\nEmail\nBusiness name\nCreated (PDT)\nLast activity (PDT)\nTags\n\n\nO\nOscar\ninfo@picturelle.com\ninfo@picturelle.com\n \nJun 8, 2026\n12:33 PM\nPage 1 of 1\n20\n50\n100\nPrevious1Next\n\nAdd Contact\n\nContact image\n\nCustomize form\nFirst name\n *\nEnter First name\nLast name\nEnter Last name\nEmail\n \nPlease enter email address\n+ Add email\nPhone\n \nSelect\nEnter phone number\n+ Add phone\nContact type\nSelect an option\nTime zone\nSelect an option\nLanguage\n *\nSelect an option\nSave and add another\n\nCancel\n\nSave",
+    "bodyTextTail": "Liverpool Digital's Account\nQueretaro, Querétaro\nSearch\nctrlK\nAsk AI\nDashboard\nConversations\nCalendars\nContacts\nOpportunities\nPayments\n\nAI Agents\nMarketing\nAutomation\nSites\nMedia Storage\nReputation\nApp Marketplace\nMobile App\nSoporte Técnico\nSettings\n1/1\nSummer of AI: Your AI tools are free all summer.\nActivate now\nWhat's new\nContact updates\nAsk AI\nView Changelog\nNotifications\nSupport\nOB\nContacts\nSmart Lists\nBulk Actions\nTasks\nCompanies\nContacts\n1 Contact\nImport\nAdd Contact\nAll\nAdd smart list\nAdvanced Filters\nSort\nManage fields\nContact name\nPhone\nEmail\nBusiness name\nCreated (PDT)\nLast activity (PDT)\nTags\n\n\nO\nOscar\ninfo@picturelle.com\ninfo@picturelle.com\n \nJun 8, 2026\n12:33 PM\nPage 1 of 1\n20\n50\n100\nPrevious1Next\n\nAdd Contact\n\nContact image\n\nCustomize form\nFirst name\n *\nEnter First name\nLast name\nEnter Last name\nEmail\n \nPlease enter email address\n+ Add email\nPhone\n \nSelect\nEnter phone number\n+ Add phone\nContact type\nSelect an option\nTime zone\nSelect an option\nLanguage\n *\nSelect an option\nSave and add another\n\nCancel\n\nSave",
+    "hasLanguage": true,
+    "hasDnd": false,
+    "languageContext": "ress\n+ Add email\nPhone\n \nSelect\nEnter phone number\n+ Add phone\nContact type\nSelect an option\nTime zone\nSelect an option\nLanguage\n *\nSelect an option\nSave and add another\n\nCancel\n\nSave",
+    "dndContext": null,
+    "visibleElements": [
+      {
+        "i": 0,
+        "tag": "HTML",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 2,
+        "tag": "BODY",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "botpress-widget-closed",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 3,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "app",
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 6,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex v2-open sidebar-v2-location 4cPIvLND9hFAIzWQ1ZbL flex v2-open sidebar-v2-location",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 7,
+        "tag": "ASIDE",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sidebar-v2",
+        "className": "relative default-bg-color transition-width transition-slowest ease w-56",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 224,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 8,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "BookAppointment",
+        "className": "absolute",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 10,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "",
+        "aria": "Collapse sidebar",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center justify-center ml-1 text-xl rounded-full",
+        "checked": null,
+        "rect": {
+          "x": 212,
+          "y": 960,
+          "w": 20,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 12,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "relative flex flex-col h-screen w-56",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 224,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 13,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-col flex-grow h-screen pt-3 pb-2 overflow-hidden lead-connector",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 224,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 16,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "location-switcher-sidbar-v2",
+        "className": "flex flex-row items-center px-1 py-1 mb-3 text-sm text-white cursor-pointer md:justify-center lg:justify-between xl:justify-between md:mx-1 lg:mx-3 xl:mx-3",
+        "checked": null,
+        "rect": {
+          "x": 8,
+          "y": 72,
+          "w": 208,
+          "h": 42
+        },
+        "visible": true
+      },
+      {
+        "i": 17,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row items-center w-36",
+        "checked": null,
+        "rect": {
+          "x": 12,
+          "y": 76,
+          "w": 144,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 18,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center w-full text-xs leading-4",
+        "checked": null,
+        "rect": {
+          "x": 12,
+          "y": 76,
+          "w": 144,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 20,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account Queretaro, Querétaro",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_location-text",
+        "checked": null,
+        "rect": {
+          "x": 46,
+          "y": 76,
+          "w": 120,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 21,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Liverpool Digital's Account",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "justify-center font-medium hl_text-overflow hl_switcher-loc-name",
+        "checked": null,
+        "rect": {
+          "x": 46,
+          "y": 79,
+          "w": 120,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 22,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Queretaro, Querétaro",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "justify-center hl_text-overflow hl_switcher-loc-city font-small",
+        "checked": null,
+        "rect": {
+          "x": 46,
+          "y": 94,
+          "w": 120,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 26,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Search ctrlK",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex mb-4 h-7 flex-row md:flex-col lg:flex-row xl:flex-row items-start justify-between px-2",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 130,
+          "w": 224,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 27,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Search ctrlK",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "globalSearchOpener",
+        "className": "flex sm:w-full md:w-full h-full py-0.5 flex-col justify-center items-start text-sm cursor-pointer relative",
+        "checked": null,
+        "rect": {
+          "x": 8,
+          "y": 130,
+          "w": 174,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 28,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Search ctrlK",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row items-start justify-between w-full",
+        "checked": null,
+        "rect": {
+          "x": 9,
+          "y": 134,
+          "w": 172,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 29,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Search",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row items-center justify-start",
+        "checked": null,
+        "rect": {
+          "x": 9,
+          "y": 134,
+          "w": 67,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 30,
+        "tag": "svg",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "search icon",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": null,
+        "checked": null,
+        "rect": {
+          "x": 13,
+          "y": 136,
+          "w": 16,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 31,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Search",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "search-placeholder",
+        "checked": null,
+        "rect": {
+          "x": 33,
+          "y": 134,
+          "w": 43,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 32,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "ctrlK",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "justify-start items-center py-0.5 flex flex-row",
+        "checked": null,
+        "rect": {
+          "x": 141,
+          "y": 134,
+          "w": 41,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 33,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "ctrlK",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "px-1 mx-1 text-xs rounded-sm search-shortcut",
+        "checked": null,
+        "rect": {
+          "x": 145,
+          "y": 136,
+          "w": 33,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 34,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Quick Actions",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "quickActions",
+        "className": "flex flex-row items-center justify-center h-full text-sm cursor-pointer w-7 sm:w-10 md:w-10 lg:w-7 xl:w-7",
+        "checked": null,
+        "rect": {
+          "x": 188,
+          "y": 130,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 37,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-col w-full overflow-x-hidden overflow-y-auto hl_nav-header",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 182,
+          "w": 224,
+          "h": 609
+        },
+        "visible": true
+      },
+      {
+        "i": 38,
+        "tag": "NAV",
+        "role": null,
+        "type": null,
+        "text": "Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico",
+        "aria": "header",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex-1 w-full",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 182,
+          "w": 224,
+          "h": 609
+        },
+        "visible": true
+      },
+      {
+        "i": 39,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Ask AI",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_ask-ai",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 182,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 40,
+        "tag": "SPAN",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "Ask AI",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "ask-ai-sparkle-icon mr-2",
+        "checked": null,
+        "rect": {
+          "x": 16,
+          "y": 190,
+          "w": 20,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 41,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Ask AI",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block nav-title--ask-ai-flex",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 190,
+          "w": 164,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 42,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Dashboard",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_dashboard",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 218,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 44,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Dashboard",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 226,
+          "w": 68,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 45,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Conversations",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_conversations",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 254,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 47,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Conversations",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 262,
+          "w": 90,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 48,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Calendars",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_calendars",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 290,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 50,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Calendars",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 298,
+          "w": 63,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 51,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Contacts",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_contacts",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 326,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 53,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Contacts",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 334,
+          "w": 56,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 54,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Opportunities",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_opportunities",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 362,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 56,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Opportunities",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 370,
+          "w": 85,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 57,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Payments",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_payments",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 398,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 59,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Payments",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 406,
+          "w": 63,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 62,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "AI Agents",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_AI Agents",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 467,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 64,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "AI Agents",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 475,
+          "w": 61,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 65,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Marketing",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_email-marketing",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 503,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 67,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Marketing",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 511,
+          "w": 63,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 68,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Automation",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_automation",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 539,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 70,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Automation",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 547,
+          "w": 73,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 71,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Sites",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_sites",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 575,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 73,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Sites",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 583,
+          "w": 31,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 74,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Media Storage",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_app-media",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 611,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 76,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Media Storage",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 619,
+          "w": 91,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 77,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Reputation",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_reputation",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 647,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 79,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Reputation",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 655,
+          "w": 68,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 80,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "App Marketplace",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_app-marketplace",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 683,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 82,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "App Marketplace",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 691,
+          "w": 106,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 83,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Mobile App",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_location-mobile-app",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 719,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 85,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Mobile App",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 727,
+          "w": 71,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 86,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Soporte Técnico",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "f5b6a089-ecd7-4b26-9613-05fdd15021a9",
+        "className": "w-full group px-3 flex items-center justify-start md:justify-center lg:justify-start xl:justify-start text-sm rounded-md cursor-pointer custom-link font-medium ",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 755,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 88,
+        "tag": "I",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Soporte Técnico icon",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "fas fa-headset",
+        "checked": null,
+        "rect": {
+          "x": 16,
+          "y": 766,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 89,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Soporte Técnico",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "nav-title hl_text-overflow sm:hidden md:hidden lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 763,
+          "w": 102,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 90,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-col absolute bottom-3.5 w-full hl_nav-settings",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 950,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 91,
+        "tag": "NAV",
+        "role": null,
+        "type": null,
+        "text": "Settings",
+        "aria": "footer",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex-1 w-full",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 950,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 92,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "sb_settings",
+        "className": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-start text-sm font-medium rounded-md cursor-pointer font-medium opacity-70 hover:o",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 950,
+          "w": 224,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 94,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Settings",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_text-overflow sm:hidden md:hidden nav-title lg:block xl:block",
+        "checked": null,
+        "rect": {
+          "x": 44,
+          "y": 958,
+          "w": 52,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 95,
+        "tag": "HEADER",
+        "role": null,
+        "type": null,
+        "text": "1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_header",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": -3,
+          "w": 1216,
+          "h": 141
+        },
+        "visible": true
+      },
+      {
+        "i": 96,
+        "tag": "DIV",
+        "role": "region",
+        "type": null,
+        "text": "1/1 Summer of AI: Your AI tools are free all summer. Activate now",
+        "aria": "Notification Banner",
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-top_bar",
+        "className": "notification-banner-top-bar",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 0,
+          "w": 1216,
+          "h": 48
+        },
+        "visible": true
+      },
+      {
+        "i": 97,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "1/1 Summer of AI: Your AI tools are free all summer. Activate now",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center gap-2 w-[calc(100%-40px)]",
+        "checked": null,
+        "rect": {
+          "x": 236,
+          "y": 8,
+          "w": 1154,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 98,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "1/1",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-btn-navigation",
+        "className": "flex items-center gap-0.5",
+        "checked": null,
+        "rect": {
+          "x": 236,
+          "y": 10,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 99,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Previous notification",
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-btn-navigation_previous",
+        "className": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-white/80",
+        "checked": null,
+        "rect": {
+          "x": 236,
+          "y": 10,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 101,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "1/1",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-notification_count",
+        "className": "text-ellipsis whitespace-nowrap overflow-hidden text-sm text-gray-900",
+        "checked": null,
+        "rect": {
+          "x": 266,
+          "y": 14,
+          "w": 22,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 102,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Next notification",
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-btn-navigation_next",
+        "className": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-white/80",
+        "checked": null,
+        "rect": {
+          "x": 290,
+          "y": 10,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 104,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Summer of AI: Your AI tools are free all summer. Activate now",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-content-6a228121e8a5aebf82eca080",
+        "className": "notification-banner-content flex items-center gap-3 w-[calc(100%-90px)] justify-center",
+        "checked": null,
+        "rect": {
+          "x": 326,
+          "y": 8,
+          "w": 1064,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 105,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Summer of AI: Your AI tools are free all summer.",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-title-6a228121e8a5aebf82eca080",
+        "className": "relative min-w-0 cursor-default notification-banner-title",
+        "checked": null,
+        "rect": {
+          "x": 652,
+          "y": 14,
+          "w": 299,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 106,
+        "tag": "DIV",
+        "role": "region",
+        "type": null,
+        "text": "Summer of AI: Your AI tools are free all summer.",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "notification-title-message text-ellipsis overflow-hidden text-sm text-gray-900",
+        "checked": null,
+        "rect": {
+          "x": 652,
+          "y": 14,
+          "w": 299,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 108,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Activate now",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification-btn-container-primary_banner-6a228121e8a5aebf82eca080",
+        "className": "relative min-w-0 notification-btn-container cursor-default",
+        "checked": null,
+        "rect": {
+          "x": 962,
+          "y": 8,
+          "w": 101,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 109,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "Activate now",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "notification-btn-primary_banner-6a228121e8a5aebf82eca080",
+        "className": "notification-btn",
+        "checked": null,
+        "rect": {
+          "x": 962,
+          "y": 8,
+          "w": 101,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 111,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Close notification",
+        "placeholder": null,
+        "name": null,
+        "id": "notification_banner-btn-close",
+        "className": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:enabled:bg-white/80",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 10,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 113,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates Ask AI View Changelog Notifications Support OB",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "container-fluid !justify-end",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 48,
+          "w": 1216,
+          "h": 50
+        },
+        "visible": true
+      },
+      {
+        "i": 115,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates Ask AI View Changelog Notifications Support OB",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_header--controls",
+        "checked": null,
+        "rect": {
+          "x": 843,
+          "y": 57,
+          "w": 582,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 116,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "font-sans hl-wrapper-container",
+        "checked": null,
+        "rect": {
+          "x": 853,
+          "y": 58,
+          "w": 229,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 117,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "n-config-provider",
+        "checked": null,
+        "rect": {
+          "x": 853,
+          "y": 58,
+          "w": 229,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 118,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "feature-discovery-main-container",
+        "checked": null,
+        "rect": {
+          "x": 853,
+          "y": 58,
+          "w": 229,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 119,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "n-badge n-badge--dot",
+        "checked": null,
+        "rect": {
+          "x": 853,
+          "y": 58,
+          "w": 229,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 120,
+        "tag": "DIV",
+        "role": "button",
+        "type": null,
+        "text": "What's new Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "bg-primary-50 flex flex-row gap-2 rounded-3xl py-[4px] pl-[12px] pr-[5px] cursor-pointer items-center right-[20px] shadow-sm",
+        "checked": null,
+        "rect": {
+          "x": 853,
+          "y": 58,
+          "w": 229,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 122,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "What's new",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "text-primary-700 font-semibold text-[12px]",
+        "checked": null,
+        "rect": {
+          "x": 889,
+          "y": 64,
+          "w": 69,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 123,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact updates",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row gap-2 bg-primary-600 text-white px-2 rounded-2xl py-[2px] items-center text-[12px] font-semibold",
+        "checked": null,
+        "rect": {
+          "x": 965,
+          "y": 62,
+          "w": 112,
+          "h": 22
+        },
+        "visible": true
+      },
+      {
+        "i": 125,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Report Translation Issue",
+        "placeholder": null,
+        "name": null,
+        "id": "i18n-feedback",
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 1112,
+          "y": 73,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 129,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "Voice Calling",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-success-600",
+        "checked": null,
+        "rect": {
+          "x": 1132,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 131,
+        "tag": "A",
+        "role": "button",
+        "type": null,
+        "text": "Ask AI",
+        "aria": "Ask AI Assistant",
+        "placeholder": null,
+        "name": null,
+        "id": "hl_header--copilot-icon",
+        "className": "btn btn-circle btn-primary hl_header--copy-link !w-auto",
+        "checked": null,
+        "rect": {
+          "x": 1174,
+          "y": 57,
+          "w": 83,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 132,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Ask AI",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "sr-only",
+        "checked": null,
+        "rect": {
+          "x": 1215,
+          "y": 88,
+          "w": 1,
+          "h": 1
+        },
+        "visible": true
+      },
+      {
+        "i": 133,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "View Changelog",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_header--controls",
+        "checked": null,
+        "rect": {
+          "x": 1267,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 134,
+        "tag": "A",
+        "role": "button",
+        "type": null,
+        "text": "View Changelog",
+        "aria": "View Changelog",
+        "placeholder": null,
+        "name": null,
+        "id": "canny_logs-toggle",
+        "className": "btn btn-circle btn-changelog",
+        "checked": null,
+        "rect": {
+          "x": 1267,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 136,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "View Changelog",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "sr-only",
+        "checked": null,
+        "rect": {
+          "x": 1289,
+          "y": 56,
+          "w": 1,
+          "h": 1
+        },
+        "visible": true
+      },
+      {
+        "i": 139,
+        "tag": "A",
+        "role": "button",
+        "type": null,
+        "text": "Notifications",
+        "aria": "View Notifications",
+        "placeholder": null,
+        "name": null,
+        "id": "recent_activities-toggle",
+        "className": "flex justify-center items-center btn btn-circle btn-yellow hl_header--recent-activities -notification",
+        "checked": null,
+        "rect": {
+          "x": 1309,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 141,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Notifications",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "sr-only",
+        "checked": null,
+        "rect": {
+          "x": 1325,
+          "y": 73,
+          "w": 1,
+          "h": 1
+        },
+        "visible": true
+      },
+      {
+        "i": 142,
+        "tag": "A",
+        "role": "button",
+        "type": null,
+        "text": "Support",
+        "aria": "Access Help & Support",
+        "placeholder": null,
+        "name": null,
+        "id": "hl_header--help-icon",
+        "className": "btn btn-circle btn-primary hl_header--copy-link",
+        "checked": null,
+        "rect": {
+          "x": 1351,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 144,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Support",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "sr-only",
+        "checked": null,
+        "rect": {
+          "x": 1370,
+          "y": 56,
+          "w": 1,
+          "h": 1
+        },
+        "visible": true
+      },
+      {
+        "i": 145,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "OB",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_header--dropdown dropdown --no-caret",
+        "checked": null,
+        "rect": {
+          "x": 1393,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 146,
+        "tag": "A",
+        "role": "button",
+        "type": null,
+        "text": "OB",
+        "aria": "Open Profile Menu",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_header--avatar dropdown-toggle",
+        "checked": null,
+        "rect": {
+          "x": 1393,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 147,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "OB",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "avatar",
+        "checked": null,
+        "rect": {
+          "x": 1393,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 148,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "OB",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "avatar_img",
+        "checked": null,
+        "rect": {
+          "x": 1393,
+          "y": 57,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 164,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts Smart Lists Bulk Actions Tasks Companies",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row justify-start items-center topmenu-nav",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 98,
+          "w": 1216,
+          "h": 40
+        },
+        "visible": true
+      },
+      {
+        "i": 165,
+        "tag": "DIV",
+        "role": "heading",
+        "type": null,
+        "text": "Contacts",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "topmenu-navtitle",
+        "checked": null,
+        "rect": {
+          "x": 232,
+          "y": 98,
+          "w": 88,
+          "h": 40
+        },
+        "visible": true
+      },
+      {
+        "i": 166,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Smart Lists",
+        "aria": "Smart Lists",
+        "placeholder": null,
+        "name": null,
+        "id": "tb_lists",
+        "className": "router-link-active router-link-exact-active group text-left mx-1 pb-2 md:pb-3 text-sm font-medium topmenu-navitem cursor-pointer relative px-2 active",
+        "checked": null,
+        "rect": {
+          "x": 332,
+          "y": 100,
+          "w": 88,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 167,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Smart Lists",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center",
+        "checked": null,
+        "rect": {
+          "x": 340,
+          "y": 100,
+          "w": 72,
+          "h": 26
+        },
+        "visible": true
+      },
+      {
+        "i": 169,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Bulk Actions",
+        "aria": "Bulk Actions",
+        "placeholder": null,
+        "name": null,
+        "id": "tb_bulk-actions",
+        "className": "group text-left mx-1 pb-2 md:pb-3 text-sm font-medium topmenu-navitem cursor-pointer relative px-2",
+        "checked": null,
+        "rect": {
+          "x": 428,
+          "y": 101,
+          "w": 95,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 170,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Bulk Actions",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center",
+        "checked": null,
+        "rect": {
+          "x": 436,
+          "y": 101,
+          "w": 79,
+          "h": 26
+        },
+        "visible": true
+      },
+      {
+        "i": 172,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Tasks",
+        "aria": "Tasks",
+        "placeholder": null,
+        "name": null,
+        "id": "tb_tasks",
+        "className": "group text-left mx-1 pb-2 md:pb-3 text-sm font-medium topmenu-navitem cursor-pointer relative px-2",
+        "checked": null,
+        "rect": {
+          "x": 531,
+          "y": 101,
+          "w": 53,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 173,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Tasks",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center",
+        "checked": null,
+        "rect": {
+          "x": 539,
+          "y": 101,
+          "w": 37,
+          "h": 26
+        },
+        "visible": true
+      },
+      {
+        "i": 175,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Companies",
+        "aria": "Companies",
+        "placeholder": null,
+        "name": null,
+        "id": "tb_business",
+        "className": "group text-left mx-1 pb-2 md:pb-3 text-sm font-medium topmenu-navitem cursor-pointer relative px-2",
+        "checked": null,
+        "rect": {
+          "x": 592,
+          "y": 101,
+          "w": 87,
+          "h": 34
+        },
+        "visible": true
+      },
+      {
+        "i": 176,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Companies",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex items-center",
+        "checked": null,
+        "rect": {
+          "x": 600,
+          "y": 101,
+          "w": 71,
+          "h": 26
+        },
+        "visible": true
+      },
+      {
+        "i": 179,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": "",
+        "placeholder": null,
+        "name": null,
+        "id": "tb_contact-custom-fields-settings",
+        "className": "group text-left mx-1 pb-2 md:pb-3 text-sm font-medium topmenu-navitem cursor-pointer relative px-2",
+        "checked": null,
+        "rect": {
+          "x": 697,
+          "y": 104,
+          "w": 44,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 187,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "ReconnectModal",
+        "className": "w-full bg-white overflow-y-auto",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 188,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "RemoveDeletedCalendars",
+        "className": "w-full bg-white overflow-y-auto",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 190,
+        "tag": "SECTION",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "w-full",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 0,
+          "w": 1216,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 191,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hl_wrapper scrollbar-hide new-smartlist-ui hl_topbar-tabs notification-banner-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 0,
+          "w": 1216,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 192,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-wrapper-container platform-ui__highrise hr-v-3-11-1 contacts-list-view-container",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 101,
+          "w": 1216,
+          "h": 1002
+        },
+        "visible": true
+      },
+      {
+        "i": 193,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-config-provider font-sans",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 133,
+          "w": 1186,
+          "h": 960
+        },
+        "visible": true
+      },
+      {
+        "i": 194,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 133,
+          "w": 1186,
+          "h": 896
+        },
+        "visible": true
+      },
+      {
+        "i": 195,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact Import Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "pipeline-ribbon",
+        "checked": null,
+        "rect": {
+          "x": 222,
+          "y": 133,
+          "w": 1220,
+          "h": 72
+        },
+        "visible": true
+      },
+      {
+        "i": 196,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts 1 Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex left-box",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 150,
+          "w": 186,
+          "h": 38
+        },
+        "visible": true
+      },
+      {
+        "i": 197,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contacts",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "smartlist-title",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 154,
+          "w": 87,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 198,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "1 Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "count",
+        "checked": null,
+        "rect": {
+          "x": 338,
+          "y": 155,
+          "w": 86,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 199,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Import Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex right-box",
+        "checked": null,
+        "rect": {
+          "x": 1150,
+          "y": 150,
+          "w": 275,
+          "h": 38
+        },
+        "visible": true
+      },
+      {
+        "i": 200,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Import",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "import-btn",
+        "className": "hr-button hr-button--default-type hr-button--small-type ui-button ml-3 ml-3",
+        "checked": null,
+        "rect": {
+          "x": 1166,
+          "y": 153,
+          "w": 87,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 201,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Import",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1176,
+          "y": 161,
+          "w": 67,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 206,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-btn",
+        "className": "hr-button hr-button--primary-type hr-button--small-type ui-button ml-[12px] mr-2 ml-[12px] mr-2",
+        "checked": null,
+        "rect": {
+          "x": 1265,
+          "y": 153,
+          "w": 124,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 207,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1275,
+          "y": 161,
+          "w": 104,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 213,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "All Add smart list",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "views-bar",
+        "className": "d-flex bar-parent",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 205,
+          "w": 1186,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 214,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "All Add smart list",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex bar",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 205,
+          "w": 1186,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 215,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "All",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex lists",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 206,
+          "w": 59,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 216,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "All",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex view cursor-pointer active",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 206,
+          "w": 50,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 217,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "All",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "view-label",
+        "checked": null,
+        "rect": {
+          "x": 267,
+          "y": 211,
+          "w": 16,
+          "h": 21
+        },
+        "visible": true
+      },
+      {
+        "i": 218,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Add smart list",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex view cursor-pointer",
+        "checked": null,
+        "rect": {
+          "x": 298,
+          "y": 206,
+          "w": 125,
+          "h": 30
+        },
+        "visible": true
+      },
+      {
+        "i": 219,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Add smart list",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "view-label truncate",
+        "checked": null,
+        "rect": {
+          "x": 326,
+          "y": 211,
+          "w": 91,
+          "h": 21
+        },
+        "visible": true
+      },
+      {
+        "i": 221,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters Sort Manage fields",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex quick-filter-bar",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 241,
+          "w": 1186,
+          "h": 56
+        },
+        "visible": true
+      },
+      {
+        "i": 222,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters Sort",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex left-box",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 237,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 223,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters Sort",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex advanced-container",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 237,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 224,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-wrapper-container full-screen platform-ui__highrise hr-v-3-11-1",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 157,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 225,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-config-provider font-sans",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 157,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 226,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 157,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 227,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Advanced Filters",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "list-view-advance-filter-btn",
+        "className": "d-flex button",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 254,
+          "w": 157,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 228,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Sort",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex sort-btn",
+        "checked": null,
+        "rect": {
+          "x": 404,
+          "y": 254,
+          "w": 72,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 229,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Sort",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "list-view-sort-btn",
+        "className": "d-flex button",
+        "checked": null,
+        "rect": {
+          "x": 404,
+          "y": 254,
+          "w": 72,
+          "h": 31
+        },
+        "visible": true
+      },
+      {
+        "i": 245,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Manage fields",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex right-box",
+        "checked": null,
+        "rect": {
+          "x": 996,
+          "y": 251,
+          "w": 429,
+          "h": 36
+        },
+        "visible": true
+      },
+      {
+        "i": 247,
+        "tag": "INPUT",
+        "role": null,
+        "type": "text",
+        "text": "",
+        "aria": null,
+        "placeholder": "Search Contacts",
+        "name": null,
+        "id": "list-view-record-search",
+        "className": "search",
+        "checked": false,
+        "rect": {
+          "x": 1041,
+          "y": 257,
+          "w": 235,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 248,
+        "tag": "BUTTON",
+        "role": null,
+        "type": null,
+        "text": "Manage fields",
+        "aria": "Manage fields",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "d-flex manage-fields cursor-pointer",
+        "checked": null,
+        "rect": {
+          "x": 1297,
+          "y": 259,
+          "w": 120,
+          "h": 21
+        },
+        "visible": true
+      },
+      {
+        "i": 250,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "table-container",
+        "className": "table-container",
+        "checked": null,
+        "rect": {
+          "x": 239,
+          "y": 297,
+          "w": 1186,
+          "h": 732
+        },
+        "visible": true
+      },
+      {
+        "i": 592,
+        "tag": "DIV",
+        "role": "grid",
+        "type": null,
+        "text": "Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "my-table tabulator",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 298,
+          "w": 1184,
+          "h": 730
+        },
+        "visible": true
+      },
+      {
+        "i": 593,
+        "tag": "DIV",
+        "role": "rowgroup",
+        "type": null,
+        "text": "Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-header",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 298,
+          "w": 1184,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 594,
+        "tag": "DIV",
+        "role": "rowgroup",
+        "type": null,
+        "text": "Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-header-contents",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 298,
+          "w": 1184,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 595,
+        "tag": "DIV",
+        "role": "row",
+        "type": null,
+        "text": "Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-headers",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 298,
+          "w": 1185,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 600,
+        "tag": "INPUT",
+        "role": null,
+        "type": "checkbox",
+        "text": "",
+        "aria": "Select Row",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": false,
+        "rect": {
+          "x": 252,
+          "y": 310,
+          "w": 16,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 601,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Contact name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element clickable tabulator-frozen tabulator-frozen-left",
+        "checked": null,
+        "rect": {
+          "x": 280,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 602,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 292,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 603,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 292,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 604,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 292,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 607,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element",
+        "checked": null,
+        "rect": {
+          "x": 443,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 608,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 455,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 609,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 455,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 610,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 455,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 613,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element",
+        "checked": null,
+        "rect": {
+          "x": 606,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 614,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 618,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 615,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 618,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 616,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 618,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 619,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Business name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element",
+        "checked": null,
+        "rect": {
+          "x": 769,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 620,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Business name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 781,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 621,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Business name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 781,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 622,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Business name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 781,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 625,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Created (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element",
+        "checked": null,
+        "rect": {
+          "x": 932,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 626,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Created (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 944,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 627,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Created (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 944,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 628,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Created (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 944,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 631,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Last activity (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col tabulator-sortable tabulator-col-sorter-element",
+        "checked": null,
+        "rect": {
+          "x": 1095,
+          "y": 298,
+          "w": 163,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 632,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Last activity (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 1107,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 633,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Last activity (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 1107,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 634,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Last activity (PDT)",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 1107,
+          "y": 308,
+          "w": 138,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 637,
+        "tag": "DIV",
+        "role": "columnheader",
+        "type": null,
+        "text": "Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col",
+        "checked": null,
+        "rect": {
+          "x": 1258,
+          "y": 298,
+          "w": 167,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 638,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-content",
+        "checked": null,
+        "rect": {
+          "x": 1270,
+          "y": 308,
+          "w": 142,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 639,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title-holder",
+        "checked": null,
+        "rect": {
+          "x": 1270,
+          "y": 308,
+          "w": 142,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 640,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Tags",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-col-title",
+        "checked": null,
+        "rect": {
+          "x": 1270,
+          "y": 308,
+          "w": 142,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 643,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-tableholder",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 339,
+          "w": 1184,
+          "h": 646
+        },
+        "visible": true
+      },
+      {
+        "i": 644,
+        "tag": "DIV",
+        "role": "rowgroup",
+        "type": null,
+        "text": "O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-table",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 339,
+          "w": 1185,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 645,
+        "tag": "DIV",
+        "role": "row",
+        "type": null,
+        "text": "O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-row tabulator-unselectable tabulator-row-odd",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 339,
+          "w": 1185,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 647,
+        "tag": "INPUT",
+        "role": null,
+        "type": "checkbox",
+        "text": "",
+        "aria": "Select Row",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "",
+        "checked": false,
+        "rect": {
+          "x": 252,
+          "y": 352,
+          "w": 16,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 648,
+        "tag": "DIV",
+        "role": "gridcell",
+        "type": null,
+        "text": "O Oscar",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-cell clickable tabulator-frozen tabulator-frozen-left no-padding",
+        "checked": null,
+        "rect": {
+          "x": 280,
+          "y": 339,
+          "w": 163,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 649,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "O",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "contact my-tooltip",
+        "checked": null,
+        "rect": {
+          "x": 280,
+          "y": 346,
+          "w": 29,
+          "h": 29
+        },
+        "visible": true
+      },
+      {
+        "i": 650,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Oscar",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "contact-name-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 314,
+          "y": 350,
+          "w": 128,
+          "h": 21
+        },
+        "visible": true
+      },
+      {
+        "i": 651,
+        "tag": "A",
+        "role": null,
+        "type": null,
+        "text": "Oscar",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "contact-name-link",
+        "checked": null,
+        "rect": {
+          "x": 314,
+          "y": 352,
+          "w": 39,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 657,
+        "tag": "DIV",
+        "role": "gridcell",
+        "type": null,
+        "text": "info@picturelle.com info@picturelle.com",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-cell no-padding",
+        "checked": null,
+        "rect": {
+          "x": 606,
+          "y": 339,
+          "w": 163,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 662,
+        "tag": "DIV",
+        "role": "gridcell",
+        "type": null,
+        "text": "Jun 8, 2026 12:33 PM",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-cell no-padding",
+        "checked": null,
+        "rect": {
+          "x": 932,
+          "y": 339,
+          "w": 163,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 668,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-footer",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 985,
+          "w": 1184,
+          "h": 44
+        },
+        "visible": true
+      },
+      {
+        "i": 669,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Page 1 of 1 20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-footer-contents",
+        "checked": null,
+        "rect": {
+          "x": 240,
+          "y": 986,
+          "w": 1184,
+          "h": 43
+        },
+        "visible": true
+      },
+      {
+        "i": 670,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Page 1 of 1",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-page-counter",
+        "checked": null,
+        "rect": {
+          "x": 250,
+          "y": 997,
+          "w": 70,
+          "h": 21
+        },
+        "visible": true
+      },
+      {
+        "i": 671,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "20 50 100 Previous1Next",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-paginator",
+        "checked": null,
+        "rect": {
+          "x": 320,
+          "y": 991,
+          "w": 1094,
+          "h": 33
+        },
+        "visible": true
+      },
+      {
+        "i": 673,
+        "tag": "SELECT",
+        "role": null,
+        "type": null,
+        "text": "20 50 100",
+        "aria": "Page Size",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-page-size",
+        "checked": null,
+        "rect": {
+          "x": 1128,
+          "y": 992,
+          "w": 70,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 675,
+        "tag": "BUTTON",
+        "role": "button",
+        "type": "button",
+        "text": "Previous",
+        "aria": "Prev Page",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-page",
+        "checked": null,
+        "rect": {
+          "x": 1205,
+          "y": 992,
+          "w": 90,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 676,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "1",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-pages",
+        "checked": null,
+        "rect": {
+          "x": 1304,
+          "y": 1001,
+          "w": 36,
+          "h": 15
+        },
+        "visible": true
+      },
+      {
+        "i": 677,
+        "tag": "BUTTON",
+        "role": "button",
+        "type": "button",
+        "text": "1",
+        "aria": "Show Page 1",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-page active",
+        "checked": null,
+        "rect": {
+          "x": 1306,
+          "y": 991,
+          "w": 32,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 678,
+        "tag": "BUTTON",
+        "role": "button",
+        "type": "button",
+        "text": "Next",
+        "aria": "Next Page",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "tabulator-page",
+        "checked": null,
+        "rect": {
+          "x": 1349,
+          "y": 992,
+          "w": 63,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 682,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "BookAppointment",
+        "className": "absolute",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 1103,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 683,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-form-container-f9dc9e42-67ed-491b-88e8-4a8ebc0c489b",
+        "className": "absolute",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 1103,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 686,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "action-modal",
+        "className": "absolute",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 1103,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 687,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "merge-review-modal",
+        "className": "absolute",
+        "checked": null,
+        "rect": {
+          "x": 224,
+          "y": 1103,
+          "w": 0,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 696,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "launchpad-app-drawer",
+        "className": "border-none",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 1000,
+          "w": 1440,
+          "h": 0
+        },
+        "visible": true
+      },
+      {
+        "i": 855,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-container addRecordForm hr-v-3-4-1 hr-detached-container",
+        "checked": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 857,
+        "tag": "DIV",
+        "role": "dialog",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-form-drawer-contact",
+        "className": "hr-drawer hr-drawer--right-placement hr-drawer--native-scrollbar",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 858,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-content-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 859,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-record-form-drawer-content",
+        "className": "hr-drawer-content",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 1000
+        },
+        "visible": true
+      },
+      {
+        "i": 860,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-header",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 0,
+          "w": 360,
+          "h": 41
+        },
+        "visible": true
+      },
+      {
+        "i": 861,
+        "tag": "DIV",
+        "role": "heading",
+        "type": null,
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-header__main",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 12,
+          "w": 344,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 862,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex justify-between items-center w-full",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 12,
+          "w": 344,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 863,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Add Contact",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-text hr-text-lg hr-text-semibold",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 12,
+          "w": 78,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 864,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "close-record-drawer-btn",
+        "className": "w-5 h-5 cursor-pointer",
+        "checked": null,
+        "rect": {
+          "x": 1412,
+          "y": 12,
+          "w": 20,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 865,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-body hr-scrollbar",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 902
+        },
+        "visible": true
+      },
+      {
+        "i": 866,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-scrollbar-container",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 902
+        },
+        "visible": true
+      },
+      {
+        "i": 867,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-scrollbar-content hr-drawer-body-content-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 41,
+          "w": 360,
+          "h": 591
+        },
+        "visible": true
+      },
+      {
+        "i": 868,
+        "tag": "FORM",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form First name * Enter First name Last name Enter Last name Email Please enter email address + Add email Phone Select Enter phone number + Add phone Contact type Select an option Time zone Select an option Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form hr-form-md",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 567
+        },
+        "visible": true
+      },
+      {
+        "i": 869,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "relative",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 86
+        },
+        "visible": true
+      },
+      {
+        "i": 870,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Contact image Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex flex-row justify-between pb-1",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 328,
+          "h": 22
+        },
+        "visible": true
+      },
+      {
+        "i": 871,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Contact image",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "profile-photo-label",
+        "className": "hr-text hr-text-md hr-text-bold",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 49,
+          "w": 85,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 872,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "text-gray-500 text-sm",
+        "checked": null,
+        "rect": {
+          "x": 1318,
+          "y": 49,
+          "w": 106,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 873,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Customize form",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "cursor-pointer manage-fields-button-text flex items-center mr-1",
+        "checked": null,
+        "rect": {
+          "x": 1318,
+          "y": 49,
+          "w": 102,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 877,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-contact-profile-button",
+        "className": "absolute bottom-0 right-0 bg-white p-1 rounded-full cursor-pointer",
+        "checked": null,
+        "rect": {
+          "x": 1140,
+          "y": 115,
+          "w": 20,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 879,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "First name * Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.first_name",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container mb-1",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 880,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "First name *",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 881,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 143,
+          "w": 67,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 882,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "*",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__asterisk",
+        "checked": null,
+        "rect": {
+          "x": 1163,
+          "y": 143,
+          "w": 10,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 883,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 884,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 885,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "form-input-contact.first_name",
+        "className": "hr-input hr-input--resizable hr-input--focus hr-input--stateful hr-input--2xs",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 886,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 167,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 887,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__input",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 888,
+        "tag": "INPUT",
+        "role": null,
+        "type": "text",
+        "text": "",
+        "aria": null,
+        "placeholder": "Enter First name",
+        "name": null,
+        "id": null,
+        "className": "hr-input__input-el",
+        "checked": false,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 889,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter First name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__placeholder",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 167,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 894,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Last name Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.last_name",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container mb-1",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 207,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 895,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 207,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 896,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 207,
+          "w": 66,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 897,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 231,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 898,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 231,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 899,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "form-input-contact.last_name",
+        "className": "hr-input hr-input--resizable hr-input--stateful hr-input--2xs",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 231,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 900,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 231,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 901,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__input",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 231,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 902,
+        "tag": "INPUT",
+        "role": null,
+        "type": "text",
+        "text": "",
+        "aria": null,
+        "placeholder": "Enter Last name",
+        "name": null,
+        "id": null,
+        "className": "hr-input__input-el",
+        "checked": false,
+        "rect": {
+          "x": 1102,
+          "y": 231,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 903,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter Last name",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__placeholder",
+        "checked": null,
+        "rect": {
+          "x": 1102,
+          "y": 231,
+          "w": 312,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 908,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Email Please enter email address + Add email",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.email",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 271,
+          "w": 328,
+          "h": 79
+        },
+        "visible": true
+      },
+      {
+        "i": 909,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 271,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 910,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 271,
+          "w": 35,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 911,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address + Add email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 295,
+          "w": 328,
+          "h": 55
+        },
+        "visible": true
+      },
+      {
+        "i": 912,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address + Add email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "email-container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 295,
+          "w": 328,
+          "h": 55
+        },
+        "visible": true
+      },
+      {
+        "i": 913,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "email-row",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 295,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 914,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "email-primary-0",
+        "className": "hr-radio hr-radio--checked hr-radio__wrapper primary-radio",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 303,
+          "w": 12,
+          "h": 12
+        },
+        "visible": true
+      },
+      {
+        "i": 918,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-container email-input",
+        "checked": null,
+        "rect": {
+          "x": 1112,
+          "y": 295,
+          "w": 280,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 919,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "email-input-0",
+        "className": "hr-input hr-input--resizable hr-input--stateful hr-input--2xs",
+        "checked": null,
+        "rect": {
+          "x": 1112,
+          "y": 295,
+          "w": 280,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 920,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1112,
+          "y": 295,
+          "w": 280,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 921,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__input",
+        "checked": null,
+        "rect": {
+          "x": 1118,
+          "y": 295,
+          "w": 264,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 922,
+        "tag": "INPUT",
+        "role": null,
+        "type": "text",
+        "text": "",
+        "aria": null,
+        "placeholder": "Please enter email address",
+        "name": null,
+        "id": null,
+        "className": "hr-input__input-el email-input",
+        "checked": false,
+        "rect": {
+          "x": 1118,
+          "y": 295,
+          "w": 264,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 923,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Please enter email address",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__placeholder",
+        "checked": null,
+        "rect": {
+          "x": 1118,
+          "y": 295,
+          "w": 264,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 927,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "",
+        "aria": "Icon only button",
+        "placeholder": null,
+        "name": null,
+        "id": "remove-email-button-0",
+        "className": "hr-button hr-button--button-type hr-button--medium-type hr-button--disabled hr-button--secondary hr-button--2xs remove-btn remove-btn",
+        "checked": null,
+        "rect": {
+          "x": 1396,
+          "y": 295,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 929,
+        "tag": "I",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "Alternative text for image not provided",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-icon-inner hr-icon hr-icon hr-icon",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 301,
+          "w": 16,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 933,
+        "tag": "SPAN",
+        "role": null,
+        "type": "button",
+        "text": "+ Add email",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-email-button",
+        "className": "add-email-btn font-medium mb-1 cursor-not-allowed text-gray-400",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 328,
+          "w": 58,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 935,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Phone Select Enter phone number + Add phone",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.phone",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 358,
+          "w": 328,
+          "h": 79
+        },
+        "visible": true
+      },
+      {
+        "i": 936,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 358,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 937,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 358,
+          "w": 40,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 938,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select Enter phone number + Add phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 382,
+          "w": 328,
+          "h": 55
+        },
+        "visible": true
+      },
+      {
+        "i": 939,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select Enter phone number + Add phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-phone-container",
+        "className": "phone-container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 382,
+          "w": 328,
+          "h": 55
+        },
+        "visible": true
+      },
+      {
+        "i": 940,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "phone-row",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 382,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 941,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "phone-primary-0",
+        "className": "hr-radio hr-radio--checked hr-radio__wrapper primary-radio",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 389,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 945,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "w-1/4",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 946,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-select-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 947,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "phone-type-0",
+        "className": "hr-select",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 948,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 949,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-label",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 950,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-placeholder hr-base-selection-overlay",
+        "checked": null,
+        "rect": {
+          "x": 1114,
+          "y": 382,
+          "w": 82,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 951,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-placeholder__inner",
+        "checked": null,
+        "rect": {
+          "x": 1122,
+          "y": 387,
+          "w": 38,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 952,
+        "tag": "DIV",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "loading",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-loading hr-base-suffix",
+        "checked": null,
+        "rect": {
+          "x": 1174,
+          "y": 389,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 960,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-container phone-input hr-input-phone",
+        "checked": null,
+        "rect": {
+          "x": 1200,
+          "y": 382,
+          "w": 192,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 961,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "phone-input-0",
+        "className": "hr-input hr-input--resizable hr-input--stateful hr-input--2xs",
+        "checked": null,
+        "rect": {
+          "x": 1200,
+          "y": 382,
+          "w": 192,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 962,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1200,
+          "y": 382,
+          "w": 192,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 965,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "",
+        "aria": "Select Country",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "country-code-container",
+        "checked": null,
+        "rect": {
+          "x": 1206,
+          "y": 388,
+          "w": 32,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 968,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__input",
+        "checked": null,
+        "rect": {
+          "x": 1242,
+          "y": 382,
+          "w": 124,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 969,
+        "tag": "INPUT",
+        "role": null,
+        "type": "tel",
+        "text": "",
+        "aria": null,
+        "placeholder": "Enter phone number",
+        "name": null,
+        "id": null,
+        "className": "hr-input__input-el phone-input hr-input-phone",
+        "checked": false,
+        "rect": {
+          "x": 1242,
+          "y": 382,
+          "w": 124,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 970,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Enter phone number",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-input__placeholder",
+        "checked": null,
+        "rect": {
+          "x": 1242,
+          "y": 382,
+          "w": 124,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 977,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "",
+        "aria": "Icon only button",
+        "placeholder": null,
+        "name": null,
+        "id": "remove-phone-button-0",
+        "className": "hr-button hr-button--button-type hr-button--medium-type hr-button--disabled hr-button--secondary hr-button--2xs remove-btn remove-btn",
+        "checked": null,
+        "rect": {
+          "x": 1396,
+          "y": 382,
+          "w": 28,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 979,
+        "tag": "I",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "Alternative text for image not provided",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-icon-inner hr-icon hr-icon hr-icon",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 388,
+          "w": 16,
+          "h": 16
+        },
+        "visible": true
+      },
+      {
+        "i": 983,
+        "tag": "SPAN",
+        "role": null,
+        "type": "button",
+        "text": "+ Add phone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "add-phone-button",
+        "className": "add-phone-btn font-medium mb-1 cursor-not-allowed text-gray-400",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 415,
+          "w": 62,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 985,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Contact type Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.type",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 444,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 986,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Contact type",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 444,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 987,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Contact type",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 444,
+          "w": 79,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 988,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 989,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-select-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 990,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "contact.type",
+        "className": "hr-select",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 991,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 992,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-label",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 994,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-placeholder hr-base-selection-overlay",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 468,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 995,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-overlay__wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1104,
+          "y": 474,
+          "w": 292,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 996,
+        "tag": "DIV",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "loading",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-loading hr-base-suffix",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 475,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 1005,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Time zone Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.timezone",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 504,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 1006,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Time zone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 504,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 1007,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Time zone",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 504,
+          "w": 65,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 1008,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1009,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-select-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1010,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "contact.timezone",
+        "className": "hr-select",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1011,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1012,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-label",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1014,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-placeholder hr-base-selection-overlay",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 528,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1015,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-overlay__wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1104,
+          "y": 534,
+          "w": 292,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 1016,
+        "tag": "DIV",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "loading",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-loading hr-base-suffix",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 535,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 1025,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Language * Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": "contact.language",
+        "id": null,
+        "className": "hr-form-item hr-form-item--medium-size hr-form-item--top-labelled hr-form-item hr-form-item--2xs-size hr-form-item__container",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 328,
+          "h": 52
+        },
+        "visible": true
+      },
+      {
+        "i": 1026,
+        "tag": "LABEL",
+        "role": null,
+        "type": null,
+        "text": "Language *",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label hr-form-item-label--right-mark",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 328,
+          "h": 24
+        },
+        "visible": true
+      },
+      {
+        "i": 1027,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Language",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__text",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 564,
+          "w": 62,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 1028,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "*",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-label__asterisk",
+        "checked": null,
+        "rect": {
+          "x": 1158,
+          "y": 564,
+          "w": 10,
+          "h": 20
+        },
+        "visible": true
+      },
+      {
+        "i": 1029,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-form-item-blank",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1030,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-select-wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1031,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "contact.language",
+        "className": "hr-select",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1032,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1033,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-label",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1035,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-placeholder hr-base-selection-overlay",
+        "checked": null,
+        "rect": {
+          "x": 1096,
+          "y": 588,
+          "w": 328,
+          "h": 28
+        },
+        "visible": true
+      },
+      {
+        "i": 1036,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Select an option",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-selection-overlay__wrapper",
+        "checked": null,
+        "rect": {
+          "x": 1104,
+          "y": 594,
+          "w": 292,
+          "h": 17
+        },
+        "visible": true
+      },
+      {
+        "i": 1037,
+        "tag": "DIV",
+        "role": "img",
+        "type": null,
+        "text": "",
+        "aria": "loading",
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-base-loading hr-base-suffix",
+        "checked": null,
+        "rect": {
+          "x": 1402,
+          "y": 595,
+          "w": 14,
+          "h": 14
+        },
+        "visible": true
+      },
+      {
+        "i": 1047,
+        "tag": "DIV",
+        "role": "none",
+        "type": null,
+        "text": "Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-drawer-footer",
+        "checked": null,
+        "rect": {
+          "x": 1080,
+          "y": 943,
+          "w": 360,
+          "h": 57
+        },
+        "visible": true
+      },
+      {
+        "i": 1048,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Save and add another Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex justify-between items-center w-full",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 956,
+          "w": 344,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1049,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Save and add another",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "save-and-add-another-btn",
+        "className": "font-semibold pl-1 cursor-not-allowed text-gray-400 flex items-center justify-center gap-2",
+        "checked": null,
+        "rect": {
+          "x": 1088,
+          "y": 961,
+          "w": 140,
+          "h": 22
+        },
+        "visible": true
+      },
+      {
+        "i": 1050,
+        "tag": "DIV",
+        "role": null,
+        "type": null,
+        "text": "Cancel Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "flex gap-3",
+        "checked": null,
+        "rect": {
+          "x": 1312,
+          "y": 956,
+          "w": 120,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1051,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Cancel",
+        "aria": "",
+        "placeholder": null,
+        "name": null,
+        "id": "cancel-record-save-btn",
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--secondary hr-button--xs",
+        "checked": null,
+        "rect": {
+          "x": 1312,
+          "y": 956,
+          "w": 60,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1052,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Cancel",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1322,
+          "y": 963,
+          "w": 40,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1053,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Cancel",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "cancel-record-save-btn-label",
+        "className": "hr-text hr-text-md hr-text-semibold hr-button__content-default-slot",
+        "checked": null,
+        "rect": {
+          "x": 1322,
+          "y": 963,
+          "w": 40,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1057,
+        "tag": "BUTTON",
+        "role": null,
+        "type": "button",
+        "text": "Save",
+        "aria": "",
+        "placeholder": null,
+        "name": null,
+        "id": "save-record-btn",
+        "className": "hr-button hr-button--default-type hr-button--medium-type hr-button--disabled hr-button--primary hr-button--xs",
+        "checked": null,
+        "rect": {
+          "x": 1384,
+          "y": 956,
+          "w": 48,
+          "h": 32
+        },
+        "visible": true
+      },
+      {
+        "i": 1058,
+        "tag": "SPAN",
+        "role": null,
+        "type": null,
+        "text": "Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": null,
+        "className": "hr-button__content",
+        "checked": null,
+        "rect": {
+          "x": 1394,
+          "y": 963,
+          "w": 28,
+          "h": 18
+        },
+        "visible": true
+      },
+      {
+        "i": 1059,
+        "tag": "P",
+        "role": null,
+        "type": null,
+        "text": "Save",
+        "aria": null,
+        "placeholder": null,
+        "name": null,
+        "id": "save-record-btn-label",
+        "className": "hr-text hr-text-md hr-text-semibold hr-button__content-default-slot",
+        "checked": null,
+        "rect": {
+          "x": 1394,
+          "y": 963,
+          "w": 28,
+          "h": 18
+        },
+        "visible": true
+      }
+    ]
+  }
+}

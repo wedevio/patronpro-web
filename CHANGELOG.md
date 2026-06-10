@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-10
+
+- Completed `ppweb-5` for Liverpool Digital's GHL Add Contact customization using WSL Chrome Profile 9 on CDP port `9229`.
+- Confirmed no supported public GHL API endpoint was found for the Add Contact modal layout; contact/custom-field APIs are not enough for this UI layout setting.
+- Updated the live GHL Add Contact form layout: added `Language`, marked `Language` required, and removed `DND Channels`.
+- Verified by reopening Contacts → Add Contact: the drawer now shows `Language *` and no DND/DnD fields.
+- Stored QA screenshots and JSON readbacks under `dev/agents/artifacts/doc/test/liverpool-digital/`.
+
 ## 2026-06-09
 
 - Created isolated `wedevio/patronpro-web` worktree at `/home/oz/projects/2026/patronpro-web-docs-automation` on branch `feature/liverpool-digital-docs-automation`.
