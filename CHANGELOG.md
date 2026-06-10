@@ -14,6 +14,7 @@
 - Blocked `ppweb-3` on missing Supabase API credentials: local env lacks `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, and the available 1Password Supabase item only has login-style fields.
 - Hardened `export-docs` output handling so `--out-dir` is constrained to this repository; the outside-repo write guard failed as expected for `/tmp/patronpro-should-not-write.json`.
 - Captured current PatronPro-generated website HTML drift: the public endpoint now returns SHA-256 `c54297b55c0c911273577190ee1308a45880c94ea4f6c9409e8dc1ae4594a6fd`, which differs from the GHL-saved 2026-06-09 block hash. Regenerating HTML updates the PatronPro endpoint, not the GHL builder page automatically.
+- Session close: added `ppweb-elk.10` for the user's Supabase access check and `ppweb-elk.11` for a guided manual QA walkthrough of every onboarding manual section against GHL/panel evidence.
 
 ## 2026-06-09
 
