@@ -9,6 +9,8 @@
 - Stored QA screenshots and JSON readbacks under `dev/agents/artifacts/doc/test/liverpool-digital/`.
 - Completed `ppweb-1` calendar availability QA: added read-only `calendar-availability-qa`, verified both active onboarding calendars return free slots, and updated `activate-calendars --apply` to include the same smoke test.
 - Recorded that GHL calendar list `openHoursCount: 0` is not authoritative for Liverpool Digital; `GET /calendars/{calendarId}/free-slots` returned bookable slots and is now the automation QA gate.
+- Completed `ppweb-2` website publication proof: refreshed public preview QA, confirmed no documented HighLevel page-builder content/publish API is exposed, and normalized the reusable GHL website-builder runbook to current WSL Chrome Profile 9 on CDP port `9229`.
+- Preserved the 2026-06-09 browser save proof as the accepted block-level evidence: generated PatronPro HTML is saved in Home custom-code element `#custom-code-MTo38o_zdB`, preview serves the page, `landing_form` remains empty until Twilio approval, and top-level Publish remains manual/operator-approved.
 
 ## 2026-06-09
 

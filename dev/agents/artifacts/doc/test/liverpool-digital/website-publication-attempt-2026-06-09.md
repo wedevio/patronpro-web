@@ -60,6 +60,8 @@ User then logged into Windows Chrome Profile 9, mapped in RLM as `devio/patron-p
 
 Important CDP gotcha: Chrome bound CDP to Windows `127.0.0.1`; WSL could not connect directly. Browser automation ran from Windows Node via PowerShell against `http://127.0.0.1:9222`.
 
+Current profile lane update, 2026-06-10: future PatronPro/GHL browser automation should use WSL Chrome Profile 9, not Windows Chrome Profile 9. The WSL Profile 9 CDP endpoint was reachable at `http://127.0.0.1:9229` and showed the authenticated Liverpool Digital GHL session. The browser was on Contacts during this read-only check, so the fresh WSL map proves profile reachability but does not replace the 2026-06-09 builder-block proof.
+
 ## Browser Save Result
 
 The generated HTML was saved into the existing GHL Home Custom HTML block on 2026-06-09.
@@ -97,6 +99,17 @@ Save proof:
 
 Public preview QA:
 
+- URL: `https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz`
+- Status: `200`
+- Response bytes: `91272`
+- Hero marker present: yes
+- Color markers present: yes
+- `Custom HTML/Javascript` placeholder absent: yes
+- `{{custom_values.landing_form}}` absent in served preview: expected, because the GHL custom value is intentionally empty until Twilio approval
+
+Fresh public preview QA, 2026-06-10:
+
+- Artifact: `dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-preview-qa-2026-06-10.json`
 - URL: `https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz`
 - Status: `200`
 - Response bytes: `91272`

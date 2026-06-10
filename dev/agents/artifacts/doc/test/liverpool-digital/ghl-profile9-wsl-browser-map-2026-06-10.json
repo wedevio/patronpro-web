@@ -1,0 +1,70 @@
+{
+  "command": "map",
+  "generatedAt": "2026-06-10T23:34:05.089Z",
+  "defaults": {
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "websiteId": "YJXYasKPALXkQkvezVyw",
+    "pageId": "JgrAMMXugg5Yi8QAnbDz",
+    "stepId": "e7b3ea2b-65fb-47a5-aa70-176674788e11",
+    "customCodeElementId": "custom-code-MTo38o_zdB",
+    "expectedSha256": "94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd",
+    "expectedLength": 33116,
+    "cdp": "http://127.0.0.1:9229",
+    "sourceEndpoint": "https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL",
+    "previewUrl": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz",
+    "outDir": "dev/agents/artifacts/doc/test/liverpool-digital"
+  },
+  "selectors": {
+    "customCodeElement": "#custom-code-MTo38o_zdB",
+    "settingsSidebar": ".hl-builder-settings-sidebar",
+    "openCodeEditorButton": "button.btn-open-editor",
+    "codeModal": "#hl-builder-custom-code-modal",
+    "codeMirror": "#hl-builder-custom-code-modal .CodeMirror",
+    "builderSaveButton": "#pg-website-builder__btn--save",
+    "publishButton": "#pg-website-builder__btn--publish"
+  },
+  "coordinateFallbacks": {
+    "modalSaveButton": {
+      "x": 978,
+      "y": 755
+    },
+    "modalCancelButton": {
+      "x": 888,
+      "y": 755
+    },
+    "modalCloseIcon": {
+      "x": 1272,
+      "y": 219
+    },
+    "builderSaveIcon": {
+      "x": 1710,
+      "y": 29
+    },
+    "publishButton": {
+      "x": 1797,
+      "y": 29
+    }
+  },
+  "page": {
+    "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/contacts/smart_list/All",
+    "title": "Patron Pro",
+    "screenshot": "",
+    "frames": [
+      {
+        "index": 0,
+        "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/contacts/smart_list/All",
+        "name": ""
+      }
+    ],
+    "bodySnippet": "Liverpool Digital's Account Queretaro, Querétaro Search ctrlK Ask AI Dashboard Conversations Calendars Contacts Opportunities Payments AI Agents Marketing Automation Sites Media Storage Reputation App Marketplace Mobile App Soporte Técnico Settings 1/1 Summer of AI: Your AI tools are free all summer. Activate now What's new Contact updates Ask AI View Changelog Notifications Support OB Contacts Smart Lists Bulk Actions Tasks Companies Contacts 1 Contact Import Add Contact All Add smart list Advanced Filters Sort Manage fields Contact name Phone Email Business name Created (PDT) Last activity (PDT) Tags O Oscar info@picturelle.com info@picturelle.com Jun 8, 2026 12:33 PM Page 1 of 1 20 50 100 Previous1Next"
+  },
+  "frame": {
+    "available": false,
+    "reason": "Builder frame not available over CDP."
+  },
+  "guardrails": [
+    "Do not read or store cookies, headers, passwords, tokens, localStorage, or Google account state.",
+    "Do not click Publish unless the operator explicitly approves live publication.",
+    "Use coordinate fallback only when the headed browser visibly shows the expected control and selector access is unavailable."
+  ]
+}

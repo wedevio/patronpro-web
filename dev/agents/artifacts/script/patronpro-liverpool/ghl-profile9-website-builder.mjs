@@ -11,7 +11,7 @@ const DEFAULTS = {
   customCodeElementId: "custom-code-MTo38o_zdB",
   expectedSha256: "94e6e0a2830dafaf69a87d76c5a3375fa1ce6f89dd8949527e155cfbb0be69cd",
   expectedLength: 33116,
-  cdp: "http://127.0.0.1:9222",
+  cdp: "http://127.0.0.1:9229",
   sourceEndpoint: "https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL",
   previewUrl: "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz",
   outDir: "dev/agents/artifacts/doc/test/liverpool-digital",
@@ -106,7 +106,7 @@ async function loadPlaywright() {
     return await import("playwright");
   } catch (err) {
     throw new Error(
-      `Playwright is not available to this Node runtime. Run this script with Windows Node from the authenticated Profile 9 host. Original error: ${err instanceof Error ? err.message : err}`,
+      `Playwright is not available to this Node runtime. Run this script from WSL where WSL Profile 9 CDP is reachable, or pass --cdp for the explicitly approved browser endpoint. Original error: ${err instanceof Error ? err.message : err}`,
     );
   }
 }
@@ -419,8 +419,8 @@ async function previewQa() {
 function help() {
   return {
     usage: [
-      "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs map --out dev/agents/artifacts/doc/test/liverpool-digital/browser-map.json",
-      "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-visible-modal --apply --coordinate-fallback --screenshot C:\\\\Users\\\\alast\\\\AppData\\\\Local\\\\Temp\\\\after-save.png",
+      "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs map --cdp http://127.0.0.1:9229 --out dev/agents/artifacts/doc/test/liverpool-digital/browser-map.json",
+      "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-visible-modal --apply --coordinate-fallback --screenshot /tmp/patronpro-after-save.png",
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-html --apply",
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs preview-qa --out dev/agents/artifacts/doc/test/liverpool-digital/preview-qa.json",
     ],
@@ -431,7 +431,8 @@ function help() {
       "preview-qa": "Read-only public preview marker check.",
     },
     guardrails: [
-      "Run from Windows Node via PowerShell when WSL cannot reach Chrome CDP.",
+      "Default to WSL Chrome Profile 9 on http://127.0.0.1:9229 for PatronPro/GHL work.",
+      "Treat the old Windows Chrome Profile 9 route as historical unless the user explicitly approves it for a pass.",
       "Do not click Publish from this script.",
       "Do not log cookies, headers, tokens, localStorage, passwords, or Google account state.",
     ],

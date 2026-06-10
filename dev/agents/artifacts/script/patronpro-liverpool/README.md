@@ -20,14 +20,16 @@ bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs export-docs --out-dir dev/agents/artifacts/doc/test/liverpool-digital
 ```
 
-Browser-only GHL Website Builder commands must run from Windows Node when Profile 9 CDP is bound to Windows `127.0.0.1`:
+Browser-only GHL Website Builder commands must use the PatronPro WSL Chrome Profile 9 session. Current default CDP endpoint is WSL `http://127.0.0.1:9229`; pass `--cdp` only when the approved WSL Profile 9 endpoint changes.
 
 ```bash
-powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' map --out 'dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-website-builder-map.json'"
-powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' preview-qa --out 'dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-preview-qa.json'"
-powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' save-visible-modal --apply --coordinate-fallback --screenshot 'C:\Users\alast\AppData\Local\Temp\patronpro-after-save.png'"
-powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\projects\2026\patronpro-web-docs-automation\dev\agents\artifacts\script\patronpro-liverpool\ghl-profile9-website-builder.mjs' save-html --apply"
+node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs map --cdp http://127.0.0.1:9229 --out dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-wsl-browser-map.json
+node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs preview-qa --out dev/agents/artifacts/doc/test/liverpool-digital/ghl-profile9-preview-qa.json
+node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-visible-modal --apply --coordinate-fallback --screenshot /tmp/patronpro-after-save.png
+node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-html --apply
 ```
+
+Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell because the first successful HTML copy used that route. Treat that as historical evidence only. The current approved lane is WSL Profile 9, mapped to `devio/patron-pro [my job]`, logged into the `@getpatronpro.com` Google/GHL account.
 
 ## Safety
 
@@ -41,6 +43,7 @@ powershell.exe -NoProfile -Command "node '\\wsl.localhost\Ubuntu\home\oz\project
 - `apply-brand-board` derives the palette from the generated website HTML and verifies by reading `/brand-boards/{locationId}` after the write.
 - Brand Board list reads can omit `colors`; hydrate candidates with `GET /brand-boards/{locationId}/{brandBoardId}` before QA.
 - `ghl-profile9-website-builder.mjs map` and `preview-qa` are read-only.
+- Use WSL Chrome Profile 9 for current PatronPro/GHL browser work. Do not silently fall back to Windows Chrome Profile 9 or Oscar's personal Profile 6.
 - `ghl-profile9-website-builder.mjs save-visible-modal --apply` only clicks the visible modal Save and builder save icon; use `--coordinate-fallback` only when the headed browser visibly shows the expected Save controls but CDP selector access is flaky.
 - `ghl-profile9-website-builder.mjs save-html --apply` writes generated HTML into the existing GHL Custom HTML block and clicks builder Save. It does not click Publish.
 - Never use browser scripts to read or store cookies, headers, passwords, tokens, localStorage, or Google account state.
