@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
@@ -161,6 +162,10 @@ async function safeJson(res) {
 
 function createResult(id, label, status, evidence = {}, remediation = "") {
   return { id, label, status, evidence, remediation };
+}
+
+function sha256(text) {
+  return createHash("sha256").update(text).digest("hex");
 }
 
 function normalizeFieldKey(input) {
@@ -1013,6 +1018,8 @@ async function buildWebsiteAssetsReport(args) {
       websiteStatus: publicWebsite?.status ?? null,
       imagesStatus: publicWebsite?.images_status ?? null,
       htmlBytes: html.length,
+      htmlUtf8Bytes: Buffer.byteLength(html),
+      htmlSha256: sha256(html),
       colors: hexColorsFromHtml(html),
       heroImageUrl: publicWebsite?.hero_image_url ?? "",
       aboutImageUrl: publicWebsite?.about_image_url ?? "",
@@ -1568,7 +1575,7 @@ async function exportDocs(args) {
   }
 
   const pages = Array.isArray(result.body) ? result.body : [];
-  const outDir = resolve(args.outDir, "doc-pages");
+  const outDir = resolveRepoPath(resolve(args.outDir, "doc-pages"), "export docs output directory");
   await mkdir(outDir, { recursive: true });
   await writeFile(resolve(outDir, "doc-pages.json"), JSON.stringify({ generatedAt, pages }, null, 2));
 
@@ -1615,18 +1622,23 @@ function renderBlock(block) {
 async function writeOutput(args, payload) {
   const text = JSON.stringify(payload, null, 2);
   if (args.out) {
-    const target = resolve(args.out);
-    const repoRoot = process.cwd();
-    const rel = relative(repoRoot, target);
-    if (rel.startsWith("..") || isAbsolute(rel)) {
-      throw new Error(`Refusing to write outside the repository: ${target}`);
-    }
+    const target = resolveRepoPath(args.out, "output path");
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${text}\n`);
     return target;
   }
   console.log(text);
   return "";
+}
+
+function resolveRepoPath(inputPath, label) {
+  const target = resolve(inputPath);
+  const repoRoot = process.cwd();
+  const rel = relative(repoRoot, target);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw new Error(`Refusing to write ${label} outside the repository: ${target}`);
+  }
+  return target;
 }
 
 function printHelp() {

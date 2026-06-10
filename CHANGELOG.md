@@ -11,6 +11,9 @@
 - Recorded that GHL calendar list `openHoursCount: 0` is not authoritative for Liverpool Digital; `GET /calendars/{calendarId}/free-slots` returned bookable slots and is now the automation QA gate.
 - Completed `ppweb-2` website publication proof: refreshed public preview QA, confirmed no documented HighLevel page-builder content/publish API is exposed, and normalized the reusable GHL website-builder runbook to current WSL Chrome Profile 9 on CDP port `9229`.
 - Preserved the 2026-06-09 browser save proof as the accepted block-level evidence: generated PatronPro HTML is saved in Home custom-code element `#custom-code-MTo38o_zdB`, preview serves the page, `landing_form` remains empty until Twilio approval, and top-level Publish remains manual/operator-approved.
+- Blocked `ppweb-3` on missing Supabase API credentials: local env lacks `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, and the available 1Password Supabase item only has login-style fields.
+- Hardened `export-docs` output handling so `--out-dir` is constrained to this repository; the outside-repo write guard failed as expected for `/tmp/patronpro-should-not-write.json`.
+- Captured current PatronPro-generated website HTML drift: the public endpoint now returns SHA-256 `c54297b55c0c911273577190ee1308a45880c94ea4f6c9409e8dc1ae4594a6fd`, which differs from the GHL-saved 2026-06-09 block hash. Regenerating HTML updates the PatronPro endpoint, not the GHL builder page automatically.
 
 ## 2026-06-09
 
