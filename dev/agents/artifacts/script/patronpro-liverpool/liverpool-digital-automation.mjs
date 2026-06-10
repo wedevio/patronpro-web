@@ -40,6 +40,7 @@ const LANDING_CUSTOM_VALUES = [
   "website_hero_image",
   "website_about_image",
   "website_contact_image",
+  "website_social_image",
   "website_hero_image_avif_srcset",
   "website_hero_image_webp_srcset",
   "website_hero_image_jpeg_srcset",

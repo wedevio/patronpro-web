@@ -320,6 +320,8 @@ export async function POST(request: Request): Promise<Response> {
           complementaryColor: data.complementaryColor ?? "#FFFFFF",
           domain,
           hoursOfOperation:   data.hoursOfOperation ?? null,
+          logoUrl:            logoUrl ?? "",
+          logoSquareUrl:      logoSquareUrl ?? "",
         }),
       }).catch((err) => console.error("[onboarding] website generation trigger failed:", err));
     }

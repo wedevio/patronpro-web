@@ -169,7 +169,10 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     }
   }, [locationId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [load]);
 
   // Auto-poll while generating
   useEffect(() => {
@@ -220,6 +223,9 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           complementaryColor: submission.complementaryColor || "#FFFFFF",
           domain,
           hoursOfOperation:   submission.hoursOfOperation ?? null,
+          logoUrl:            submission.logoUrl ?? "",
+          logoSquareUrl:      submission.logoSquareUrl ?? "",
+          regenerateHtmlAfterImages: true,
         }),
       });
       await load();
@@ -257,6 +263,8 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           complementaryColor: submission.complementaryColor || "#FFFFFF",
           domain,
           hoursOfOperation:   submission.hoursOfOperation ?? null,
+          logoUrl:            submission.logoUrl ?? "",
+          logoSquareUrl:      submission.logoSquareUrl ?? "",
         }),
       });
 
@@ -285,6 +293,8 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     );
   }
 
+  const imageCacheToken = data.updated_at ?? data.generated_at ?? "preview";
+
   return (
     <div className="space-y-3">
       {/* Status */}
@@ -312,26 +322,26 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
       )}
 
       {/* Hero image preview */}
-       {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
-         <div className="grid grid-cols-3 gap-1.5">
-           {[
-             { url: data.hero_image_url,    label: "Hero" },
-             { url: data.about_image_url,   label: "Nosotros" },
-             { url: data.contact_image_url, label: "Contacto" },
-           ].map(({ url, label }) =>
-             url ? (
-               <div key={label} className="relative">
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img
-                   src={`${url}?t=${data.updated_at ?? data.generated_at ?? Date.now()}`}
-                   alt={label}
-                   className="w-full h-16 object-cover rounded-lg border border-slate-200"
-                 />
-                 <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
-                   {label}
-                 </span>
-               </div>
-             ) : null
+      {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
+        <div className="grid grid-cols-3 gap-1.5">
+          {[
+            { url: data.hero_image_url,    label: "Hero" },
+            { url: data.about_image_url,   label: "Nosotros" },
+            { url: data.contact_image_url, label: "Contacto" },
+          ].map(({ url, label }) =>
+            url ? (
+              <div key={label} className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${url}?t=${imageCacheToken}`}
+                  alt={label}
+                  className="w-full h-16 object-cover rounded-lg border border-slate-200"
+                />
+                <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
+                  {label}
+                </span>
+              </div>
+            ) : null
           )}
         </div>
       )}
