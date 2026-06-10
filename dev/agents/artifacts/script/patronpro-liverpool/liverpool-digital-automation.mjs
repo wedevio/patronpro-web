@@ -84,6 +84,9 @@ function parseArgs(argv) {
     out: "",
     outDir: "dev/agents/artifacts/doc/test/liverpool-digital",
     apply: false,
+    availabilityDays: 14,
+    startOffsetDays: 1,
+    timezone: "",
   };
 
   function readFlagValue(index, flag) {
@@ -98,6 +101,9 @@ function parseArgs(argv) {
     else if (arg === "--client") args.client = readFlagValue(i++, arg);
     else if (arg === "--out") args.out = readFlagValue(i++, arg);
     else if (arg === "--out-dir") args.outDir = readFlagValue(i++, arg);
+    else if (arg === "--availability-days") args.availabilityDays = Number.parseInt(readFlagValue(i++, arg), 10);
+    else if (arg === "--start-offset-days") args.startOffsetDays = Number.parseInt(readFlagValue(i++, arg), 10);
+    else if (arg === "--timezone") args.timezone = readFlagValue(i++, arg);
     else if (arg === "--apply") args.apply = true;
     else if (arg === "--help" || arg === "-h") args.command = "help";
     else throw new Error(`Unknown argument: ${arg}`);
@@ -262,6 +268,16 @@ async function fetchCustomValues(locationId) {
 
 async function fetchCalendars(locationId) {
   return ghlFetch(`/calendars/?locationId=${encodeURIComponent(locationId)}&showDrafted=true`, { version: GHL_CALENDAR_VERSION });
+}
+
+async function fetchCalendarFreeSlots(calendarId, query) {
+  const params = new URLSearchParams({
+    startDate: String(query.startDate),
+    endDate: String(query.endDate),
+  });
+  if (query.timezone) params.set("timezone", query.timezone);
+  if (query.userId) params.set("userId", query.userId);
+  return ghlFetch(`/calendars/${encodeURIComponent(calendarId)}/free-slots?${params.toString()}`, { version: GHL_CALENDAR_VERSION });
 }
 
 async function fetchPhoneNumbers(locationId) {
@@ -532,6 +548,63 @@ function calendarSchedulingSummary(calendar) {
     openHoursCount: Array.isArray(calendar?.openHours) ? calendar.openHours.length : 0,
     availabilityType: calendar?.availabilityType ?? null,
     autoConfirm: calendar?.autoConfirm ?? null,
+  };
+}
+
+function calendarTimezone(calendar, fallback = "") {
+  return calendar?.timezone ?? calendar?.timeZone ?? calendar?.calendarTimezone ?? fallback ?? "";
+}
+
+function scheduleBlockers(calendar) {
+  const scheduling = calendarSchedulingSummary(calendar);
+  return [
+    !(Number(scheduling.slotDuration) > 0) && "slotDuration is missing or not positive.",
+    !(Number(scheduling.slotInterval) > 0) && "slotInterval is missing or not positive.",
+    !Number.isFinite(Number(scheduling.allowBookingAfter)) && "allowBookingAfter is missing.",
+    !scheduling.allowBookingAfterUnit && "allowBookingAfterUnit is missing.",
+    !Number.isFinite(Number(scheduling.preBuffer)) && "preBuffer is missing.",
+    !Number.isFinite(Number(scheduling.slotBuffer)) && "slotBuffer is missing.",
+  ].filter(Boolean);
+}
+
+function availabilityWindow(args) {
+  const days = Number.isFinite(args.availabilityDays) ? args.availabilityDays : 14;
+  const startOffsetDays = Number.isFinite(args.startOffsetDays) ? args.startOffsetDays : 1;
+  const safeDays = Math.max(1, Math.min(31, days));
+  const safeOffset = Math.max(0, startOffsetDays);
+  const start = new Date();
+  start.setDate(start.getDate() + safeOffset);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + safeDays - 1);
+  end.setHours(23, 59, 59, 999);
+  return {
+    startDate: start.getTime(),
+    endDate: end.getTime(),
+    startIso: start.toISOString(),
+    endIso: end.toISOString(),
+    days: safeDays,
+    startOffsetDays: safeOffset,
+  };
+}
+
+function freeSlotSummary(body) {
+  const dates = body && typeof body === "object" ? Object.keys(body).filter((key) => Array.isArray(body?.[key]?.slots)).sort() : [];
+  const dateSummaries = dates.map((date) => {
+    const slots = body?.[date]?.slots ?? [];
+    return {
+      date,
+      slotCount: slots.length,
+      firstSlot: slots[0] ?? "",
+      lastSlot: slots[slots.length - 1] ?? "",
+    };
+  });
+  return {
+    slotCount: dateSummaries.reduce((sum, item) => sum + item.slotCount, 0),
+    dateCount: dateSummaries.length,
+    firstDate: dateSummaries[0]?.date ?? "",
+    lastDate: dateSummaries[dateSummaries.length - 1]?.date ?? "",
+    sampleDates: dateSummaries.slice(0, 5),
   };
 }
 
@@ -1029,12 +1102,14 @@ async function buildCalendarOwnerPlan(args) {
       id: calendar.id,
       name: calendar.name,
       calendarType: calendar.calendarType ?? null,
+      timezone: calendarTimezone(calendar),
       isActive: calendar.isActive === true,
       currentTeamMemberIds,
       targetTeamMembers: mainUserId ? [{ userId: mainUserId }] : [],
       alreadyAssigned,
       eligible,
       scheduling: calendarSchedulingSummary(calendar),
+      scheduleBlockers: scheduleBlockers(calendar),
       reason: hasDifferentMember
         ? "Calendar already has a different assigned team member; refusing to overwrite automatically."
         : hasUnsafeExistingMembers
@@ -1065,6 +1140,9 @@ async function buildCalendarOwnerPlan(args) {
 
 async function buildCalendarActivationPlan(args) {
   const ownerPlan = await buildCalendarOwnerPlan(args);
+  const scheduleBlockers = ownerPlan.calendars.flatMap((calendar) => {
+    return (calendar.scheduleBlockers ?? []).map((blocker) => `${calendar.name}: ${blocker}`);
+  });
   return {
     ...ownerPlan,
     metadata: {
@@ -1074,9 +1152,10 @@ async function buildCalendarActivationPlan(args) {
     },
     preconditions: {
       ...ownerPlan.preconditions,
-      ok: ownerPlan.preconditions.ok && ownerPlan.calendars.every((calendar) => calendar.alreadyAssigned),
+      ok: ownerPlan.preconditions.ok && ownerPlan.calendars.every((calendar) => calendar.alreadyAssigned) && scheduleBlockers.length === 0,
       blockers: [
         ...ownerPlan.preconditions.blockers,
+        ...scheduleBlockers,
         ...ownerPlan.calendars
           .filter((calendar) => !calendar.alreadyAssigned)
           .map((calendar) => `${calendar.name} is not assigned to the single main user; run assign-calendar-owner first.`),
@@ -1088,6 +1167,91 @@ async function buildCalendarActivationPlan(args) {
       targetIsActive: true,
     })),
     plannedAction: "Set isActive to true for each exact onboarding calendar. Owner/teamMembers remain unchanged.",
+  };
+}
+
+async function buildCalendarAvailabilityQa(args) {
+  const plan = await buildCalendarActivationPlan(args);
+  const window = availabilityWindow(args);
+  const probes = [];
+
+  for (const calendar of plan.calendars) {
+    const userId = calendar.currentTeamMemberIds[0] ?? "";
+    const timezone = calendarTimezone(calendar, args.timezone);
+    const query = {
+      startDate: window.startDate,
+      endDate: window.endDate,
+      timezone,
+      userId,
+    };
+    const freeSlotsResult = calendar.isActive === true && userId
+      ? await fetchCalendarFreeSlots(calendar.id, query)
+      : { ok: false, blocked: true, status: null, body: null, reason: "Calendar must be active and have an assigned user before free-slot smoke test." };
+    const slots = freeSlotsResult.ok ? freeSlotSummary(freeSlotsResult.body) : freeSlotSummary(null);
+    const blockers = [
+      calendar.isActive !== true && "Calendar is not active.",
+      calendar.currentTeamMemberIds.length !== 1 && "Calendar does not have exactly one assigned team member.",
+      ...calendar.scheduleBlockers,
+      freeSlotsResult.blocked && freeSlotsResult.reason,
+      !freeSlotsResult.blocked && !freeSlotsResult.ok && `Free-slots endpoint returned ${freeSlotsResult.status}.`,
+      freeSlotsResult.ok && slots.slotCount <= 0 && "Free-slots smoke test returned zero slots.",
+    ].filter(Boolean);
+    const warnings = [
+      calendar.scheduling.openHoursCount === 0 && "Calendar list payload reports openHoursCount=0; free-slots endpoint is the authoritative booking smoke signal for this account.",
+      Number(calendar.scheduling.allowBookingAfter) === 0 && "Minimum booking notice allows same-day booking; confirm with the client if same-day booking should stay enabled.",
+    ].filter(Boolean);
+
+    probes.push({
+      id: calendar.id,
+      name: calendar.name,
+      calendarType: calendar.calendarType,
+      isActive: calendar.isActive,
+      teamMemberIds: calendar.currentTeamMemberIds,
+      scheduling: calendar.scheduling,
+      endpoint: "GET /calendars/{calendarId}/free-slots",
+      request: {
+        startDate: query.startDate,
+        endDate: query.endDate,
+        timezone: query.timezone || "",
+        userIdPresent: Boolean(query.userId),
+      },
+      freeSlots: {
+        ok: freeSlotsResult.ok === true,
+        status: freeSlotsResult.status ?? null,
+        blocked: freeSlotsResult.blocked === true,
+        summary: slots,
+        error: freeSlotsResult.ok ? null : freeSlotsResult.body ?? freeSlotsResult.reason ?? null,
+      },
+      blockers,
+      warnings,
+      status: blockers.length === 0 ? "pass" : freeSlotsResult.blocked ? "blocked" : "fail",
+    });
+  }
+
+  const allPass = plan.preconditions.ok && probes.length > 0 && probes.every((probe) => probe.status === "pass");
+
+  return {
+    metadata: {
+      client: args.client,
+      locationId: args.locationId,
+      generatedAt: new Date().toISOString(),
+      command: "calendar-availability-qa",
+      dryRun: true,
+      readOnly: true,
+      docs: {
+        source: "HighLevel calendars API",
+        endpoint: "GET /calendars/{calendarId}/free-slots",
+        version: GHL_CALENDAR_VERSION,
+        maxRangeDays: 31,
+      },
+    },
+    status: allPass ? "pass" : probes.some((probe) => probe.status === "blocked") ? "blocked" : "fail",
+    preconditions: plan.preconditions,
+    availabilityWindow: window,
+    calendars: probes,
+    note: allPass
+      ? "Availability QA passed: required scheduling fields are present and each active onboarding calendar returned free slots."
+      : "Availability QA did not pass; review blockers before relying on these calendars for booking.",
   };
 }
 
@@ -1219,6 +1383,8 @@ async function activateCalendars(args) {
   const verified = verificationResult.ok && verificationCalendars.length === targetIdSet.size && targetIdSet.size >= 2 && verificationCalendars.every((calendar) => {
     return calendar.isActive === true && calendar.teamMemberIds.length === 1 && calendar.teamMemberIds[0] === expectedUserId;
   });
+  const availabilityQa = await buildCalendarAvailabilityQa({ ...args, apply: false });
+  const availabilityOk = availabilityQa.status === "pass";
 
   return {
     ...plan,
@@ -1226,12 +1392,13 @@ async function activateCalendars(args) {
       ...plan.metadata,
       dryRun: false,
     },
-    status: verified ? "pass" : "fail",
+    status: verified && availabilityOk ? "pass" : "fail",
     updates,
     verification: {
-      ok: verified,
+      ok: verified && availabilityOk,
       status: verificationResult.status,
       calendars: verificationCalendars,
+      availabilityQa,
     },
   };
 }
@@ -1470,6 +1637,7 @@ Usage:
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs plan [--out plan.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs assign-calendar-owner [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs activate-calendars [--apply] [--out report.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs calendar-availability-qa [--availability-days 14] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs website-assets [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs apply-brand-board [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs export-docs [--out-dir dev/agents/artifacts/doc/test/liverpool-digital]
@@ -1479,6 +1647,8 @@ Commands:
   plan                   Read-only planned actions based on QC failures/blockers.
   assign-calendar-owner  Dry-run by default. With --apply, assigns the single main user to onboarding calendars.
   activate-calendars     Dry-run by default. With --apply, sets onboarding calendars active after owner QA.
+  calendar-availability-qa
+                         Read-only schedule checks and free-slot smoke test for onboarding calendars.
   website-assets         Read-only proof for generated HTML/images and GHL website/page inventory.
   apply-brand-board      Dry-run by default. With --apply, creates or updates a Brand Board from generated colors.
   export-docs            Export Supabase doc_pages to JSON and Markdown when Supabase env exists.
@@ -1505,6 +1675,7 @@ async function main() {
   else if (args.command === "website-assets") payload = await buildWebsiteAssetsReport(args);
   else if (args.command === "assign-calendar-owner") payload = await assignCalendarOwner(args);
   else if (args.command === "activate-calendars") payload = await activateCalendars(args);
+  else if (args.command === "calendar-availability-qa") payload = await buildCalendarAvailabilityQa(args);
   else if (args.command === "apply-brand-board") payload = await applyBrandBoard(args);
   else if (args.command === "export-docs") payload = await exportDocs(args);
   else throw new Error(`Unknown command: ${args.command}`);

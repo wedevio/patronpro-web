@@ -7,6 +7,8 @@
 - Updated the live GHL Add Contact form layout: added `Language`, marked `Language` required, and removed `DND Channels`.
 - Verified by reopening Contacts → Add Contact: the drawer now shows `Language *` and no DND/DnD fields.
 - Stored QA screenshots and JSON readbacks under `dev/agents/artifacts/doc/test/liverpool-digital/`.
+- Completed `ppweb-1` calendar availability QA: added read-only `calendar-availability-qa`, verified both active onboarding calendars return free slots, and updated `activate-calendars --apply` to include the same smoke test.
+- Recorded that GHL calendar list `openHoursCount: 0` is not authoritative for Liverpool Digital; `GET /calendars/{calendarId}/free-slots` returned bookable slots and is now the automation QA gate.
 
 ## 2026-06-09
 
