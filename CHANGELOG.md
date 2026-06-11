@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-11
+
+- Agent manual-QA snapshot completed with Supabase-backed read-only QC: `qc-agent-supabase-ghl-2026-06-11.json` shows Supabase and GHL access passing with 12 pass / 11 fail / 0 blocked; `manual-qa-agent-walkthrough-2026-06-11.md` lists every onboarding manual point with Manual/Agent status. No DB writes were performed.
+
 ## 2026-06-10
 
 - Completed `ppweb-5` for Liverpool Digital's GHL Add Contact customization using WSL Chrome Profile 9 on CDP port `9229`.
