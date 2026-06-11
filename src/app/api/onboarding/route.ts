@@ -1,20 +1,51 @@
 import { NextResponse } from "next/server";
+import { finalizeOnboardingSubmission } from "./submit-success";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { syncCustomValues } from "@/lib/ghl/custom-values";
 import { uploadMedia } from "@/lib/ghl/media";
 import { notifyOnboarder } from "@/lib/ghl/notifications";
 import { applyDefaultStaffPermissions } from "@/lib/ghl/users";
-import { addTagToPatronProContact } from "@/lib/ghl/contacts";
+import {
+  addTagToPatronProContact,
+  getContactIdentity,
+  getPatronProLocationId,
+  mergeContactIdentity,
+} from "@/lib/ghl/contacts";
 import { verifyOnboardingLinkSignature } from "@/lib/onboarding/link-signature";
 import { saveSubmission } from "@/lib/panel/store";
 import { getAdminClient } from "@/lib/supabase/client";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
+import type { FinalizeOnboardingSubmissionDeps, FinalizeOnboardingSubmissionInput } from "./submit-success";
 
 export const dynamic = "force-dynamic";
 
 const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
 
 class BadRequestError extends Error {}
+
+async function getTrustedBookingIdentity(
+  contactId: string,
+  patronProContactId: string,
+  token: string
+) {
+  let locationIdentity = null;
+  let patronProIdentity = null;
+
+  try {
+    locationIdentity = await getContactIdentity(contactId, token);
+  } catch (err) {
+    console.error("[onboarding] Client contact identity fetch failed:", err);
+  }
+
+  try {
+    const patronProToken = await getLocationAccessToken(getPatronProLocationId());
+    patronProIdentity = await getContactIdentity(patronProContactId, patronProToken);
+  } catch (err) {
+    console.error("[onboarding] PatronPro contact identity fetch failed:", err);
+  }
+
+  return mergeContactIdentity(locationIdentity ?? undefined, patronProIdentity ?? undefined);
+}
 
 function validateImageFile(file: File, fieldName: string): void {
   if (!file.type.startsWith("image/")) {
@@ -31,6 +62,24 @@ function validateStrictFileType(file: File, fieldName: string, expectedType: str
 
   if (file.type !== expectedType) {
     throw new BadRequestError(`${fieldName} must use content type ${expectedType}`);
+  }
+}
+
+export async function buildOnboardingFinalizeResponse(
+  input: FinalizeOnboardingSubmissionInput,
+  deps: FinalizeOnboardingSubmissionDeps
+): Promise<Response> {
+  try {
+    const response = await finalizeOnboardingSubmission(input, deps);
+
+    return NextResponse.json(response, { status: 201 });
+  } catch (err) {
+    console.error("[onboarding] Final onboarding success flow failed:", err);
+
+    return NextResponse.json(
+      { error: "No se pudo completar la finalización del onboarding" },
+      { status: 502 }
+    );
   }
 }
 
@@ -237,12 +286,6 @@ export async function POST(request: Request): Promise<Response> {
       console.error("[onboarding] notifyOnboarder failed:", err);
     }
 
-    try {
-      await addTagToPatronProContact(patronProContactId!, "ob-form-ok");
-    } catch (err) {
-      console.error("[onboarding] PatronPro contact tagging failed:", err);
-    }
-
     // --- Save to panel store ---
     let savedAccountId: string | undefined;
     try {      // Determine domain type and value
@@ -324,7 +367,17 @@ export async function POST(request: Request): Promise<Response> {
       }).catch((err) => console.error("[onboarding] website generation trigger failed:", err));
     }
 
-    return NextResponse.json({ success: true }, { status: 201 });
+    return buildOnboardingFinalizeResponse(
+      {
+        contactId,
+        patronProContactId: patronProContactId!,
+        token,
+      },
+      {
+        addTagToPatronProContact,
+        getTrustedBookingIdentity,
+      }
+    );
   } catch (err) {
     console.error("[POST /api/onboarding]", err);
     if (err instanceof BadRequestError) {

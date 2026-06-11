@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { finishOnboardingClientFlow } from "@/lib/onboarding/booking-navigation";
+import type { OnboardingSubmitResponse } from "@/lib/onboarding/booking-redirect";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
 import { DEFAULT_HOURS } from "@/lib/onboarding/types";
 import {
@@ -156,10 +158,22 @@ export default function OnboardingForm({
         body: fd,
       });
 
+      const json = (await res.json()) as
+        | OnboardingSubmitResponse
+        | { error?: string; redirectUrl?: string };
+
       if (!res.ok) {
-        const json = (await res.json()) as { error?: string };
-        throw new Error(json.error ?? "Error al enviar");
+        const errorMessage = "error" in json ? json.error : undefined;
+        throw new Error(errorMessage ?? "Error al enviar");
       }
+
+       const flowResult = finishOnboardingClientFlow(json, (url) =>
+         window.location.assign(url)
+       );
+
+       if (flowResult === "redirected") {
+         return;
+       }
 
       setSuccess(true);
     } catch (err) {

@@ -2,11 +2,18 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { Download, Mail, Phone } from "lucide-react";
 import { SiteFooter } from "@/components/SiteLayout";
+import {
+  ONBOARDING_CONTACT_EMAIL,
+  ONBOARDING_CONTACT_PHONE,
+  ONBOARDING_CONTACT_VCARD_PATH,
+  PAID_ONBOARDING_STEPS,
+} from "@/lib/onboarding/thank-you-content";
 
 export const metadata: Metadata = {
-  title: "¡Bienvenido a PatronPro! | Confirma tu cuenta",
-  description: "Tu suscripción está en proceso. Revisa tu correo para activar tu cuenta PatronPro.",
+  title: "Gracias por tu compra | PatronPro",
+  description: "Sigue los 3 pasos de onboarding para completar tu formulario, reservar tu cita y preparar tu cuenta PatronPro.",
 };
 
 export default function ThankYouPage() {
@@ -45,7 +52,7 @@ export default function ThankYouPage() {
             </h1>
 
             <p className="text-[18px] leading-[1.65] mb-8" style={{ color: "#5f6f88" }}>
-              Bienvenido a PatronPro. Estás a un paso de tener tu negocio de construcción centralizado y bajo control.
+              Gracias por confiar en PatronPro. Sigue estos 3 pasos para completar tu onboarding y dejar lista la configuración inicial de tu cuenta.
             </p>
 
             {/* Card */}
@@ -58,29 +65,13 @@ export default function ThankYouPage() {
               </h2>
 
               <ol className="flex flex-col gap-5">
-                {[
-                  {
-                    n: "1",
-                    title: "Revisa tu bandeja de entrada",
-                    body: "En los próximos minutos te llegará un correo con el enlace para crear tu cuenta y acceder a la plataforma.",
-                  },
-                  {
-                    n: "2",
-                    title: "¿No ves el correo? Revisa Spam",
-                    body: "A veces los correos de activación aterrizan en la carpeta de Spam o Promociones. Márcalo como «No es spam» para no perder ninguna comunicación.",
-                  },
-                  {
-                    n: "3",
-                    title: "Empieza a construir tu negocio desde el primer día",
-                    body: "Añade tus primeros clientes, manda cotizaciones, activa el seguimiento automático y deja que PatronPro trabaje por ti mientras tú te concentras en la obra.",
-                  },
-                ].map(({ n, title, body }) => (
-                  <li key={n} className="flex gap-4">
+                {PAID_ONBOARDING_STEPS.map(({ number, title, body }) => (
+                  <li key={number} className="flex gap-4">
                     <span
                       className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-black flex-shrink-0 mt-[2px]"
                       style={{ background: "rgba(246,125,10,0.12)", color: "#F67D0A" }}
                     >
-                      {n}
+                      {number}
                     </span>
                     <div>
                       <p className="text-[15px] font-bold" style={{ color: "#1E2C46" }}>{title}</p>
@@ -91,17 +82,65 @@ export default function ThankYouPage() {
               </ol>
             </div>
 
+            <div
+              className="rounded-[24px] p-6 sm:p-7 text-left mb-8"
+              style={{ background: "#fff", border: "2px solid rgba(30,44,70,0.08)", boxShadow: "0 16px 50px rgba(20,35,58,0.08)" }}
+            >
+              <h2 className="text-[16px] font-extrabold mb-4" style={{ color: "#1E2C46" }}>
+                Guarda nuestros datos de contacto
+              </h2>
+
+              <div className="grid gap-3 sm:grid-cols-2 mb-5 text-[14px]" style={{ color: "#5f6f88" }}>
+                <div>
+                  <p className="font-semibold" style={{ color: "#1E2C46" }}>Teléfono</p>
+                  <p>{ONBOARDING_CONTACT_PHONE}</p>
+                </div>
+                <div>
+                  <p className="font-semibold" style={{ color: "#1E2C46" }}>Email</p>
+                  <p>{ONBOARDING_CONTACT_EMAIL}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={`tel:${ONBOARDING_CONTACT_PHONE}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-[14px] px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "#1E2C46" }}
+                >
+                  <Phone size={16} />
+                  Llamar o guardar número
+                </a>
+                <a
+                  href={`mailto:${ONBOARDING_CONTACT_EMAIL}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-[14px] border px-4 py-3 text-sm font-semibold transition-colors"
+                  style={{ borderColor: "#d7dce5", color: "#1E2C46" }}
+                >
+                  <Mail size={16} />
+                  Guardar email
+                </a>
+                <a
+                  href={ONBOARDING_CONTACT_VCARD_PATH}
+                  download
+                  className="inline-flex items-center justify-center gap-2 rounded-[14px] border px-4 py-3 text-sm font-semibold transition-colors"
+                  style={{ borderColor: "#d7dce5", color: "#1E2C46" }}
+                >
+                  <Download size={16} />
+                  Descargar contacto
+                </a>
+              </div>
+            </div>
+
             {/* Support note */}
             <p className="text-[14px] leading-[1.65]" style={{ color: "#8491a7" }}>
-              ¿Algún problema con tu acceso o tu pago?{" "}
+              ¿Necesitas ayuda antes de completar el formulario o reservar tu cita?{" "}
               <a
-                href="mailto:info@getpatronpro.com"
+                href={`mailto:${ONBOARDING_CONTACT_EMAIL}`}
                 className="font-semibold underline transition-colors hover:text-[#F67D0A]"
                 style={{ color: "#1E2C46" }}
               >
-                info@getpatronpro.com
+                {ONBOARDING_CONTACT_EMAIL}
               </a>
-              . Te respondemos en menos de 24 horas.
+              . Te responderemos lo antes posible.
             </p>
 
           </div>

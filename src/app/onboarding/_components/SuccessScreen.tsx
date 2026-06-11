@@ -84,13 +84,13 @@ export default function SuccessScreen({
       )}
 
       <p className="text-sm" style={{ color: "#5f6f88" }}>
-        ¿Tenés preguntas?{" "}
+        ¿Tienes preguntas?{" "}
         <a
-          href="mailto:info@getpatronpro.com"
+          href="mailto:info@email.getpatronpro.com"
           className="font-semibold underline"
           style={{ color: "#F67D0A" }}
         >
-          info@getpatronpro.com
+          info@email.getpatronpro.com
         </a>
       </p>
     </div>

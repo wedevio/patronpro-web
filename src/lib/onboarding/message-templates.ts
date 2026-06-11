@@ -9,7 +9,7 @@
  */
 
 export const ONBOARDING_EMAIL_SUBJECT =
-  "Complete su formulario antes de su onboarding con PatronPro";
+  "Complete su formulario de onboarding de PatronPro";
 
 /**
  * EMAIL — HTML completo.
@@ -43,10 +43,10 @@ export const ONBOARDING_EMAIL_HTML = `
                 Hola {{firstName}} 👋
               </p>
               <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.6;">
-                Gracias por agendar su cita de onboarding con PatronPro.
+                Gracias por registrarse con PatronPro.
               </p>
               <p style="margin:0 0 24px;font-size:15px;color:#374151;line-height:1.6;">
-                Antes de la llamada, por favor complete este formulario corto. Nos ayudará a preparar la configuración inicial de su negocio y avanzar más rápido durante su onboarding.
+                El primer paso es completar su formulario de onboarding para {{businessName}}. Este enlace nos permitirá reunir la información básica de su negocio y preparar su configuración inicial:
               </p>
 
               <!-- CTA -->
@@ -55,14 +55,18 @@ export const ONBOARDING_EMAIL_HTML = `
                   <td style="background:#F67D0A;border-radius:10px;">
                     <a href="{{link}}"
                        style="display:inline-block;padding:14px 32px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.3px;">
-                      Completar mi perfil →
+                      Completar formulario →
                     </a>
                   </td>
                 </tr>
               </table>
 
+              <p style="margin:24px 0 0;font-size:15px;color:#374151;line-height:1.6;">
+                Cuando termine el formulario, podrá reservar su cita con nuestro equipo de setup para continuar con la siguiente etapa.
+              </p>
+
               <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">
-                O copiá este link en tu navegador:<br/>
+                Si el botón no abre, copie este enlace en su navegador:<br/>
                 <a href="{{link}}" style="color:#1E2C46;word-break:break-all;">{{link}}</a>
               </p>
             </td>
@@ -73,7 +77,7 @@ export const ONBOARDING_EMAIL_HTML = `
             <td style="background:#f9fafb;padding:24px 40px;border-top:1px solid #e5e7eb;">
               <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;">
                 PatronPro — El sistema de negocios para contratistas hispanos.<br/>
-                Si tenés alguna pregunta respondé este email o mandanos un mensaje.
+                Si tiene alguna pregunta, responda este correo o escríbanos por SMS.
               </p>
             </td>
           </tr>
@@ -91,8 +95,9 @@ export const ONBOARDING_EMAIL_HTML = `
  * Usa las variables {{firstName}}, {{businessName}}, {{link}}.
  */
 export const ONBOARDING_SMS_TEXT =
-  `Hola {{firstName}}, gracias por agendar su onboarding con PatronPro. ` +
-  `Antes de la llamada, complete este formulario corto: {{link}}`;
+  `Hola {{firstName}}, gracias por registrarse con PatronPro. ` +
+  `El primer paso para {{businessName}} es completar su formulario: {{link}} ` +
+  `Después podrá reservar su cita de onboarding.`;
 
 // ─── Interpolation helper ─────────────────────────────────────────────────────
 
