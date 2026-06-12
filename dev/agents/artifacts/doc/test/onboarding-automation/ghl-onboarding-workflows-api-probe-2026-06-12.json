@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "patronpro-onboarding-workflow-map-v1",
+  "generatedAt": "2026-06-12T19:39:35.037Z",
+  "bead": "ppweb-0ka.1",
+  "branch": "feature/onboarding-automation",
+  "locationId": "hHLZC7FaTtUINPf3cbHd",
+  "apiProbe": {
+    "status": "success_read_only_api_metadata",
+    "method": "GET",
+    "endpoint": "/workflows/",
+    "topLevelKeys": [
+      "traceId",
+      "workflows"
+    ],
+    "observedWorkflowCount": 10,
+    "observedWorkflowNames": [
+      "1. Onboaring Link Send",
+      "2. Onboarding Email Automation",
+      "2.5 Onboarding Appointment Completed",
+      "3. Onboarding Meeting Requirements Email",
+      "Apuntados al Seminario",
+      "Patron Pro General Seminar Invite Campaign V.2",
+      "Patron Pro Seminar Invite Campaign",
+      "Post Seminar",
+      "Precheckout Consent Capture",
+      "Seminar Invitation via Email and"
+    ],
+    "responseStatus": 200,
+    "responseClass": "ok"
+  },
+  "noMutationProof": {
+    "status": "hashes_match_after_read_only_gets",
+    "preRunHash": "4dba0b1750e4efbca4e31a50be57a944e93e42aaa672af6ee83395ce8b2c2376",
+    "postRunHash": "4dba0b1750e4efbca4e31a50be57a944e93e42aaa672af6ee83395ce8b2c2376",
+    "hashCanonicalizationVersion": "workflow-target-metadata-v1"
+  },
+  "safeRateLimitHeaders": {
+    "status": "allowlist_applied",
+    "values": {
+      "x-ratelimit-daily-remaining": "199940",
+      "x-ratelimit-daily-reset": "11464000",
+      "x-ratelimit-interval-milliseconds": "10000",
+      "x-ratelimit-limit-daily": "200000",
+      "x-ratelimit-max": "100",
+      "x-ratelimit-remaining": "99"
+    }
+  },
+  "workflowTargets": [
+    {
+      "targetName": "1. Onboaring Link Send",
+      "observedName": "1. Onboaring Link Send",
+      "workflowId": "96da67c8-2351-467c-ada7-3852a0839614",
+      "status": "partial",
+      "evidenceSource": "api",
+      "metadata": {
+        "id": "96da67c8-2351-467c-ada7-3852a0839614",
+        "name": "1. Onboaring Link Send",
+        "status": "published",
+        "published": true,
+        "version": 15,
+        "createdAt": "2026-05-22T12:48:38.219Z",
+        "updatedAt": "2026-06-11T12:08:45.307Z"
+      },
+      "triggerSummary": "blocked_by_profile9_ui",
+      "actionSendBoundary": "blocked_by_profile9_ui",
+      "appointmentCalendarDependency": "blocked_by_profile9_ui",
+      "meetingInviteGap": "gap_partial",
+      "nextProofNeeded": "Profile 9 UI or separately approved export is needed to inspect triggers/actions.",
+      "safetyNote": "Read-only GET metadata only; no live GHL mutation performed."
+    },
+    {
+      "targetName": "2. Onboarding Email Automation",
+      "observedName": "2. Onboarding Email Automation",
+      "workflowId": "92b193be-e388-41b1-ab71-7b99ebf6efa0",
+      "status": "partial",
+      "evidenceSource": "api",
+      "metadata": {
+        "id": "92b193be-e388-41b1-ab71-7b99ebf6efa0",
+        "name": "2. Onboarding Email Automation",
+        "status": "published",
+        "published": true,
+        "version": 28,
+        "createdAt": "2026-05-21T15:55:44.225Z",
+        "updatedAt": "2026-06-11T11:19:25.242Z"
+      },
+      "triggerSummary": "blocked_by_profile9_ui",
+      "actionSendBoundary": "blocked_by_profile9_ui",
+      "appointmentCalendarDependency": "blocked_by_profile9_ui",
+      "meetingInviteGap": "gap_partial",
+      "nextProofNeeded": "Profile 9 UI or separately approved export is needed to inspect triggers/actions.",
+      "safetyNote": "Read-only GET metadata only; no live GHL mutation performed."
+    },
+    {
+      "targetName": "2.5 Onboarding Appointment Completed",
+      "observedName": "2.5 Onboarding Appointment Completed",
+      "workflowId": "b8ee04e6-5235-4adb-b097-21f7d9fa6e43",
+      "status": "partial",
+      "evidenceSource": "api",
+      "metadata": {
+        "id": "b8ee04e6-5235-4adb-b097-21f7d9fa6e43",
+        "name": "2.5 Onboarding Appointment Completed",
+        "status": "published",
+        "published": true,
+        "version": 6,
+        "createdAt": "2026-06-08T19:33:53.802Z",
+        "updatedAt": "2026-06-11T11:04:48.742Z"
+      },
+      "triggerSummary": "blocked_by_profile9_ui",
+      "actionSendBoundary": "blocked_by_profile9_ui",
+      "appointmentCalendarDependency": "blocked_by_profile9_ui",
+      "meetingInviteGap": "gap_partial",
+      "nextProofNeeded": "Profile 9 UI or separately approved export is needed to inspect triggers/actions.",
+      "safetyNote": "Read-only GET metadata only; no live GHL mutation performed."
+    },
+    {
+      "targetName": "3. Onboarding Meeting Requirements Email",
+      "observedName": "3. Onboarding Meeting Requirements Email",
+      "workflowId": "beb223dc-236b-4082-8b07-f915c8906801",
+      "status": "partial",
+      "evidenceSource": "api",
+      "metadata": {
+        "id": "beb223dc-236b-4082-8b07-f915c8906801",
+        "name": "3. Onboarding Meeting Requirements Email",
+        "status": "published",
+        "published": true,
+        "version": 12,
+        "createdAt": "2026-06-05T17:47:06.219Z",
+        "updatedAt": "2026-06-11T12:05:02.971Z"
+      },
+      "triggerSummary": "blocked_by_profile9_ui",
+      "actionSendBoundary": "blocked_by_profile9_ui",
+      "appointmentCalendarDependency": "blocked_by_profile9_ui",
+      "meetingInviteGap": "gap_partial",
+      "nextProofNeeded": "Profile 9 UI or separately approved export is needed to inspect triggers/actions.",
+      "safetyNote": "Read-only GET metadata only; no live GHL mutation performed."
+    }
+  ],
+  "profile9": {
+    "status": "not_attempted_requires_user_approval"
+  },
+  "validator": {
+    "status": "PASS",
+    "command": "bun dev/agents/artifacts/script/onboarding-automation/validate-workflow-map.ts --json dev/agents/artifacts/doc/test/onboarding-automation/ghl-onboarding-workflows-api-probe-2026-06-12.json --md dev/agents/artifacts/doc/test/onboarding-automation/ghl-onboarding-workflow-map-2026-06-12.md"
+  },
+  "safety": {
+    "liveMutationPerformed": false,
+    "mutationBoundary": "read_only_get_workflows",
+    "secretHandling": "No token, cookie, or raw request data stored."
+  },
+  "sourceNotes": [
+    "Fresh API metadata wins over RLM prior for status, version, and timestamps.",
+    "Trigger/action internals remain blocked unless Profile 9 UI evidence is explicitly authorized."
+  ]
+}
