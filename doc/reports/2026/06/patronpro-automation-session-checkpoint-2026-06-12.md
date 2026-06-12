@@ -11,7 +11,7 @@ Related RLM source: `/mnt/rlm/knowledge/projects/patron-pro/reports/2026/06/patr
 
 PatronPro checkpoint:
 
-1. Onboarding automation is now proven on test onboarding account 01 (Liverpool Digital). API-proven: calendar owner assignment, calendar activation/rules, Brand Board colors, GHL/Supabase read QC, and the main-account onboarding appointment for Sat Jun 13 at 11:00 AM CDMX with Oscar as the onboarding owner. Browser-proven through WSL Profile 9: GHL website HTML save, Add Contact `Language` required + DND removed, and Email Services domain setup to the DNS-record stage. Manual/client gates remain: Twilio/A2P, Stripe, Cloudflare/DNS verification, final publish/activation, and client sign-off.
+1. Onboarding automation is now proven on test onboarding account 01 (Liverpool Digital). API-proven: calendar owner assignment, calendar activation/rules, Brand Board colors, GHL/Supabase read QC, and the main-account onboarding appointment for Friday, June 12 at 11:00 AM CDMX with Oscar as the onboarding owner. Browser-proven through WSL Profile 9: GHL website HTML save, Add Contact `Language` required + DND removed, and Email Services domain setup to the DNS-record stage. Manual/client gates remain: Twilio/A2P, Stripe, Cloudflare/DNS verification, final publish/activation, and client sign-off.
 
 2. Website optimization was implemented on the test account preview without regenerating AI images. Existing images were reused, responsive AVIF -> WebP -> JPEG variants were generated, WhatsApp/Open Graph preview was added, JSON-LD SEO/GEO was added, and the optimized HTML was saved into GHL. Fresh Lighthouse: desktop performance 75 -> 94 and LCP 3.9s -> 1.3s; mobile LCP 21.3s -> 8.2s. Image transfer dropped by about 7.37 MiB on mobile.
 
@@ -39,7 +39,7 @@ The website optimization work is now proven on the test account preview and rema
 | Website optimization | Done | Existing images reused; AVIF/WebP/JPEG derivatives and social preview generated; preview now contains `<picture>`, Open Graph/Twitter, and JSON-LD. |
 | Add Contact customization | Browser-proven | `Language` required field was added and DND/DnD channels were removed using WSL Chrome Profile 9. |
 | Email Services setup | Browser-proven to DNS step | `email.build.picturelle.com` was created in GHL and DNS records were captured for Cloudflare completion. |
-| Main-account onboarding appointment | Done | Created in PatronPro MAIN, not the test-account subaccount: appointment `Cxa6iMN4am9r1XUdJWWS`, Sat 2026-06-13 11:00-12:00 CDMX, assigned to Oscar. |
+| Main-account onboarding appointment | Done | Created in PatronPro MAIN, not the test-account subaccount: appointment `Cxa6iMN4am9r1XUdJWWS`, rescheduled to Friday 2026-06-12 11:00-12:00 CDMX, assigned to Oscar. |
 | Brigitte lead tracking | Done | MAIN GHL custom fields created for quality/status/objection and Brigitte marked warm/engaged/too expensive. |
 | Slack recorder architecture | Guarded MVP | Command lifecycle and recorder worker pattern documented/deployed with dry-run guard. Live command/recording validation remains controlled. |
 
@@ -93,9 +93,10 @@ The current rehearsal appointment is in the PatronPro MAIN account, not the clie
 - Main location: `hHLZC7FaTtUINPf3cbHd`.
 - Contact: `rSBhh1nzHdjaRXOF3F0A`.
 - Assigned user: Oscar Betancourt / `r2NA4HiIxWRvKwzuYpzv`.
-- Scheduled slot: Saturday, 2026-06-13, 11:00-12:00 CDMX.
-- GHL readback uses `10:00-11:00 -07:00`, which is the same instant as `11:00-12:00 -06:00`.
+- Scheduled slot: Friday, 2026-06-12, 11:00-12:00 CDMX.
+- GHL readback uses `2026-06-12T10:00:00-07:00` to `2026-06-12T11:00:00-07:00`, which is the same instant as `2026-06-12T11:00:00-06:00` to `2026-06-12T12:00:00-06:00`.
 - Notifications: `toNotify=true`.
+- Reschedule proof: `dev/agents/artifacts/doc/test/liverpool-digital/main-onboarding-appointment-reschedule-2026-06-12-1100-cdmx.json`.
 
 ## Website optimization and productization evidence
 
@@ -199,7 +200,7 @@ MAIN GHL tracking completed:
 
 ## Recommended next steps
 
-1. Run the test onboarding account 01 (Liverpool Digital) self-onboarding rehearsal on Saturday, 2026-06-13 at 11:00 AM CDMX.
+1. Run the test onboarding account 01 (Liverpool Digital) self-onboarding rehearsal on Friday, 2026-06-12 at 11:00 AM CDMX.
 2. Complete Cloudflare DNS for `build.picturelle.com` and `email.build.picturelle.com`, then verify GHL domain/email status and From headers.
 3. Complete Twilio/A2P and phone setup during/after the onboarding flow; keep landing form deferred until approval.
 4. Complete Stripe with the client/operator present.

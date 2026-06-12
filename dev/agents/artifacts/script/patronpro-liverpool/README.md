@@ -61,11 +61,12 @@ Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell 
   - Calendar: `Onboarding PatronPro` (`D7x8ts5xcdNOWnd6Pjlq`)
   - Assignee: Oscar Betancourt (`r2NA4HiIxWRvKwzuYpzv`)
 - Search the main account contact list for the client's onboarding contact/email before booking. For Liverpool Digital/Picturelle, the main-account contact used for the test booking was `info@picturelle.com` (`rSBhh1nzHdjaRXOF3F0A`).
-- For CDMX appointments, send explicit ISO timestamps with the `-06:00` offset, for example `2026-06-13T11:00:00-06:00`.
+- For CDMX appointments, send explicit ISO timestamps with the `-06:00` offset, for example `2026-06-12T11:00:00-06:00`.
 - HighLevel may read the same instant back using a different timezone offset, for example `11:00 -06:00` as `10:00 -07:00`. Verify by instant (`Date.parse`) and calendar/contact/user IDs, not by raw string equality.
 - If the requested onboarding time is outside returned free slots and the operator explicitly wants that exact test time, use `ignoreDateRange: true` and `ignoreFreeSlotValidation: true`; otherwise keep both false.
 - Use `toNotify: true` for real onboarding sessions where the client should receive the invite/notification. Use `toNotify: false` only for internal tests where notifications should not fire.
 - GHL appointment DELETE can still allow `GET /calendars/events/appointments/:eventId` to return HTTP 200; verify deletion by `appointment.deleted === true`.
+- If an appointment is booked on the wrong day, reschedule the existing event with `PUT /calendars/events/appointments/:eventId` instead of creating a duplicate, then read back the same event ID and verify the start/end instants.
 - If the calendar uses Google conference configuration, the appointment readback may not expose the meeting URL. Verify the join link in the GHL UI or notification email when the meeting link matters.
 - Missing credentials are reported as `blocked` checks.
 - It does not refresh OAuth tokens.

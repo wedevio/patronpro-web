@@ -2,11 +2,12 @@
 
 ## 2026-06-12
 
+- Rescheduled PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` from the mistaken Saturday slot to Friday, 2026-06-12 11:00-12:00 CDMX, assigned to Oscar Betancourt with `toNotify=true`. Evidence: `dev/agents/artifacts/doc/test/liverpool-digital/main-onboarding-appointment-reschedule-2026-06-12-1100-cdmx.json`.
 - Updated the PatronPro automation checkpoint PDF cover attribution to `Prepared by Óscar Betancourt` and regenerated the PDF.
 - Added the Picturelle-branded PatronPro automation session checkpoint report covering Liverpool Digital onboarding automation, Slack recorder/bot status, Brigitte fit guidance, website SEO/GEO/image optimization proposal, and the API/browser/manual split. Final report: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.md`; PDF: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.pdf`.
-- Filed `ppweb-elk.12` for the missing post-optimization Lighthouse after-run. Current evidence is a baseline only: mobile performance 65 with LCP 31.2s and 95.3% image transfer; no verified after-run exists yet.
+- Completed the post-optimization Lighthouse after-run and updated the checkpoint report/PDF: desktop performance improved 75 -> 94 and desktop LCP 3.9s -> 1.3s; mobile LCP improved 21.3s -> 8.2s; mobile image transfer dropped from 8070.0 KiB to 700.0 KiB.
 - Promoted the calendar booking-rule baseline to a PatronPro-wide standard procedure in RLM and the Liverpool automation runbook: `Consulta Gratuita` uses next-day minimum notice, 15-minute buffers, and max 8 bookings/day; `On Site Visit` uses next-day notice, 45-minute buffers, and max 4 bookings/day.
-- Corrected the onboarding-session booking flow: deleted the mistakenly created Liverpool subaccount `Consulta Gratuita` test event `Tee3EZ2G4RT7F2Vnjrv5` and created the real PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` in `Onboarding PatronPro` for Saturday, 2026-06-13 11:00-12:00 CDMX time, assigned to Oscar Betancourt with `toNotify=true`.
+- Corrected the onboarding-session booking flow: deleted the mistakenly created Liverpool subaccount `Consulta Gratuita` test event `Tee3EZ2G4RT7F2Vnjrv5` and created the real PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` in `Onboarding PatronPro`, assigned to Oscar Betancourt with `toNotify=true`.
 
 ## 2026-06-11
 

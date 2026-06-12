@@ -1,0 +1,110 @@
+{
+  "generatedAt": "2026-06-12T05:09:49.730Z",
+  "client": "test onboarding account 01 (Liverpool Digital / Picturelle)",
+  "action": "reschedule_main_account_onboarding_appointment",
+  "status": "pass",
+  "mainAccount": {
+    "locationId": "hHLZC7FaTtUINPf3cbHd",
+    "calendarId": "D7x8ts5xcdNOWnd6Pjlq",
+    "calendarName": "Onboarding PatronPro",
+    "assignedUserId": "r2NA4HiIxWRvKwzuYpzv",
+    "assignedUserName": "Oscar Betancourt",
+    "contactId": "rSBhh1nzHdjaRXOF3F0A",
+    "contactLabel": "info@picturelle.com / Picturelle client contact in main account"
+  },
+  "appointmentId": "Cxa6iMN4am9r1XUdJWWS",
+  "requestedSlot": {
+    "sourceCorrection": "User clarified appointment should be Friday, 2026-06-12 at 11:00 AM CDMX, not Saturday, 2026-06-13.",
+    "interpretedAs": "Friday, 2026-06-12 11:00 America/Mexico_City (-06:00)",
+    "startTime": "2026-06-12T11:00:00-06:00",
+    "endTime": "2026-06-12T12:00:00-06:00"
+  },
+  "notificationBehavior": {
+    "toNotify": true,
+    "note": "Kept notifications enabled because this is the real onboarding session correction, not an internal silent test."
+  },
+  "forcedBookingReason": "The prior booking used forced validation for the requested exact time. This reschedule keeps ignoreDateRange=true and ignoreFreeSlotValidation=true because the operator explicitly corrected the exact desired slot.",
+  "before": {
+    "status": 200,
+    "ok": true,
+    "appointment": {
+      "id": "Cxa6iMN4am9r1XUdJWWS",
+      "title": "Onboarding PatronPro - Liverpool Digital",
+      "locationId": "hHLZC7FaTtUINPf3cbHd",
+      "calendarId": "D7x8ts5xcdNOWnd6Pjlq",
+      "contactId": "rSBhh1nzHdjaRXOF3F0A",
+      "assignedUserId": "r2NA4HiIxWRvKwzuYpzv",
+      "appointmentStatus": "confirmed",
+      "startTime": "2026-06-13T10:00:00-07:00",
+      "endTime": "2026-06-13T11:00:00-07:00",
+      "notes": "Onboarding test run for Liverpool Digital / Picturelle with Oscar Betancourt.",
+      "deleted": false
+    }
+  },
+  "request": {
+    "calendarId": "D7x8ts5xcdNOWnd6Pjlq",
+    "locationId": "hHLZC7FaTtUINPf3cbHd",
+    "contactId": "rSBhh1nzHdjaRXOF3F0A",
+    "startTime": "2026-06-12T11:00:00-06:00",
+    "endTime": "2026-06-12T12:00:00-06:00",
+    "title": "Onboarding PatronPro - Liverpool Digital",
+    "meetingLocationType": "google",
+    "meetingLocationId": "google_conference_0",
+    "overrideLocationConfig": false,
+    "appointmentStatus": "confirmed",
+    "assignedUserId": "r2NA4HiIxWRvKwzuYpzv",
+    "description": "Onboarding test run for Liverpool Digital / Picturelle with Oscar Betancourt. Rescheduled to Friday 2026-06-12 11:00 AM CDMX per operator correction.",
+    "ignoreDateRange": true,
+    "ignoreFreeSlotValidation": true,
+    "toNotify": true
+  },
+  "update": {
+    "status": 200,
+    "ok": true,
+    "bodySummary": {
+      "id": "Cxa6iMN4am9r1XUdJWWS",
+      "title": "Onboarding PatronPro - Liverpool Digital",
+      "locationId": "hHLZC7FaTtUINPf3cbHd",
+      "calendarId": "D7x8ts5xcdNOWnd6Pjlq",
+      "contactId": "rSBhh1nzHdjaRXOF3F0A",
+      "assignedUserId": "r2NA4HiIxWRvKwzuYpzv",
+      "appointmentStatus": "confirmed",
+      "startTime": null,
+      "endTime": null,
+      "notes": null,
+      "deleted": null
+    }
+  },
+  "readback": {
+    "status": 200,
+    "ok": true,
+    "appointment": {
+      "id": "Cxa6iMN4am9r1XUdJWWS",
+      "title": "Onboarding PatronPro - Liverpool Digital",
+      "locationId": "hHLZC7FaTtUINPf3cbHd",
+      "calendarId": "D7x8ts5xcdNOWnd6Pjlq",
+      "contactId": "rSBhh1nzHdjaRXOF3F0A",
+      "assignedUserId": "r2NA4HiIxWRvKwzuYpzv",
+      "appointmentStatus": "confirmed",
+      "startTime": "2026-06-12T10:00:00-07:00",
+      "endTime": "2026-06-12T11:00:00-07:00",
+      "notes": "Onboarding test run for Liverpool Digital / Picturelle with Oscar Betancourt. Rescheduled to Friday 2026-06-12 11:00 AM CDMX per operator correction.",
+      "deleted": false
+    }
+  },
+  "checks": {
+    "beforeReadOk": true,
+    "updateOk": true,
+    "afterReadOk": true,
+    "appointmentIdMatches": true,
+    "mainLocationMatches": true,
+    "calendarMatches": true,
+    "contactMatches": true,
+    "assignedUserMatches": true,
+    "statusConfirmed": true,
+    "notDeleted": true,
+    "startInstantMatches": true,
+    "endInstantMatches": true
+  },
+  "timezoneReadbackGotcha": "HighLevel may canonicalize CDMX -06:00 instants to another offset. Verify by Date.parse/UTC instant, not raw string equality."
+}

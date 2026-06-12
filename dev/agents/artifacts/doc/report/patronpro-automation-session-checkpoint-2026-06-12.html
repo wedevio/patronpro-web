@@ -95,7 +95,7 @@ code { font-family: Courier, monospace; font-size: 8pt; color: #4a1942; }
       <p>Agent QC on 2026-06-11 returned <b>12 pass / 11 fail</b> for test onboarding account 01 (Liverpool Digital). The failures are mostly expected setup gates: domain, phone/Twilio, email sender, landing publication evidence, Stripe, client OK, account approval, landing custom values, workflow proof, and activation gate.</p>
       <table><tr><th>Item</th><th>Status</th><th>Note</th></tr><tr><td>Calendars</td><td class="ok">Done</td><td>Owner, active, free-slot QA, booking rules.</td></tr><tr><td>Brand Board</td><td class="ok">Done</td><td>Main #471F23, Accent #F69309, Complementary #2F1417.</td></tr><tr><td>Website optimization</td><td class="ok">Done</td><td>Optimized HTML with AVIF/WebP/JPEG, social preview, JSON-LD, and GHL preview save proof.</td></tr><tr><td>Domain/email/phone/Stripe</td><td class="warn">Pending</td><td>Manual/client-gated or DNS/Twilio gated.</td></tr></table>
       <h2>Main onboarding appointment</h2>
-      <p>Appointment <b>Cxa6iMN4am9r1XUdJWWS</b> was created in PatronPro MAIN for Saturday 2026-06-13, 11:00-12:00 CDMX, assigned to Oscar Betancourt with notifications enabled.</p>
+      <p>Appointment <b>Cxa6iMN4am9r1XUdJWWS</b> was rescheduled in PatronPro MAIN to Friday 2026-06-12, 11:00-12:00 CDMX, assigned to Oscar Betancourt with notifications enabled. GHL readback shows the same instant as 10:00-11:00 -07:00.</p>
   </div>
   <div class="footer-bar"></div>
   <div class="footer-text">PatronPro automation checkpoint - 2026-06-12 - page 4</div>
@@ -170,7 +170,7 @@ code { font-family: Courier, monospace; font-size: 8pt; color: #4a1942; }
       <h2>Reusable gotchas</h2>
       <ul><li>Use WSL Profile 9 only for PatronPro/GHL browser automation.</li><li>Generated website code does not update GHL builder automatically.</li><li>GHL Media rejected AVIF uploads; Supabase Storage public assets worked for AVIF/WebP/JPEG derivatives.</li><li>Calendar list openHoursCount is not authoritative; use free-slots QA.</li><li>GHL appointment readback may use a different timezone offset for the same instant.</li><li>Email Services setup currently needs browser automation.</li><li>Do not insert landing_form before Twilio approval.</li></ul>
       <h2>Next steps</h2>
-      <ol><li>Run the test onboarding account 01 rehearsal on 2026-06-13 at 11:00 AM CDMX.</li><li>Complete Cloudflare DNS and verify email/domain in GHL.</li><li>Finish Twilio/A2P and Stripe with the client/operator present.</li><li>Run manual QA against the onboarding checklist.</li><li>Optimize the remaining large logo PNG; it is now the main Lighthouse image payload after the AI photos were reduced.</li><li>Present the optimizer as a safe app proposal with dry-run/readback, not as an immediate live deployment.</li></ol>
+      <ol><li>Run the test onboarding account 01 rehearsal on Friday 2026-06-12 at 11:00 AM CDMX.</li><li>Complete Cloudflare DNS and verify email/domain in GHL.</li><li>Finish Twilio/A2P and Stripe with the client/operator present.</li><li>Run manual QA against the onboarding checklist.</li><li>Optimize the remaining large logo PNG; it is now the main Lighthouse image payload after the AI photos were reduced.</li><li>Present the optimizer as a safe app proposal with dry-run/readback, not as an immediate live deployment.</li></ol>
   </div>
   <div class="footer-bar"></div>
   <div class="footer-text">PatronPro automation checkpoint - 2026-06-12 - page 8</div>
