@@ -1,0 +1,5 @@
+`quality-loop | PRD scored 48/50 — approved`
+
+Wrote the improved PRD here: [onboarding-github-fork-lane-ppweb-0ka-6-2026-06-12-improved.md](/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/plan/onboarding-github-fork-lane-ppweb-0ka-6-2026-06-12-improved.md)
+
+Applied the MUST/SHOULD fixes from `merge.md`, including strategy/execution split, recommended `mensajerokaos/patronpro-web`, FSN1 preflight, safer push flow, rollback gates, LFS/submodule/CODEOWNERS checks, and final self-assessment. I did not stage, commit, push, SSH, or mutate remotes.
