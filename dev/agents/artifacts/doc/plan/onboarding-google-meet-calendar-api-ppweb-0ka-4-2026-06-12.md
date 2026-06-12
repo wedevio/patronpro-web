@@ -1,0 +1,162 @@
+# PRD: Google Meet creation through Google Calendar API
+
+Project: PatronPro onboarding automation
+Branch: `feature/onboarding-automation`
+Bead: `ppweb-0ka.4`
+Date: 2026-06-12
+Status: Draft for quality loop
+
+## Goal
+
+Produce a research-backed, deterministic PoC lane for creating organizer-owned Google Meet links through the Google Calendar API without making Google Calendar the PatronPro appointment source of truth.
+
+This bead does not authorize live API calls, does not create real calendar events, and does not send invite notifications. The deliverable is a source-cited research note plus a Python-first dry-run skeleton that shows the exact payload, query parameters, OAuth checklist, and future execution guardrails.
+
+## Source Baseline
+
+Official Google docs checked on 2026-06-12:
+
+- Events insert reference: `https://developers.google.com/workspace/calendar/api/v3/reference/events/insert`
+- Events resource reference: `https://developers.google.com/workspace/calendar/api/v3/reference/events`
+- Create events guide: `https://developers.google.com/workspace/calendar/api/guides/create-events`
+- Python quickstart: `https://developers.google.com/workspace/calendar/api/quickstart/python`
+- Create credentials guide: `https://developers.google.com/workspace/guides/create-credentials`
+
+Key official findings:
+
+- Event creation endpoint is `POST https://www.googleapis.com/calendar/v3/calendars/{calendarId}/events`.
+- `conferenceDataVersion=1` is required to create or preserve conference data through event modification requests.
+- Google Meet creation is requested in the event body with `conferenceData.createRequest`.
+- `conferenceData.createRequest.conferenceSolutionKey.type` should be `hangoutsMeet` for Google Meet.
+- `conferenceData.createRequest.requestId` must be a fresh client-generated unique ID per new conference request; repeated IDs can be ignored.
+- Conference generation can be asynchronous. Check `conferenceData.createRequest.status.statusCode` and the returned `entryPoints`.
+- `sendUpdates` must be selected intentionally. Values are `all`, `externalOnly`, or `none`; `none` can harm external sync, so dry-run/prototype mode should default to no execution rather than relying on `none` as a safety mechanism.
+- Insert requires authorization with at least one suitable Calendar scope. The broad documented create-events example uses `https://www.googleapis.com/auth/calendar`; the insert reference also lists narrower event-related scopes including `calendar.events`, `calendar.app.created`, and `calendar.events.owned`.
+- Python quickstart uses local OAuth credentials and `token.json`; the sample readonly scope must be changed for event creation and any existing stored token deleted when scopes change.
+
+## Product Constraints
+
+- GHL remains the appointment source of truth.
+- The universal ICS/calendar-link generator from `ppweb-0ka.2` remains the default invite path.
+- Google Calendar API is a future organizer-owned Meet creation adapter only.
+- No live PatronPro, GHL, Google Calendar, email, or Supabase mutation in this bead.
+- No secrets committed. `credentials.json`, `token.json`, OAuth refresh tokens, and service account keys must remain local ignored files.
+- Low-volume PoC is Python-first. The app may later wrap this adapter from TypeScript, but the first experimental lane should be explicit and easy to run from a server or operator machine.
+
+## Proposed Deliverables
+
+1. Research note:
+   - Exact endpoint, query parameters, payload shape, scopes, credential flow, sendUpdates behavior, reminder fields, and response parsing.
+   - Recommended PatronPro default: dry-run first; later live mode requires operator approval and OAuth credentials.
+
+2. Python-first script skeleton:
+   - Path: `dev/agents/artifacts/script/onboarding-automation/google_meet_calendar_poc.py`
+   - Default mode: `--dry-run`, no network imports required.
+   - Output: normalized JSON payload and request metadata for `events.insert`.
+   - Optional future live mode: guarded by `--execute`, presence of credentials path, and explicit `--allow-send-updates` if `sendUpdates` is not `none`.
+   - Deterministic `requestId` derivation in dry-run using stable PatronPro fields plus a salt/date input. For live use, regenerate a fresh request ID per actual conference creation attempt.
+
+3. Test/verification:
+   - `python3 -m py_compile` for the script.
+   - Dry-run command emits valid JSON with:
+     - `calendarId`
+     - `conferenceDataVersion: 1`
+     - `sendUpdates`
+     - `conferenceData.createRequest.conferenceSolutionKey.type: hangoutsMeet`
+     - `start.dateTime`, `end.dateTime`, and IANA timezone.
+   - No credential file is required for the verification command.
+
+4. RLM checkpoint:
+   - Store the final research and skeleton notes with current branch, bead, source URLs, and rollback instruction.
+
+## Payload Contract
+
+Minimum event body:
+
+```json
+{
+  "summary": "PatronPro Onboarding - Demo Auto Shop",
+  "description": "Generated by PatronPro onboarding automation dry-run.",
+  "start": {
+    "dateTime": "2026-06-15T10:00:00-05:00",
+    "timeZone": "America/Mexico_City"
+  },
+  "end": {
+    "dateTime": "2026-06-15T11:00:00-05:00",
+    "timeZone": "America/Mexico_City"
+  },
+  "attendees": [
+    {
+      "email": "client@example.com",
+      "displayName": "Demo Client"
+    }
+  ],
+  "reminders": {
+    "useDefault": false,
+    "overrides": [
+      {
+        "method": "email",
+        "minutes": 1440
+      },
+      {
+        "method": "popup",
+        "minutes": 60
+      }
+    ]
+  },
+  "conferenceData": {
+    "createRequest": {
+      "requestId": "fresh-unique-request-id",
+      "conferenceSolutionKey": {
+        "type": "hangoutsMeet"
+      }
+    }
+  }
+}
+```
+
+Request metadata:
+
+```json
+{
+  "method": "POST",
+  "url": "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+  "query": {
+    "conferenceDataVersion": 1,
+    "sendUpdates": "none"
+  }
+}
+```
+
+## OAuth Checklist
+
+Testing desktop-client path:
+
+1. Create or select a Google Cloud project.
+2. Enable Google Calendar API.
+3. Configure Google Auth platform branding/consent for an internal test app where possible.
+4. Create OAuth client ID as Desktop app for local PoC.
+5. Save downloaded OAuth JSON outside the repo or under an ignored local path.
+6. Use Calendar write scope for creation testing; delete any existing `token.json` if the scope changes.
+7. Run only with a test calendar or test Google account.
+
+Future server path:
+
+- Web application OAuth client with authorized redirect URI, encrypted token storage, per-user consent, and audit log.
+- Service account only if PatronPro has a Google Workspace domain-wide delegation model approved by an administrator; do not assume service accounts can write arbitrary consumer calendars.
+
+## Safety Rules
+
+- Script must default to dry-run and should not import Google client libraries until live mode is requested.
+- Live mode must refuse to run without `--execute`.
+- Live mode must require explicit credential/token paths.
+- Live mode must display or log `sendUpdates` before execution.
+- Never persist Google secrets in repo artifacts, tests, RLM, or commit logs.
+- Capture Google event IDs, `htmlLink`, `hangoutLink`, `conferenceData.entryPoints`, and status only after execution is explicitly approved.
+
+## Acceptance Criteria
+
+- Research artifact documents official sources and exact Google Calendar API behavior for Meet creation.
+- Script skeleton emits deterministic dry-run request JSON and has no live side effects.
+- Verification passes with `python3 -m py_compile` and a dry-run JSON assertion.
+- Bead is closed only after artifacts are committed, pushed, and stored in RLM.

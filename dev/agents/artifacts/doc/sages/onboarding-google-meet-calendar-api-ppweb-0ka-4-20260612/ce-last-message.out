@@ -1,0 +1,5 @@
+Done. I wrote the improved PRD here:
+
+[onboarding-google-meet-calendar-api-ppweb-0ka-4-2026-06-12-improved.md](/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/plan/onboarding-google-meet-calendar-api-ppweb-0ka-4-2026-06-12-improved.md)
+
+It applies the merge MUST/SHOULD fixes, preserves the official Google source links, and includes a final self-assessment score of `48/50`. I did not stage, commit, push, or run live external API/provider calls.
