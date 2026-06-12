@@ -1,0 +1,9 @@
+Done. I wrote the improved PRD to [onboarding-invite-panel-ppweb-0ka-3-2026-06-12-improved.md](/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/plan/onboarding-invite-panel-ppweb-0ka-3-2026-06-12-improved.md).
+
+Result: `46/50`, with all Mini Must Fix and Should Fix items merged, including dry-run-only persistence, adapter deferral, mapping table, checksum algorithm, test script requirement, runtime invariants, and acceptance criteria.
+
+Checkpoint:
+- Commit: `63b5fbc Add improved onboarding invite panel PRD`
+- Pushed to: `origin/feature/onboarding-automation`
+- Validation: file exists, required merge terms present, `git diff --check` clean
+- Remaining untracked: empty `ce-last-message.out` sink, intentionally not committed
