@@ -1,0 +1,5 @@
+quality-loop | PRD scored 48/50 - approved
+Improved PRD: /home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/plan/onboarding-postgres-persistence-ppweb-0ka-5-2026-06-12-improved.md
+Iterations: 1 sage merge input, 1 CE merge pass
+
+I did not stage, commit, push, call external APIs, or mutate any providers. `git diff --check` passed for the new artifact.
