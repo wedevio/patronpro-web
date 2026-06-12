@@ -2,6 +2,8 @@
 
 ## 2026-06-12
 
+- Added the Picturelle-branded PatronPro automation session checkpoint report covering Liverpool Digital onboarding automation, Slack recorder/bot status, Brigitte fit guidance, website SEO/GEO/image optimization proposal, and the API/browser/manual split. Final report: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.md`; PDF: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.pdf`.
+- Filed `ppweb-elk.12` for the missing post-optimization Lighthouse after-run. Current evidence is a baseline only: mobile performance 65 with LCP 31.2s and 95.3% image transfer; no verified after-run exists yet.
 - Promoted the calendar booking-rule baseline to a PatronPro-wide standard procedure in RLM and the Liverpool automation runbook: `Consulta Gratuita` uses next-day minimum notice, 15-minute buffers, and max 8 bookings/day; `On Site Visit` uses next-day notice, 45-minute buffers, and max 4 bookings/day.
 - Corrected the onboarding-session booking flow: deleted the mistakenly created Liverpool subaccount `Consulta Gratuita` test event `Tee3EZ2G4RT7F2Vnjrv5` and created the real PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` in `Onboarding PatronPro` for Saturday, 2026-06-13 11:00-12:00 CDMX time, assigned to Oscar Betancourt with `toNotify=true`.
 
