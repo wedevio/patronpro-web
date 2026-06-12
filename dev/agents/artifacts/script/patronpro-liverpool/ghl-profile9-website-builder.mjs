@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createHash } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 
 const DEFAULTS = {
@@ -13,6 +13,7 @@ const DEFAULTS = {
   expectedLength: 33116,
   cdp: "http://127.0.0.1:9229",
   sourceEndpoint: "https://www.getpatronpro.com/api/website/4cPIvLND9hFAIzWQ1ZbL",
+  wrapperUrl: "https://app.gohighlevel.com/location/4cPIvLND9hFAIzWQ1ZbL/page-builder/JgrAMMXugg5Yi8QAnbDz?source=website",
   previewUrl: "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz",
   outDir: "dev/agents/artifacts/doc/test/liverpool-digital",
 };
@@ -46,6 +47,7 @@ function parseArgs(argv) {
     apply: false,
     coordinateFallback: false,
     sourceEndpoint: DEFAULTS.sourceEndpoint,
+    sourceFile: "",
     expectedSha256: DEFAULTS.expectedSha256,
   };
 
@@ -62,6 +64,7 @@ function parseArgs(argv) {
     else if (arg === "--screenshot") args.screenshot = readFlagValue(i++, arg);
     else if (arg === "--cdp") args.cdp = readFlagValue(i++, arg);
     else if (arg === "--source") args.sourceEndpoint = readFlagValue(i++, arg);
+    else if (arg === "--source-file") args.sourceFile = readFlagValue(i++, arg);
     else if (arg === "--expected-sha256") args.expectedSha256 = readFlagValue(i++, arg);
     else if (arg === "--apply") args.apply = true;
     else if (arg === "--coordinate-fallback") args.coordinateFallback = true;
@@ -211,11 +214,20 @@ async function currentMap(args) {
 }
 
 async function fetchSourceHtml(args) {
-  const res = await fetch(args.sourceEndpoint, { headers: { Accept: "application/json" } });
-  if (!res.ok) throw new Error(`Source endpoint failed: ${res.status}`);
-  const body = await res.json();
-  const html = body?.website?.html;
-  if (!html || typeof html !== "string") throw new Error("Source endpoint did not return website.html.");
+  let html;
+  let source;
+  if (args.sourceFile) {
+    const absolute = assertRepoOutPath(args.sourceFile);
+    html = await readFile(absolute, "utf8");
+    source = { type: "file", path: absolute };
+  } else {
+    const res = await fetch(args.sourceEndpoint, { headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error(`Source endpoint failed: ${res.status}`);
+    const body = await res.json();
+    html = body?.website?.html;
+    if (!html || typeof html !== "string") throw new Error("Source endpoint did not return website.html.");
+    source = { type: "endpoint", url: args.sourceEndpoint };
+  }
   const hash = sha256(html);
   if (args.expectedSha256 && hash !== args.expectedSha256) {
     throw new Error(`Source HTML hash mismatch. Expected ${args.expectedSha256}; got ${hash}.`);
@@ -226,12 +238,16 @@ async function fetchSourceHtml(args) {
       characters: html.length,
       utf8Bytes: Buffer.byteLength(html),
       sha256: hash,
+      source,
       markers: {
-        title: html.includes("{{custom_values.company_name}} | Roofing en Glendale"),
+        title: html.includes("{{custom_values.company_name}} | Roofing en Glendale") || html.includes("Picturelle | Roofing en Glendale"),
         hero: html.includes("Tu techo, reparado o reemplazado para durar"),
         landingForm: html.includes("{{custom_values.landing_form}}"),
         primary: html.includes("--primary:#471f23;"),
         accent: html.includes("--accent:#f69309;"),
+        responsivePicture: html.includes("<picture") && html.includes("image/avif") && html.includes("image/webp"),
+        openGraph: html.includes('property="og:image"'),
+        jsonLd: html.includes('type="application/ld+json"'),
       },
     },
   };
@@ -335,11 +351,13 @@ async function saveHtml(args) {
       dryRun: true,
       planned: [
         "Fetch generated HTML from PatronPro public endpoint.",
+        "Or read optimized HTML from --source-file when supplied.",
         "Open existing GHL custom code element.",
         "Set CodeMirror content, click modal Save, then click builder Save.",
         "Reload and verify CodeMirror hash.",
       ],
       sourceEndpoint: args.sourceEndpoint,
+      sourceFile: args.sourceFile,
       expectedSha256: args.expectedSha256,
     };
   }
@@ -347,6 +365,9 @@ async function saveHtml(args) {
   const { html, proof } = await fetchSourceHtml(args);
   const { page } = await connectPage(args);
   await page.bringToFront().catch(() => {});
+  if (!page.url().includes(`/page-builder/${DEFAULTS.pageId}`)) {
+    await page.goto(DEFAULTS.wrapperUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  }
   const frame = await findBuilderFrame(page, 20_000);
   if (!frame) throw new Error("Builder frame unavailable; cannot safely set CodeMirror content.");
 
@@ -422,12 +443,13 @@ function help() {
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs map --cdp http://127.0.0.1:9229 --out dev/agents/artifacts/doc/test/liverpool-digital/browser-map.json",
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-visible-modal --apply --coordinate-fallback --screenshot /tmp/patronpro-after-save.png",
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-html --apply",
+      "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs save-html --apply --source-file dev/agents/artifacts/doc/test/liverpool-digital/optimized-website-2026-06-12/optimized.html --expected-sha256 <sha256>",
       "node dev/agents/artifacts/script/patronpro-liverpool/ghl-profile9-website-builder.mjs preview-qa --out dev/agents/artifacts/doc/test/liverpool-digital/preview-qa.json",
     ],
     commands: {
       map: "Read-only CDP map of current Profile 9 page-builder state.",
       "save-visible-modal": "Click modal Save if it is visible, then builder Save. Requires --apply.",
-      "save-html": "Fetch PatronPro generated HTML and save it to the existing GHL Custom HTML block. Requires --apply.",
+      "save-html": "Fetch PatronPro generated HTML, or read --source-file, and save it to the existing GHL Custom HTML block. Requires --apply.",
       "preview-qa": "Read-only public preview marker check.",
     },
     guardrails: [

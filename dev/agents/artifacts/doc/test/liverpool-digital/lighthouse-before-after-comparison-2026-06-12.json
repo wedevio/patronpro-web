@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-06-12T04:41:20.637Z",
+  "before": "lighthouse-before-optimized-2026-06-12.json",
+  "after": "lighthouse-after-optimized-fixed-2026-06-12.json",
+  "rows": [
+    {
+      "form": "desktop",
+      "before": {
+        "perf": 75,
+        "access": 93,
+        "bp": 77,
+        "seo": 58,
+        "fcp": "1.2 s",
+        "lcp": "3.9 s",
+        "totalKiB": 8465.1,
+        "imageKiB": 8070.3,
+        "imagePct": 95.3
+      },
+      "after": {
+        "perf": 94,
+        "access": 94,
+        "bp": 77,
+        "seo": 58,
+        "fcp": "1.2 s",
+        "lcp": "1.3 s",
+        "totalKiB": 1173,
+        "imageKiB": 776.2,
+        "imagePct": 66.2
+      },
+      "delta": {
+        "perf": 19,
+        "access": 1,
+        "bp": 0,
+        "seo": 0,
+        "lcpMs": -2692,
+        "totalKiB": -7292.1,
+        "imageKiB": -7294
+      },
+      "topAfter": [
+        {
+          "mimeType": "image/png",
+          "transferKiB": 670.1,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png"
+        },
+        {
+          "mimeType": "image/avif",
+          "transferKiB": 50.1,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/website-assets/4cPIvLND9hFAIzWQ1ZbL/optimized/20260612T042621Z/patronpro-hero-20260612T042621Z-1440.avif"
+        },
+        {
+          "mimeType": "image/avif",
+          "transferKiB": 40,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/website-assets/4cPIvLND9hFAIzWQ1ZbL/optimized/20260612T042621Z/patronpro-about-20260612T042621Z-1440.avif"
+        },
+        {
+          "mimeType": "image/avif",
+          "transferKiB": 16.1,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/website-assets/4cPIvLND9hFAIzWQ1ZbL/optimized/20260612T042621Z/patronpro-contact-20260612T042621Z-1440.avif"
+        },
+        {
+          "mimeType": "image/x-icon",
+          "transferKiB": 0.9,
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico"
+        }
+      ]
+    },
+    {
+      "form": "mobile",
+      "before": {
+        "perf": 65,
+        "access": 94,
+        "bp": 77,
+        "seo": 58,
+        "fcp": "4.1 s",
+        "lcp": "21.3 s",
+        "totalKiB": 8464.9,
+        "imageKiB": 8070,
+        "imagePct": 95.3
+      },
+      "after": {
+        "perf": 66,
+        "access": 94,
+        "bp": 77,
+        "seo": 58,
+        "fcp": "4.1 s",
+        "lcp": "8.2 s",
+        "totalKiB": 1096.2,
+        "imageKiB": 700,
+        "imagePct": 63.9
+      },
+      "delta": {
+        "perf": 1,
+        "access": 0,
+        "bp": 0,
+        "seo": 0,
+        "lcpMs": -13119,
+        "totalKiB": -7368.8,
+        "imageKiB": -7370
+      },
+      "topAfter": [
+        {
+          "mimeType": "image/png",
+          "transferKiB": 670.1,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png"
+        },
+        {
+          "mimeType": "image/avif",
+          "transferKiB": 29.9,
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/website-assets/4cPIvLND9hFAIzWQ1ZbL/optimized/20260612T042621Z/patronpro-hero-20260612T042621Z-960.avif"
+        },
+        {
+          "mimeType": "image/x-icon",
+          "transferKiB": 0.9,
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico"
+        }
+      ]
+    }
+  ]
+}

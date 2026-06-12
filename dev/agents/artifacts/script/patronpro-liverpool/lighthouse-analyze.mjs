@@ -47,17 +47,16 @@ function runLighthouse(url, outDir) {
 
   for (const run of runs) {
     const result = spawnSync(
-      "bunx",
+      "lighthouse",
       [
-        "lighthouse",
         url,
         "--quiet",
         "--output=json",
         `--output-path=${run.file}`,
-        "--chrome-flags=--headless=new",
+        "--chrome-flags=--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage",
         ...run.extra,
       ],
-      { stdio: "inherit" },
+      { stdio: "inherit", env: { ...process.env, CHROME_PATH: process.env.CHROME_PATH || "/usr/bin/google-chrome" } },
     );
 
     if (result.status !== 0) {

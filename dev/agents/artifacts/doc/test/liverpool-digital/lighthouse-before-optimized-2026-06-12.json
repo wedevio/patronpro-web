@@ -1,0 +1,172 @@
+{
+  "generatedAt": "2026-06-12T04:33:04.995Z",
+  "input": "dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-before-optimized-2026-06-12",
+  "runs": [
+    {
+      "file": "dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-before-optimized-2026-06-12/lighthouse-desktop-20260612T043237Z.json",
+      "finalUrl": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+      "fetchTime": "2026-06-12T04:32:53.912Z",
+      "lighthouseVersion": "13.0.1",
+      "formFactor": "desktop",
+      "screenEmulation": {
+        "mobile": false,
+        "width": 1350,
+        "height": 940,
+        "deviceScaleFactor": 1,
+        "disabled": false
+      },
+      "scores": {
+        "performance": 75,
+        "accessibility": 93,
+        "bestPractices": 77,
+        "seo": 58
+      },
+      "metrics": {
+        "fcp": "1.2 s",
+        "lcp": "3.9 s",
+        "lcpMs": 3947.6197,
+        "speedIndex": "1.3 s",
+        "tbt": "0 ms",
+        "cls": "0.007"
+      },
+      "resourceSummary": {
+        "totalTransferBytes": 8668303,
+        "imageTransferBytes": 8263941,
+        "imagePercent": 95.3
+      },
+      "imageRequests": [
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "mimeType": "image/png",
+          "transferSize": 2671960
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "mimeType": "image/png",
+          "transferSize": 2551781
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "mimeType": "image/png",
+          "transferSize": 2354043
+        },
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "mimeType": "image/png",
+          "transferSize": 686157
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico",
+          "mimeType": "image/x-icon",
+          "transferSize": 957
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.17,
+          "displayValue": "3.9 s",
+          "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+        },
+        {
+          "id": "unminified-javascript",
+          "title": "Minify JavaScript",
+          "score": 0.5,
+          "displayValue": "Est savings of 23 KiB",
+          "description": "Minifying JavaScript files can reduce payload sizes and script parse time. [Learn how to minify JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript/)."
+        },
+        {
+          "id": "unused-javascript",
+          "title": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 47 KiB",
+          "description": "Reduce unused JavaScript and defer loading scripts until they are required to decrease bytes consumed by network activity. [Learn how to reduce unused JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unused-javascript/)."
+        }
+      ]
+    },
+    {
+      "file": "dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-before-optimized-2026-06-12/lighthouse-mobile-20260612T043237Z.json",
+      "finalUrl": "https://api.getpatronpro.com/preview/JgrAMMXugg5Yi8QAnbDz?notrack=true",
+      "fetchTime": "2026-06-12T04:32:40.340Z",
+      "lighthouseVersion": "13.0.1",
+      "formFactor": "mobile",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "scores": {
+        "performance": 65,
+        "accessibility": 94,
+        "bestPractices": 77,
+        "seo": 58
+      },
+      "metrics": {
+        "fcp": "4.1 s",
+        "lcp": "21.3 s",
+        "lcpMs": 21310.384500000004,
+        "speedIndex": "4.1 s",
+        "tbt": "60 ms",
+        "cls": "0.001"
+      },
+      "resourceSummary": {
+        "totalTransferBytes": 8668098,
+        "imageTransferBytes": 8263668,
+        "imagePercent": 95.3
+      },
+      "imageRequests": [
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/a9230b5c-e7cd-4972-97d5-b182ab3c60a6.png",
+          "mimeType": "image/png",
+          "transferSize": 2672393
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/403ea364-599e-4e7e-8a6c-1c579aedcffb.png",
+          "mimeType": "image/png",
+          "transferSize": 2551407
+        },
+        {
+          "url": "https://assets.cdn.filesafe.space/4cPIvLND9hFAIzWQ1ZbL/media/ef75b2b6-6c49-4a00-9854-b46884ab27b1.png",
+          "mimeType": "image/png",
+          "transferSize": 2354278
+        },
+        {
+          "url": "https://mtkbqnngqcqywsdewaxs.supabase.co/storage/v1/object/public/logos/logos/4cPIvLND9hFAIzWQ1ZbL/logo_square.png",
+          "mimeType": "image/png",
+          "transferSize": 685590
+        },
+        {
+          "url": "https://stcdn.leadconnectorhq.com/funnel/icon/favicon.ico",
+          "mimeType": "image/x-icon",
+          "transferSize": 960
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0,
+          "displayValue": "21.3 s",
+          "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+        },
+        {
+          "id": "unminified-javascript",
+          "title": "Minify JavaScript",
+          "score": 0.5,
+          "displayValue": "Est savings of 23 KiB",
+          "description": "Minifying JavaScript files can reduce payload sizes and script parse time. [Learn how to minify JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript/)."
+        },
+        {
+          "id": "unused-javascript",
+          "title": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 47 KiB",
+          "description": "Reduce unused JavaScript and defer loading scripts until they are required to decrease bytes consumed by network activity. [Learn how to reduce unused JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unused-javascript/)."
+        }
+      ]
+    }
+  ]
+}
