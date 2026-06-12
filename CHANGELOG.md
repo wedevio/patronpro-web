@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-06-12
+
+- Promoted the calendar booking-rule baseline to a PatronPro-wide standard procedure in RLM and the Liverpool automation runbook: `Consulta Gratuita` uses next-day minimum notice, 15-minute buffers, and max 8 bookings/day; `On Site Visit` uses next-day notice, 45-minute buffers, and max 4 bookings/day.
+- Corrected the onboarding-session booking flow: deleted the mistakenly created Liverpool subaccount `Consulta Gratuita` test event `Tee3EZ2G4RT7F2Vnjrv5` and created the real PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` in `Onboarding PatronPro` for Saturday, 2026-06-13 11:00-12:00 CDMX time, assigned to Oscar Betancourt with `toNotify=true`.
+
 ## 2026-06-11
 
 - Completed `ppweb-7` calendar booking-rule normalization for Liverpool Digital: `Consulta Gratuita` now has next-day minimum notice, 15-minute pre/post buffers, and max 8 bookings/day; `On Site Visit` keeps next-day notice and 45-minute buffers with max 4 bookings/day. Free-slot QA passed for both calendars.

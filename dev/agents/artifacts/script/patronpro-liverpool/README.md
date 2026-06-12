@@ -39,7 +39,7 @@ Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell 
 - `assign-calendar-owner` targets the two calendar IDs referenced by `free_consultation_calendar` and `on_site_visit_calendar`; it refuses missing IDs, different existing members, and unexpected existing member shapes.
 - Calendar owner assignment only sends `teamMembers`; activation remains a separate step.
 - `activate-calendars` targets those same exact calendar IDs and sends only `isActive: true`; owner/team members remain unchanged.
-- `normalize-calendar-booking-rules` targets those same exact calendar IDs and sends only changed booking-rule fields. Baseline: `Consulta Gratuita` minimum notice 1 day, 15-minute pre/post buffers, max 8 appointments/day; `On Site Visit` minimum notice 1 day, 45-minute pre/post buffers, max 4 appointments/day. These are defaults only and should be changed during onboarding when the client asks.
+- `normalize-calendar-booking-rules` targets those same exact calendar IDs and sends only changed booking-rule fields. PatronPro standard baseline for every new client: `Consulta Gratuita` minimum notice 1 day, 15-minute pre/post buffers, max 8 appointments/day; `On Site Visit` minimum notice 1 day, 45-minute pre/post buffers, max 4 appointments/day. These are defaults only and should be changed during onboarding when the client asks.
 - `calendar-availability-qa` is read-only. It verifies required schedule fields and calls `GET /calendars/{calendarId}/free-slots` with a 14-day default window. `openHoursCount: 0` is treated as a warning, not a blocker, when free slots are returned.
 - `activate-calendars --apply` includes the same free-slot smoke result in its verification payload.
 - `website-assets` is read-only; it proves generated HTML/images and GHL website/page inventory but does not publish or edit the GHL page.
@@ -51,6 +51,22 @@ Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell 
 - `ghl-profile9-website-builder.mjs save-html --apply` writes generated HTML into the existing GHL Custom HTML block and clicks builder Save. It does not click Publish.
 - Never use browser scripts to read or store cookies, headers, passwords, tokens, localStorage, or Google account state.
 - The top-level GHL `Publish` button remains manual/operator-approved until domain, phone, email, Twilio, and final QA gates are ready.
+
+## Main PatronPro Onboarding Appointments
+
+- Client onboarding sessions are booked in the PatronPro main account, not in the client's newly created subaccount calendars.
+- Use 1Password item `GHL - PatronPro - api key - MAIN` and its `location id` field for these bookings.
+- Current main onboarding target:
+  - Location: `Patron Pro`
+  - Calendar: `Onboarding PatronPro` (`D7x8ts5xcdNOWnd6Pjlq`)
+  - Assignee: Oscar Betancourt (`r2NA4HiIxWRvKwzuYpzv`)
+- Search the main account contact list for the client's onboarding contact/email before booking. For Liverpool Digital/Picturelle, the main-account contact used for the test booking was `info@picturelle.com` (`rSBhh1nzHdjaRXOF3F0A`).
+- For CDMX appointments, send explicit ISO timestamps with the `-06:00` offset, for example `2026-06-13T11:00:00-06:00`.
+- HighLevel may read the same instant back using a different timezone offset, for example `11:00 -06:00` as `10:00 -07:00`. Verify by instant (`Date.parse`) and calendar/contact/user IDs, not by raw string equality.
+- If the requested onboarding time is outside returned free slots and the operator explicitly wants that exact test time, use `ignoreDateRange: true` and `ignoreFreeSlotValidation: true`; otherwise keep both false.
+- Use `toNotify: true` for real onboarding sessions where the client should receive the invite/notification. Use `toNotify: false` only for internal tests where notifications should not fire.
+- GHL appointment DELETE can still allow `GET /calendars/events/appointments/:eventId` to return HTTP 200; verify deletion by `appointment.deleted === true`.
+- If the calendar uses Google conference configuration, the appointment readback may not expose the meeting URL. Verify the join link in the GHL UI or notification email when the meeting link matters.
 - Missing credentials are reported as `blocked` checks.
 - It does not refresh OAuth tokens.
 - Output paths are constrained to this repository.

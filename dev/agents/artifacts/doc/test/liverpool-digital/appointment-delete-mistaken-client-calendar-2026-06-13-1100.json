@@ -1,0 +1,83 @@
+{
+  "generatedAt": "2026-06-12T01:27:11.688Z",
+  "action": "delete_mistaken_client_subaccount_test_appointment",
+  "reason": "User clarified the requested onboarding appointment must be booked from the PatronPro/main onboarding account, not Liverpool Digital client subaccount calendars.",
+  "eventId": "Tee3EZ2G4RT7F2Vnjrv5",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "calendarId": "a2rL0hFhXf2sIdKZecoM",
+  "before": {
+    "status": 200,
+    "ok": true,
+    "appointment": {
+      "appointmentStatus": "confirmed",
+      "appoinmentStatus": "confirmed",
+      "assignedUserId": "7f3lxWXzcFRp3QMYqotT",
+      "address": "Internal test",
+      "calendarId": "a2rL0hFhXf2sIdKZecoM",
+      "contactId": "KwxtqWZxAc1OJQ39zjGg",
+      "dateAdded": "2026-06-12T01:23:27.671Z",
+      "dateUpdated": "2026-06-12T01:23:27.671Z",
+      "endTime": "2026-06-13T11:30:00-07:00",
+      "id": "Tee3EZ2G4RT7F2Vnjrv5",
+      "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+      "notes": "Internal PatronPro onboarding test appointment created by automation with notifications disabled.",
+      "description": "Internal PatronPro onboarding test appointment created by automation with notifications disabled.",
+      "startTime": "2026-06-13T11:00:00-07:00",
+      "title": "Internal onboarding test - Liverpool Digital",
+      "assignedResources": [],
+      "isRecurring": false,
+      "createdBy": {
+        "source": "third_party",
+        "userId": null
+      },
+      "appointmentMeta": {
+        "slotType": "custom"
+      },
+      "deleted": false
+    }
+  },
+  "delete": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "succeeded": true,
+      "traceId": "3fa97f96-c9c6-43ff-863e-8d06cc008a3b"
+    }
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": {
+      "appointment": {
+        "appointmentStatus": "confirmed",
+        "appoinmentStatus": "confirmed",
+        "assignedUserId": "7f3lxWXzcFRp3QMYqotT",
+        "address": "Internal test",
+        "calendarId": "a2rL0hFhXf2sIdKZecoM",
+        "contactId": "KwxtqWZxAc1OJQ39zjGg",
+        "dateAdded": "2026-06-12T01:23:27.671Z",
+        "dateUpdated": "2026-06-12T01:27:10.691Z",
+        "endTime": "2026-06-13T11:30:00-07:00",
+        "id": "Tee3EZ2G4RT7F2Vnjrv5",
+        "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+        "notes": "Internal PatronPro onboarding test appointment created by automation with notifications disabled.",
+        "description": "Internal PatronPro onboarding test appointment created by automation with notifications disabled.",
+        "startTime": "2026-06-13T11:00:00-07:00",
+        "title": "Internal onboarding test - Liverpool Digital",
+        "assignedResources": [],
+        "isRecurring": false,
+        "createdBy": {
+          "source": "third_party",
+          "userId": null
+        },
+        "appointmentMeta": {
+          "slotType": "custom"
+        },
+        "deleted": true
+      },
+      "traceId": "2a1fe64e-f651-4308-b330-8306e799cfdb"
+    }
+  },
+  "status": "pass_deleted_flag_verified",
+  "verificationGotcha": "GET /calendars/events/appointments/:eventId can still return HTTP 200 after DELETE; check appointment.deleted === true to verify deletion."
+}

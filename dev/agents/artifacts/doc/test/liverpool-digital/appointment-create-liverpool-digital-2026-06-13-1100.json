@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-06-12T01:23:27.259Z",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "client": "Liverpool Digital",
+  "action": "create_internal_test_appointment",
+  "status": "superseded_deleted",
+  "calendar": {
+    "id": "a2rL0hFhXf2sIdKZecoM",
+    "name": "Consulta Gratuita"
+  },
+  "requestedSlot": {
+    "sourceUserPhrase": "tomorrow at 11 a.m.",
+    "interpretedAs": "Saturday, 2026-06-13 11:00 America/Phoenix calendar time (-07:00)",
+    "startTime": "2026-06-13T11:00:00-07:00",
+    "endTime": "2026-06-13T11:30:00-07:00",
+    "timezoneAssumption": "Liverpool Digital calendar free-slot evidence uses -07:00 offsets; this is treated as the GHL account/calendar time for the test appointment."
+  },
+  "forcedBookingReason": "Saturday is outside the confirmed Mon-Fri business hours, so the appointment was created as an internal forced test booking with notifications disabled.",
+  "request": {
+    "calendarId": "a2rL0hFhXf2sIdKZecoM",
+    "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+    "contactId": "KwxtqWZxAc1OJQ39zjGg",
+    "startTime": "2026-06-13T11:00:00-07:00",
+    "endTime": "2026-06-13T11:30:00-07:00",
+    "title": "Internal onboarding test - Liverpool Digital",
+    "meetingLocationType": "custom",
+    "meetingLocationId": "custom_0",
+    "overrideLocationConfig": true,
+    "appointmentStatus": "confirmed",
+    "assignedUserId": "7f3lxWXzcFRp3QMYqotT",
+    "description": "Internal PatronPro onboarding test appointment created by automation with notifications disabled.",
+    "address": "Internal test",
+    "ignoreDateRange": true,
+    "toNotify": false,
+    "ignoreFreeSlotValidation": true
+  },
+  "create": {
+    "status": 201,
+    "ok": true,
+    "appointmentId": "Tee3EZ2G4RT7F2Vnjrv5",
+    "message": null,
+    "bodySummary": {
+      "appointmentId": "Tee3EZ2G4RT7F2Vnjrv5",
+      "message": null
+    }
+  },
+  "readback": {
+    "status": 200,
+    "ok": true,
+    "appointment": {
+      "id": "Tee3EZ2G4RT7F2Vnjrv5",
+      "title": "Internal onboarding test - Liverpool Digital",
+      "calendarId": "a2rL0hFhXf2sIdKZecoM",
+      "contactId": "KwxtqWZxAc1OJQ39zjGg",
+      "assignedUserId": "7f3lxWXzcFRp3QMYqotT",
+      "appointmentStatus": "confirmed",
+      "startTime": "2026-06-13T11:00:00-07:00",
+      "endTime": "2026-06-13T11:30:00-07:00",
+      "address": "Internal test"
+    }
+  },
+  "checks": {
+    "created": true,
+    "readbackOk": true,
+    "calendarMatches": true,
+    "contactMatches": true,
+    "assignedUserMatches": true,
+    "startMatches": true,
+    "endMatches": true,
+    "statusConfirmed": true
+  },
+  "notificationSafety": {
+    "toNotify": false,
+    "expected": "No appointment notification should be sent by this API call; workflow side effects should still be checked manually if relevant."
+  },
+  "supersededBy": "dev/agents/artifacts/doc/test/liverpool-digital/main-onboarding-appointment-create-2026-06-13-1100-cdmx.json",
+  "correction": "Wrong account/calendar. User clarified onboarding sessions must be booked from the PatronPro main account, not the client subaccount. Deletion call succeeded and follow-up readback returned deleted:true.",
+  "deletedEvidence": "dev/agents/artifacts/doc/test/liverpool-digital/appointment-delete-mistaken-client-calendar-2026-06-13-1100.json"
+}
