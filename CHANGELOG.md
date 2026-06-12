@@ -2,6 +2,7 @@
 
 ## 2026-06-12
 
+- Session close: created `ppweb-e7p` as the parent track for mobile LCP sub-second optimization, with children `ppweb-0o5`, `ppweb-jeg`, `ppweb-dtn`, and `ppweb-w1f`. Current source of remaining mobile image payload is `logo_square.png` at 670.1 KiB; the optimized mobile hero AVIF is only 29.9 KiB, so tomorrow's work should focus on logo/media handling, smaller breakpoints, Supabase-vs-GHL media strategy, and raw Lighthouse evidence retention.
 - Rescheduled PatronPro main-account onboarding appointment `Cxa6iMN4am9r1XUdJWWS` from the mistaken Saturday slot to Friday, 2026-06-12 11:00-12:00 CDMX, assigned to Oscar Betancourt with `toNotify=true`. Evidence: `dev/agents/artifacts/doc/test/liverpool-digital/main-onboarding-appointment-reschedule-2026-06-12-1100-cdmx.json`.
 - Updated the PatronPro automation checkpoint PDF cover attribution to `Prepared by Óscar Betancourt` and regenerated the PDF.
 - Added the Picturelle-branded PatronPro automation session checkpoint report covering Liverpool Digital onboarding automation, Slack recorder/bot status, Brigitte fit guidance, website SEO/GEO/image optimization proposal, and the API/browser/manual split. Final report: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.md`; PDF: `doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.pdf`.
