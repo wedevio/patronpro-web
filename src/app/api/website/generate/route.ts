@@ -50,65 +50,6 @@ Custom values disponibles:
 - {{custom_values.logo}}
 - {{custom_values.logo_cuadrado}}
 - {{custom_values.landing_form}}
-- {{custom_values.website_social_image}}
-
-Imágenes responsive disponibles:
-- {{custom_values.website_hero_image_avif_srcset}}
-- {{custom_values.website_hero_image_webp_srcset}}
-- {{custom_values.website_hero_image_jpeg_srcset}}
-- {{custom_values.website_hero_image_jpeg_fallback}}
-- {{custom_values.website_about_image_avif_srcset}}
-- {{custom_values.website_about_image_webp_srcset}}
-- {{custom_values.website_about_image_jpeg_srcset}}
-- {{custom_values.website_about_image_jpeg_fallback}}
-- {{custom_values.website_contact_image_avif_srcset}}
-- {{custom_values.website_contact_image_webp_srcset}}
-- {{custom_values.website_contact_image_jpeg_srcset}}
-- {{custom_values.website_contact_image_jpeg_fallback}}
-
-Valores legacy de imagen — solo fallback si necesitas compatibilidad:
-- {{custom_values.website_hero_image}}
-- {{custom_values.website_about_image}}
-- {{custom_values.website_contact_image}}
-
-=================================================================
-SEO, OPEN GRAPH Y DATOS ESTRUCTURADOS — OBLIGATORIO
-=================================================================
-
-El <head> debe incluir, en este orden lógico:
-- <title> único y específico, máximo 60 caracteres aprox.
-- <meta name="description"> natural y accionable, máximo 155 caracteres aprox.
-- <link rel="canonical" href="{{custom_values.dominio_web}}">
-- <meta name="robots" content="index, follow">
-- Open Graph para WhatsApp, Messenger, Facebook y LinkedIn:
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="...">
-  <meta property="og:description" content="...">
-  <meta property="og:url" content="{{custom_values.dominio_web}}">
-  <meta property="og:image" content="{{custom_values.website_social_image}}">
-  <meta property="og:image:secure_url" content="{{custom_values.website_social_image}}">
-  <meta property="og:image:type" content="image/jpeg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="{{custom_values.company_name}}">
-- Twitter card:
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="...">
-  <meta name="twitter:description" content="...">
-  <meta name="twitter:image" content="{{custom_values.website_social_image}}">
-
-El preview social SIEMPRE usa {{custom_values.website_social_image}}. No uses hero/about/contact como og:image.
-
-Google snippets:
-- Usa un solo <h1>.
-- Cada sección principal debe tener id estable y heading descriptivo: servicios, nosotros, proceso, testimonios, contacto.
-- Cada servicio debe tener un anchor/id legible, por ejemplo id="servicio-reparacion-de-techos".
-- Incluye JSON-LD válido en <script type="application/ld+json">, sin JavaScript dinámico:
-  1. LocalBusiness o ProfessionalService con name, url, telephone, email, image, address, areaServed y openingHoursSpecification si se puede representar.
-  2. ItemList o makesOffer con los servicios principales.
-  3. SiteNavigationElement con las secciones principales.
-
-El JSON-LD puede mezclar datos literales del prompt (ciudad, estado, servicios) y merge tags GHL como strings. Cuida comillas y JSON válido. No inventes ratings agregados, precios, licencias ni reviews schema si no hay datos reales.
 
 Teléfono (siempre clickeable):
 <a href="tel:{{custom_values.company_phone}}">{{custom_values.company_phone}}</a>
@@ -152,44 +93,17 @@ Al final del body, antes de </body>:
 
 Elige iconos apropiados al sector. Para construcción: hard-hat, hammer, wrench, drill, home, building-2, shield-check, truck, etc.
 
-IMÁGENES — usa SIEMPRE <picture>, nunca PNG directo como background-image.
-Orden obligatorio de formatos:
-1. AVIF primero
-2. WebP segundo
-3. JPEG comprimido como fallback final
+IMÁGENES — siempre usa estos tres custom values como fuentes de imagen:
+- Hero background:   {{custom_values.website_hero_image}}
+- Sección Nosotros:  {{custom_values.website_about_image}}
+- CTA de urgencia:   {{custom_values.website_contact_image}}
 
-Hero/LCP — debe ser eager y high priority:
+Hero con imagen y overlay:
 
-<picture class="responsive-bg hero-bg" aria-hidden="true">
-  <source type="image/avif" srcset="{{custom_values.website_hero_image_avif_srcset}}" sizes="100vw">
-  <source type="image/webp" srcset="{{custom_values.website_hero_image_webp_srcset}}" sizes="100vw">
-  <img src="{{custom_values.website_hero_image_jpeg_fallback}}" srcset="{{custom_values.website_hero_image_jpeg_srcset}}" sizes="100vw" width="1440" height="960" alt="" loading="eager" fetchpriority="high" decoding="async">
-</picture>
-
-Imágenes below-fold — siempre lazy:
-
-<picture class="responsive-bg" aria-hidden="true">
-  <source type="image/avif" srcset="{{custom_values.website_about_image_avif_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
-  <source type="image/webp" srcset="{{custom_values.website_about_image_webp_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
-  <img src="{{custom_values.website_about_image_jpeg_fallback}}" srcset="{{custom_values.website_about_image_jpeg_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw" width="960" height="640" alt="" loading="lazy" decoding="async">
-</picture>
-
-CSS obligatorio para imágenes tipo background:
-
-.image-shell{position:relative;overflow:hidden;background-color:var(--primary);}
-.responsive-bg{position:absolute;inset:0;z-index:0;}
-.responsive-bg img{width:100%;height:100%;object-fit:cover;}
-.image-overlay{position:absolute;inset:0;z-index:1;background:rgba(0,0,0,.55);}
-.image-content{position:relative;z-index:2;}
-
-Usa esta estructura para HERO y CTA de urgencia:
-
-<section class="hero image-shell">
-  <!-- picture responsive + overlay -->
-  <div class="image-content"><!-- contenido --></div>
+<section style="background-image:url('{{custom_values.website_hero_image}}');background-size:cover;background-position:center;position:relative;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.55);"></div>
+  <div style="position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:80px 24px;"><!-- contenido --></div>
 </section>
-
-Usa la misma lógica para la imagen de Nosotros dentro del bloque visual.
 
 El headline del hero NUNCA supera font-size:3.5rem en desktop. En móvil usa clamp o media query para reducirlo (máx 2.2rem en mobile). El subtítulo no supera 1.1rem. Todo el contenido del hero (textos, CTAs, stats) va dentro del div con max-width:1200px — el fondo de imagen/color puede ser full-width pero el texto NUNCA.
 
@@ -311,9 +225,6 @@ export interface WebsiteGenerateParams {
   complementaryColor: string;
   domain: string;
   hoursOfOperation?: unknown;
-  logoUrl?: string;
-  logoSquareUrl?: string;
-  skipImageGeneration?: boolean;
 }
 
 // ─── User prompt ─────────────────────────────────────────────────────────────
@@ -456,38 +367,25 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
-    if (!body.skipImageGeneration) {
-      // ── Trigger image generation (fire-and-forget) ──────────────────────────
-      // Runs as an independent Vercel invocation with its own 300s timeout.
-      // It can call this route back with skipImageGeneration once image custom values exist.
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
-      void fetch(`${appUrl}/api/website/generate-images`, {
-        method:  "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
-        },
-        body: JSON.stringify({
-          accountId: body.accountId,
-          locationId: body.locationId,
-          businessName: body.businessName,
-          services: body.services,
-          city: body.city,
-          state: body.state,
-          primaryColor: body.primaryColor,
-          secondaryColor: body.secondaryColor,
-          complementaryColor: body.complementaryColor,
-          address: body.address,
-          zip: body.zip,
-          tagline: body.tagline,
-          domain: body.domain,
-          hoursOfOperation: body.hoursOfOperation ?? null,
-          logoUrl: body.logoUrl ?? "",
-          logoSquareUrl: body.logoSquareUrl ?? "",
-          regenerateHtmlAfterImages: true,
-        }),
-      });
-    }
+    // ── Trigger image generation (fire-and-forget) ────────────────────────────
+    // Runs as an independent Vercel invocation with its own 300s timeout.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
+    void fetch(`${appUrl}/api/website/generate-images`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
+      },
+      body: JSON.stringify({
+        accountId:    body.accountId,
+        locationId:   body.locationId,
+        businessName: body.businessName,
+        services:     body.services,
+        city:         body.city,
+        state:        body.state,
+        primaryColor: body.primaryColor,
+      }),
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
 

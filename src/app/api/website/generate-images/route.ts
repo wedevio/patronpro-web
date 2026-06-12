@@ -5,18 +5,8 @@ import { getAdminClient } from "@/lib/supabase/client";
 import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { uploadMediaFromBuffer } from "@/lib/ghl/media";
 import { upsertCustomValue } from "@/lib/ghl/custom-values";
-import {
-  buildVariantSet,
-  createWebsiteSocialPreviewImage,
-  createWebsiteImageVariants,
-  websiteImageCustomValueMappings,
-  type WebsiteSocialPreviewImage,
-  type WebsiteImageSubject,
-  type WebsiteImageVariantSet,
-} from "@/lib/website/image-variants";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 export const maxDuration = 300;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -29,16 +19,6 @@ interface GenerateImagesBody {
   city: string;
   state: string;
   primaryColor?: string;
-  secondaryColor?: string;
-  complementaryColor?: string;
-  address?: string;
-  zip?: string;
-  tagline?: string;
-  domain?: string;
-  hoursOfOperation?: unknown;
-  logoUrl?: string;
-  logoSquareUrl?: string;
-  regenerateHtmlAfterImages?: boolean;
 }
 
 interface OpenAIImageResponse {
@@ -46,10 +26,9 @@ interface OpenAIImageResponse {
   error?: { message: string };
 }
 
-type GeneratedImageSet = WebsiteImageVariantSet;
-
-function isNonNull<T>(value: T | null): value is T {
-  return value !== null;
+interface GeneratedAsset {
+  buffer: Buffer;
+  publicUrl: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -110,55 +89,6 @@ async function generateImage(
   return null;
 }
 
-async function fetchOptionalImageBuffer(url: string | undefined): Promise<Buffer | null> {
-  if (!url) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("image/")) return null;
-    return Buffer.from(await res.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
-
-async function uploadToWebsiteAssets(
-  db: ReturnType<typeof getAdminClient>,
-  locationId: string,
-  asset: { filename: string; buffer: Buffer; contentType: string },
-): Promise<string | null> {
-  const storagePath = `${locationId}/${asset.filename}`;
-  const { error } = await db.storage
-    .from("website-assets")
-    .upload(storagePath, asset.buffer, {
-      contentType: asset.contentType,
-      upsert: true,
-    });
-
-  if (error) {
-    console.error(
-      `[generate-images] Supabase upload error (${asset.filename}):`,
-      error.message,
-    );
-    return null;
-  }
-
-  const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
-  return urlData.publicUrl;
-}
-
-function canRegenerateHtml(body: GenerateImagesBody): boolean {
-  return Boolean(
-    body.regenerateHtmlAfterImages &&
-    body.accountId &&
-    body.locationId &&
-    body.businessName &&
-    body.address !== undefined &&
-    body.zip !== undefined,
-  );
-}
-
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function POST(request: Request): Promise<Response> {
@@ -202,87 +132,41 @@ export async function POST(request: Request): Promise<Response> {
     );
 
     // Generate 3 images in parallel
-    const subjects: WebsiteImageSubject[] = ["hero", "about", "contact"];
+    const subjects = ["hero", "about", "contact"] as const;
 
-    async function processSubject(subject: WebsiteImageSubject): Promise<GeneratedImageSet | null> {
+    async function processSubject(subject: typeof subjects[number]): Promise<GeneratedAsset | null> {
       const prompt = buildImagePrompt(subject, body);
       const buffer = await generateImage(prompt, openaiKey!);
       if (!buffer) return null;
 
-      const set = await createWebsiteImageVariants(subject, buffer);
-      const uploadedVariants = await Promise.all(
-        set.variants.map(async (variant) => {
-          const publicUrl = await uploadToWebsiteAssets(db, locationId, variant);
-          if (!publicUrl) return null;
-          return {
-            ...variant,
-            publicUrl,
-          };
-        })
-      );
+      // Upload to Supabase Storage (our copy)
+      const storagePath = `${locationId}/${subject}.png`;
+      const { error } = await db.storage
+        .from("website-assets")
+        .upload(storagePath, buffer, { contentType: "image/png", upsert: true });
 
-      const variants = uploadedVariants.filter(isNonNull);
-      if (variants.length !== set.variants.length) {
+      if (error) {
+        console.error(`[generate-images] Supabase upload error (${subject}):`, error.message);
         return null;
       }
 
-      return buildVariantSet(subject, variants);
+      const { data: urlData } = db.storage.from("website-assets").getPublicUrl(storagePath);
+      return {
+        buffer,
+        publicUrl: urlData.publicUrl,
+      };
     }
 
-    const [heroAsset, aboutAsset, contactAsset] = await Promise.all(
-      subjects.map(processSubject),
-    );
-
-    let socialAsset: WebsiteSocialPreviewImage | null = null;
-    if (heroAsset) {
-      const logoBuffer = await fetchOptionalImageBuffer(body.logoSquareUrl ?? body.logoUrl);
-      const socialSource =
-        heroAsset.variants.find((variant) => variant.format === "jpg" && variant.width === 1440)?.buffer ??
-        heroAsset.variants.find((variant) => variant.format === "jpg")?.buffer ??
-        heroAsset.variants[0].buffer;
-      const socialPreview = await createWebsiteSocialPreviewImage(socialSource, {
-        businessName,
-        services: body.services,
-        city: body.city,
-        state: body.state,
-        primaryColor: body.primaryColor,
-        accentColor: body.secondaryColor,
-        logoBuffer,
-      });
-      const publicUrl = await uploadToWebsiteAssets(db, locationId, socialPreview);
-      if (publicUrl) {
-        socialAsset = {
-          ...socialPreview,
-          publicUrl,
-        };
-      }
-    }
+    const [heroAsset, aboutAsset, contactAsset] = await Promise.all([
+      processSubject("hero"),
+      processSubject("about"),
+      processSubject("contact"),
+    ]);
 
     const results = {
-      hero: heroAsset?.legacyUrl ?? null,
-      about: aboutAsset?.legacyUrl ?? null,
-      contact: contactAsset?.legacyUrl ?? null,
-      social: socialAsset?.publicUrl ?? null,
-    };
-    const responsiveResults = {
-      hero: heroAsset ? {
-        avifSrcset: heroAsset.srcsets.avif,
-        webpSrcset: heroAsset.srcsets.webp,
-        jpegSrcset: heroAsset.srcsets.jpg,
-        jpegFallback: heroAsset.jpegFallbackUrl,
-      } : null,
-      about: aboutAsset ? {
-        avifSrcset: aboutAsset.srcsets.avif,
-        webpSrcset: aboutAsset.srcsets.webp,
-        jpegSrcset: aboutAsset.srcsets.jpg,
-        jpegFallback: aboutAsset.jpegFallbackUrl,
-      } : null,
-      contact: contactAsset ? {
-        avifSrcset: contactAsset.srcsets.avif,
-        webpSrcset: contactAsset.srcsets.webp,
-        jpegSrcset: contactAsset.srcsets.jpg,
-        jpegFallback: contactAsset.jpegFallbackUrl,
-      } : null,
+      hero: heroAsset?.publicUrl ?? null,
+      about: aboutAsset?.publicUrl ?? null,
+      contact: contactAsset?.publicUrl ?? null,
     };
     const anyGenerated = Boolean(results.hero || results.about || results.contact);
 
@@ -307,74 +191,34 @@ export async function POST(request: Request): Promise<Response> {
           { headers: { Authorization: `Bearer ${token}`, Version: "2021-07-28" } }
         ).then(r => r.json()).then((j: { customValues?: Array<{ id: string; name: string; fieldKey: string; value: string }> }) => j.customValues ?? []);
 
-        const syncAssetSetToGhl = async (
-          asset: GeneratedImageSet | null,
+        const syncAssetToGhl = async (
+          asset: GeneratedAsset | null,
+          filename: string,
+          customValueKey: string,
         ): Promise<boolean> => {
           if (!asset) return true;
 
-          const uploadedVariants = await Promise.all(
-            asset.variants.map(async (variant) => {
-              const ghlUrl = await uploadMediaFromBuffer(
-                locationId,
-                variant.buffer,
-                variant.filename,
-                variant.contentType,
-                token,
-              );
-
-              if (!ghlUrl) {
-                console.error(`[generate-images] GHL media upload failed for ${variant.filename}`);
-                return null;
-              }
-
-              return {
-                ...variant,
-                ghlUrl,
-              };
-            })
+          const ghlUrl = await uploadMediaFromBuffer(
+            locationId,
+            asset.buffer,
+            filename,
+            "image/png",
+            token,
           );
 
-          const variants = uploadedVariants.filter(isNonNull);
-          if (variants.length !== asset.variants.length) {
+          if (!ghlUrl) {
+            console.error(`[generate-images] GHL media upload failed for ${filename}`);
             return false;
           }
 
-          const syncedSet = buildVariantSet(asset.subject, variants);
-          const mappings = websiteImageCustomValueMappings(syncedSet);
-          const results = await Promise.all(
-            mappings.map(([fieldKey, value]) =>
-              upsertCustomValue(locationId, fieldKey, value, token, existing)
-            )
-          );
-          return results.every(Boolean);
+          return upsertCustomValue(locationId, customValueKey, ghlUrl, token, existing);
         };
 
         const syncResults = await Promise.all([
-          syncAssetSetToGhl(heroAsset),
-          syncAssetSetToGhl(aboutAsset),
-          syncAssetSetToGhl(contactAsset),
+          syncAssetToGhl(heroAsset, "website_hero_image.png", "website_hero_image"),
+          syncAssetToGhl(aboutAsset, "website_about_image.png", "website_about_image"),
+          syncAssetToGhl(contactAsset, "website_contact_image.png", "website_contact_image"),
         ]);
-
-        if (socialAsset) {
-          const socialGhlUrl = await uploadMediaFromBuffer(
-            locationId,
-            socialAsset.buffer,
-            socialAsset.filename,
-            socialAsset.contentType,
-            token,
-          );
-          if (socialGhlUrl) {
-            socialAsset = {
-              ...socialAsset,
-              ghlUrl: socialGhlUrl,
-            };
-            syncResults.push(
-              await upsertCustomValue(locationId, "website_social_image", socialGhlUrl, token, existing)
-            );
-          } else {
-            syncResults.push(false);
-          }
-        }
 
         const ghlSyncOk = syncResults.every(Boolean);
 
@@ -397,40 +241,7 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    if (canRegenerateHtml(body)) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://getpatronpro.com";
-      void fetch(`${appUrl}/api/website/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(process.env.INTERNAL_API_SECRET ? { "x-internal-secret": process.env.INTERNAL_API_SECRET } : {}),
-        },
-        body: JSON.stringify({
-          accountId: body.accountId,
-          locationId: body.locationId,
-          businessName: body.businessName,
-          address: body.address ?? "",
-          city: body.city,
-          state: body.state,
-          zip: body.zip ?? "",
-          tagline: body.tagline ?? "",
-          services: body.services,
-          primaryColor: body.primaryColor ?? "#1E2C46",
-          secondaryColor: body.secondaryColor ?? "#F67D0A",
-          complementaryColor: body.complementaryColor ?? "#FFFFFF",
-          domain: body.domain ?? "",
-          hoursOfOperation: body.hoursOfOperation ?? null,
-          logoUrl: body.logoUrl ?? "",
-          logoSquareUrl: body.logoSquareUrl ?? "",
-          skipImageGeneration: true,
-        }),
-      }).catch((err) => console.error("[generate-images] follow-up HTML generation failed:", err));
-    }
-
-    return NextResponse.json(
-      { success: true, images: results, responsiveImages: responsiveResults },
-      { status: 200 },
-    );
+    return NextResponse.json({ success: true, images: results }, { status: 200 });
 
   } catch (err) {
     console.error("[POST /api/website/generate-images]", err);

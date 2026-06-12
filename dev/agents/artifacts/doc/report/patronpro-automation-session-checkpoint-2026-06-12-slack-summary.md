@@ -1,9 +1,0 @@
-PatronPro checkpoint:
-
-1. Onboarding automation is now proven on test onboarding account 01 (Liverpool Digital). API-proven: calendar owner assignment, calendar activation/rules, Brand Board colors, GHL/Supabase read QC, and the main-account onboarding appointment for Friday, June 12 at 11:00 AM CDMX with Oscar as the onboarding owner. Browser-proven through WSL Profile 9: GHL website HTML save, Add Contact `Language` required + DND removed, and Email Services domain setup to the DNS-record stage. Manual/client gates remain: Twilio/A2P, Stripe, Cloudflare/DNS verification, final publish/activation, and client sign-off.
-
-2. Website optimization was implemented on the test account preview without regenerating AI images. Existing images were reused, responsive AVIF -> WebP -> JPEG variants were generated, WhatsApp/Open Graph preview was added, JSON-LD SEO/GEO was added, and the optimized HTML was saved into GHL. Fresh Lighthouse: desktop performance 75 -> 94 and LCP 3.9s -> 1.3s; mobile LCP 21.3s -> 8.2s. Image transfer dropped by about 7.37 MiB on mobile.
-
-3. Brigitte needs separate fit handling. What happened: she compared PatronPro to pdfFiller, mentioned paying about $100/year, and also referenced another Facebook tool, so her main objection is price/value mismatch. Recommended position: validate pdfFiller if she only needs PDFs/signatures, then explain that PatronPro is a broader client-flow system: landing page, form/calendar, calls, SMS/email, pipeline, estimates, invoices/payments, reminders, and follow-up. If she only wants document filling/signatures, she may not be the right PatronPro client right now. Do not promise social media management, AI agents, or advanced automations unless Carlos/Duncan approve that wording.
-
-Full PDF: doc/reports/2026/06/patronpro-automation-session-checkpoint-2026-06-12.pdf
