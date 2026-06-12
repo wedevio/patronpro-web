@@ -1,0 +1,11 @@
+CE merge/review for ppweb-0ka.8 was not rerun immediately because Codex CE quota was already confirmed blocked during ppweb-0ka.7.
+
+Observed quota state at 2026-06-12 16:14 CST during ppweb-0ka.7:
+- Default Codex model returned usage-limit error.
+- CLI advised retry after 5:40 PM.
+
+Fallback used for ppweb-0ka.8:
+- Mini reviewed the draft PRD first and scored it 30/50.
+- The merge brief captured all Mini MUST FIX and SHOULD FIX items.
+- The final packet and improved PRD manually applied those findings.
+- CE should be retried later if quota becomes available before a future presentation revision.
