@@ -88,6 +88,10 @@ function parseArgs(argv) {
     availabilityDays: 14,
     startOffsetDays: 1,
     timezone: "",
+    freeConsultationBufferMins: 15,
+    freeConsultationMaxPerDay: 8,
+    onSiteBufferMins: 45,
+    onSiteMaxPerDay: 4,
   };
 
   function readFlagValue(index, flag) {
@@ -105,6 +109,10 @@ function parseArgs(argv) {
     else if (arg === "--availability-days") args.availabilityDays = Number.parseInt(readFlagValue(i++, arg), 10);
     else if (arg === "--start-offset-days") args.startOffsetDays = Number.parseInt(readFlagValue(i++, arg), 10);
     else if (arg === "--timezone") args.timezone = readFlagValue(i++, arg);
+    else if (arg === "--free-consultation-buffer-mins") args.freeConsultationBufferMins = Number.parseInt(readFlagValue(i++, arg), 10);
+    else if (arg === "--free-consultation-max-per-day") args.freeConsultationMaxPerDay = Number.parseInt(readFlagValue(i++, arg), 10);
+    else if (arg === "--on-site-buffer-mins") args.onSiteBufferMins = Number.parseInt(readFlagValue(i++, arg), 10);
+    else if (arg === "--on-site-max-per-day") args.onSiteMaxPerDay = Number.parseInt(readFlagValue(i++, arg), 10);
     else if (arg === "--apply") args.apply = true;
     else if (arg === "--help" || arg === "-h") args.command = "help";
     else throw new Error(`Unknown argument: ${arg}`);
@@ -273,6 +281,10 @@ async function fetchCustomValues(locationId) {
 
 async function fetchCalendars(locationId) {
   return ghlFetch(`/calendars/?locationId=${encodeURIComponent(locationId)}&showDrafted=true`, { version: GHL_CALENDAR_VERSION });
+}
+
+async function fetchCalendar(calendarId) {
+  return ghlFetch(`/calendars/${encodeURIComponent(calendarId)}`, { version: GHL_CALENDAR_VERSION });
 }
 
 async function fetchCalendarFreeSlots(calendarId, query) {
@@ -549,6 +561,11 @@ function calendarSchedulingSummary(calendar) {
     preBuffer: calendar?.preBuffer ?? null,
     preBufferUnit: calendar?.preBufferUnit ?? null,
     slotBuffer: calendar?.slotBuffer ?? null,
+    slotBufferUnit: calendar?.slotBufferUnit ?? null,
+    appoinmentPerDay: calendar?.appoinmentPerDay ?? null,
+    appointmentPerDay: calendar?.appointmentPerDay ?? null,
+    appoinmentPerSlot: calendar?.appoinmentPerSlot ?? null,
+    appointmentPerSlot: calendar?.appointmentPerSlot ?? null,
     formId: calendar?.formId ?? "",
     openHoursCount: Array.isArray(calendar?.openHours) ? calendar.openHours.length : 0,
     availabilityType: calendar?.availabilityType ?? null,
@@ -570,6 +587,78 @@ function scheduleBlockers(calendar) {
     !Number.isFinite(Number(scheduling.preBuffer)) && "preBuffer is missing.",
     !Number.isFinite(Number(scheduling.slotBuffer)) && "slotBuffer is missing.",
   ].filter(Boolean);
+}
+
+async function fetchDetailedTargetCalendars(locationId, customValues) {
+  const targetIds = targetCalendarIdsFromCustomValues(customValues);
+  const details = [];
+  const errors = [];
+  for (const id of targetIds) {
+    const result = await fetchCalendar(id);
+    if (result.ok) {
+      details.push(result.body?.calendar ?? result.body);
+    } else {
+      errors.push({ id, status: result.status ?? null, error: result.body ?? result.reason ?? null });
+    }
+  }
+  return { targetIds, details, errors };
+}
+
+function calendarKind(calendar) {
+  const name = String(calendar?.name ?? "");
+  if (/on[- ]?site/i.test(name)) return "on_site_visit";
+  if (/consultation|consulta/i.test(name)) return "free_consultation";
+  return "unknown";
+}
+
+function baselineBookingRulesForCalendar(calendar, args) {
+  const kind = calendarKind(calendar);
+  if (kind === "free_consultation") {
+    return {
+      kind,
+      payload: {
+        allowBookingAfter: 1,
+        allowBookingAfterUnit: "days",
+        preBuffer: args.freeConsultationBufferMins,
+        preBufferUnit: "mins",
+        slotBuffer: args.freeConsultationBufferMins,
+        slotBufferUnit: "mins",
+        appoinmentPerDay: args.freeConsultationMaxPerDay,
+        appointmentPerDay: args.freeConsultationMaxPerDay,
+      },
+    };
+  }
+  if (kind === "on_site_visit") {
+    return {
+      kind,
+      payload: {
+        allowBookingAfter: 1,
+        allowBookingAfterUnit: "days",
+        preBuffer: args.onSiteBufferMins,
+        preBufferUnit: "mins",
+        slotBuffer: args.onSiteBufferMins,
+        slotBufferUnit: "mins",
+        appoinmentPerDay: args.onSiteMaxPerDay,
+        appointmentPerDay: args.onSiteMaxPerDay,
+      },
+    };
+  }
+  return { kind, payload: {} };
+}
+
+function numberOrEmpty(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const num = Number(value);
+  return Number.isFinite(num) ? num : value;
+}
+
+function diffCalendarPayload(calendar, targetPayload) {
+  const changes = {};
+  for (const [key, value] of Object.entries(targetPayload)) {
+    const current = numberOrEmpty(calendar?.[key]);
+    if (current !== value) changes[key] = value;
+  }
+  return changes;
 }
 
 function availabilityWindow(args) {
@@ -1262,6 +1351,153 @@ async function buildCalendarAvailabilityQa(args) {
   };
 }
 
+async function buildCalendarBookingRulesPlan(args) {
+  const generatedAt = new Date().toISOString();
+  const locationResult = await fetchLocation(args.locationId);
+  const location = locationResult.ok ? locationPayload(locationResult) : null;
+  const companyId = location?.companyId ?? location?.company_id ?? location?.company?.id ?? "";
+  const [usersResult, customValuesResult] = await Promise.all([
+    fetchUsers(companyId, args.locationId),
+    fetchCustomValues(args.locationId),
+  ]);
+  const users = usersResult.ok ? (usersResult.body?.users ?? usersResult.body?.data ?? []) : [];
+  const customValues = normalizeCustomValues(customValuesResult.ok ? customValuesResult.body?.customValues : []);
+  const detailed = customValuesResult.ok
+    ? await fetchDetailedTargetCalendars(args.locationId, customValues)
+    : { targetIds: [], details: [], errors: [] };
+  const mainUser = Array.isArray(users) && users.length === 1 ? users[0] : null;
+  const mainUserId = mainUser?.id ?? "";
+  const blockers = [];
+
+  if (locationResult.blocked || !locationResult.ok) blockers.push("GHL location read failed.");
+  if (usersResult.blocked || !usersResult.ok) blockers.push("GHL users read failed.");
+  if (customValuesResult.blocked || !customValuesResult.ok) blockers.push("GHL custom values read failed.");
+  if (!mainUserId) blockers.push(`Expected exactly one location user, found ${Array.isArray(users) ? users.length : 0}.`);
+  if (detailed.targetIds.length < 2) blockers.push(`Expected 2 target calendar IDs from booking custom values, found ${detailed.targetIds.length}.`);
+  if (detailed.errors.length) blockers.push(`Calendar detail reads failed for: ${detailed.errors.map((item) => `${item.id} (${item.status})`).join(", ")}.`);
+
+  const calendars = detailed.details.map((calendar) => {
+    const baseline = baselineBookingRulesForCalendar(calendar, args);
+    const currentTeamMemberIds = teamMemberIds(calendar);
+    const changes = diffCalendarPayload(calendar, baseline.payload);
+    const kindBlocker = baseline.kind === "unknown" ? "Calendar name is not recognized as free consultation or on-site visit." : "";
+    const ownerBlocker = currentTeamMemberIds.length !== 1 || currentTeamMemberIds[0] !== mainUserId
+      ? "Calendar is not assigned to the single main user."
+      : "";
+    return {
+      id: calendar.id,
+      name: calendar.name,
+      kind: baseline.kind,
+      isActive: calendar.isActive === true,
+      teamMemberIds: currentTeamMemberIds,
+      current: calendarSchedulingSummary(calendar),
+      target: baseline.payload,
+      changes,
+      alreadyCompliant: Object.keys(changes).length === 0,
+      blockers: [kindBlocker, ownerBlocker].filter(Boolean),
+    };
+  });
+
+  const baseline = {
+    source: "PatronPro onboarding manual plus current On Site Visit setting and scheduling best-practice fallback",
+    rationale: [
+      "Manual baseline: avoid same-day booking by setting minimum reservation to the next day.",
+      "Consulta Gratuita baseline: 15-minute pre/post buffers and max 8 bookings/day.",
+      "On Site Visit baseline: preserve existing 45-minute pre/post buffers and set max 4 bookings/day.",
+      "All values remain client-overridable during onboarding.",
+    ],
+  };
+
+  return {
+    metadata: {
+      client: args.client,
+      locationId: args.locationId,
+      generatedAt,
+      command: "normalize-calendar-booking-rules",
+      dryRun: !args.apply,
+    },
+    preconditions: {
+      ok: blockers.length === 0 && calendars.length >= 2 && calendars.every((calendar) => calendar.blockers.length === 0),
+      blockers: [
+        ...blockers,
+        ...calendars.flatMap((calendar) => calendar.blockers.map((blocker) => `${calendar.name}: ${blocker}`)),
+      ],
+      mainUser: mainUser ? publicUser(mainUser) : null,
+      userCount: Array.isArray(users) ? users.length : 0,
+      targetCalendarIds: detailed.targetIds,
+    },
+    baseline,
+    calendars,
+    plannedAction: "Update only booking notice, pre/post buffers, and appointment-per-day caps for exact onboarding calendar IDs.",
+  };
+}
+
+async function normalizeCalendarBookingRules(args) {
+  const plan = await buildCalendarBookingRulesPlan(args);
+  if (!args.apply) {
+    return {
+      ...plan,
+      status: "dry_run",
+      note: "No GHL mutation performed. Re-run with --apply to normalize calendar booking rules.",
+    };
+  }
+
+  if (!plan.preconditions.ok) {
+    return {
+      ...plan,
+      status: "blocked",
+      note: "No GHL mutation performed because preconditions failed.",
+    };
+  }
+
+  const updates = [];
+  for (const calendar of plan.calendars) {
+    if (calendar.alreadyCompliant) {
+      updates.push({ id: calendar.id, name: calendar.name, status: "skipped", reason: "already compliant" });
+      continue;
+    }
+
+    const result = await ghlFetch(`/calendars/${encodeURIComponent(calendar.id)}`, {
+      method: "PUT",
+      version: GHL_CALENDAR_VERSION,
+      body: JSON.stringify(calendar.changes),
+    });
+    updates.push({
+      id: calendar.id,
+      name: calendar.name,
+      status: result.ok ? "updated" : "failed",
+      statusCode: result.status,
+      payloadKeys: Object.keys(calendar.changes),
+      error: result.ok ? null : result.body,
+    });
+  }
+
+  const verificationPlan = await buildCalendarBookingRulesPlan({ ...args, apply: false });
+  const rulesVerified = verificationPlan.preconditions.ok
+    && verificationPlan.calendars.length === plan.calendars.length
+    && verificationPlan.calendars.every((calendar) => calendar.alreadyCompliant);
+  const availabilityQa = await buildCalendarAvailabilityQa({ ...args, apply: false });
+  const availabilityOk = availabilityQa.status === "pass";
+
+  return {
+    ...plan,
+    metadata: {
+      ...plan.metadata,
+      dryRun: false,
+    },
+    status: rulesVerified && availabilityOk && updates.every((update) => update.status !== "failed") ? "pass" : "fail",
+    updates,
+    verification: {
+      ok: rulesVerified && availabilityOk,
+      bookingRules: {
+        ok: rulesVerified,
+        calendars: verificationPlan.calendars,
+      },
+      availabilityQa,
+    },
+  };
+}
+
 async function assignCalendarOwner(args) {
   const plan = await buildCalendarOwnerPlan(args);
   if (!args.apply) {
@@ -1649,6 +1885,7 @@ Usage:
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs plan [--out plan.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs assign-calendar-owner [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs activate-calendars [--apply] [--out report.json]
+  bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs normalize-calendar-booking-rules [--apply] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs calendar-availability-qa [--availability-days 14] [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs website-assets [--out report.json]
   bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs apply-brand-board [--apply] [--out report.json]
@@ -1659,6 +1896,8 @@ Commands:
   plan                   Read-only planned actions based on QC failures/blockers.
   assign-calendar-owner  Dry-run by default. With --apply, assigns the single main user to onboarding calendars.
   activate-calendars     Dry-run by default. With --apply, sets onboarding calendars active after owner QA.
+  normalize-calendar-booking-rules
+                         Dry-run by default. With --apply, normalizes minimum notice, buffers, and per-day caps.
   calendar-availability-qa
                          Read-only schedule checks and free-slot smoke test for onboarding calendars.
   website-assets         Read-only proof for generated HTML/images and GHL website/page inventory.
@@ -1670,7 +1909,7 @@ Environment:
   GHL reads need GHL_LOCATION_PIT, GHL_MCP, or GHL_AGENCY_ACCESS_TOKEN.
 
 Safety:
-  This script is dry-run/read-only unless assign-calendar-owner, activate-calendars, or apply-brand-board is run with --apply.
+  This script is dry-run/read-only unless assign-calendar-owner, activate-calendars, normalize-calendar-booking-rules, or apply-brand-board is run with --apply.
 `);
 }
 
@@ -1687,6 +1926,7 @@ async function main() {
   else if (args.command === "website-assets") payload = await buildWebsiteAssetsReport(args);
   else if (args.command === "assign-calendar-owner") payload = await assignCalendarOwner(args);
   else if (args.command === "activate-calendars") payload = await activateCalendars(args);
+  else if (args.command === "normalize-calendar-booking-rules") payload = await normalizeCalendarBookingRules(args);
   else if (args.command === "calendar-availability-qa") payload = await buildCalendarAvailabilityQa(args);
   else if (args.command === "apply-brand-board") payload = await applyBrandBoard(args);
   else if (args.command === "export-docs") payload = await exportDocs(args);

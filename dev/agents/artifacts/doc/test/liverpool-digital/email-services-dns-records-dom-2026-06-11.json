@@ -1,0 +1,233 @@
+{
+  "generatedAt": "2026-06-12T01:04:14.182Z",
+  "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/settings/smtp_service/dedicated-domains/add-domain",
+  "inputs": [
+    {
+      "i": 0,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Search Numbers",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "",
+      "text": ""
+    },
+    {
+      "i": 1,
+      "tag": "INPUT",
+      "type": "",
+      "placeholder": "",
+      "aria": "",
+      "name": "",
+      "id": "dialer-input",
+      "value": "",
+      "text": ""
+    },
+    {
+      "i": 2,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "TXT",
+      "text": ""
+    },
+    {
+      "i": 3,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "email.build",
+      "text": ""
+    },
+    {
+      "i": 4,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "v=spf1 include:spf.leadconnectorhq.com include:mailgun.org ~all",
+      "text": ""
+    },
+    {
+      "i": 5,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "TXT",
+      "text": ""
+    },
+    {
+      "i": 6,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "krs._domainkey.email.build",
+      "text": ""
+    },
+    {
+      "i": 7,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDx8R+BM0MQOVD0846hw/I7GyurkGP/vzQs/oCJ4R2r+TcWepoPddZ2QwN8Hg2YdngDqIRqHiEr13utRf0wHkABt8+OUb5kcSo3LfATxVV62dQs6DNMJLzJmr2FnhRUOXzBo9kZ1ncYa1vur1MVhUV94xFRD8Tc87MjgDfP+SLYNQIDAQAB",
+      "text": ""
+    },
+    {
+      "i": 8,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "CNAME",
+      "text": ""
+    },
+    {
+      "i": 9,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "email.email.build",
+      "text": ""
+    },
+    {
+      "i": 10,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "mailgun.org",
+      "text": ""
+    },
+    {
+      "i": 11,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "MX",
+      "text": ""
+    },
+    {
+      "i": 12,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "email.build",
+      "text": ""
+    },
+    {
+      "i": 13,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "mxa.mailgun.org",
+      "text": ""
+    },
+    {
+      "i": 14,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "MX",
+      "text": ""
+    },
+    {
+      "i": 15,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "email.build",
+      "text": ""
+    },
+    {
+      "i": 16,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "mxb.mailgun.org",
+      "text": ""
+    },
+    {
+      "i": 17,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "TXT",
+      "text": ""
+    },
+    {
+      "i": 18,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "_dmarc.email.build",
+      "text": ""
+    },
+    {
+      "i": 19,
+      "tag": "INPUT",
+      "type": "text",
+      "placeholder": "Please Input",
+      "aria": "",
+      "name": "",
+      "id": "",
+      "value": "v=DMARC1;p=none;",
+      "text": ""
+    }
+  ],
+  "tables": [
+    {
+      "i": 0,
+      "text": "Record Host Required value",
+      "html": "<div class=\"grid grid-cols-8 gap-x-4 gap-y-3\" role=\"table\" aria-label=\"DNS records\" data-testid=\"dns-records-table\"><div class=\"col-span-2 hl-text-sm-medium\" role=\"columnheader\">Record</div><div class=\"col-span-3 hl-text-sm-medium\" role=\"columnheader\">Host</div><div class=\"col-span-3 hl-text-sm-medium\" role=\"columnheader\">Required value</div><div data-v-243d3ac2=\"\" class=\"n-input n-input--disabled n-input--resizable n-input--stateful col-span-2 hl-input-text font-sans col-span-2\" data-testid=\"record-type-TXT\" role=\"cell\" id=\"TXTv=spf1 include:spf.leadconnectorhq.com include:mailgun.org ~all\" style=\"--n-bezier: cubic-bezier(.4, 0, .2, 1); --n-count-text-color: rgb(118, 124, 130); --n-count-text-color-disabled: rgba(194, 194, 194, 1); --n-color: rgba(255, 255, 255, 1); --n-font-size: 15px; --n-border-radius: 3px; --n-height: 40px; --n-padding-left: 14px; --n-padding-right: 14px; --n-text-color: rgb(51, 54, 57); --n-caret-color: #18a058; --n-text-decoration-color: rgb(51, 54, 57); --n-bor"
+    }
+  ]
+}

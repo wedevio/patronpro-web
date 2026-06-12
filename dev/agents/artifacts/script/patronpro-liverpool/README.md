@@ -13,6 +13,8 @@ bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs assign-calendar-owner --apply --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-owner-apply.json
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs activate-calendars --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-activation-dry-run.json
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs activate-calendars --apply --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-activation-apply.json
+bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs normalize-calendar-booking-rules --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-booking-rules-dry-run.json
+bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs normalize-calendar-booking-rules --apply --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-booking-rules-apply.json
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs calendar-availability-qa --out dev/agents/artifacts/doc/test/liverpool-digital/calendar-availability-qa.json
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs website-assets --out dev/agents/artifacts/doc/test/liverpool-digital/website-assets.json
 bun dev/agents/artifacts/script/patronpro-liverpool/liverpool-digital-automation.mjs apply-brand-board --out dev/agents/artifacts/doc/test/liverpool-digital/brand-board-dry-run.json
@@ -33,10 +35,11 @@ Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell 
 
 ## Safety
 
-- The harness is read-only and dry-run except `assign-calendar-owner --apply`, `activate-calendars --apply`, and `apply-brand-board --apply`.
+- The harness is read-only and dry-run except `assign-calendar-owner --apply`, `activate-calendars --apply`, `normalize-calendar-booking-rules --apply`, and `apply-brand-board --apply`.
 - `assign-calendar-owner` targets the two calendar IDs referenced by `free_consultation_calendar` and `on_site_visit_calendar`; it refuses missing IDs, different existing members, and unexpected existing member shapes.
 - Calendar owner assignment only sends `teamMembers`; activation remains a separate step.
 - `activate-calendars` targets those same exact calendar IDs and sends only `isActive: true`; owner/team members remain unchanged.
+- `normalize-calendar-booking-rules` targets those same exact calendar IDs and sends only changed booking-rule fields. Baseline: `Consulta Gratuita` minimum notice 1 day, 15-minute pre/post buffers, max 8 appointments/day; `On Site Visit` minimum notice 1 day, 45-minute pre/post buffers, max 4 appointments/day. These are defaults only and should be changed during onboarding when the client asks.
 - `calendar-availability-qa` is read-only. It verifies required schedule fields and calls `GET /calendars/{calendarId}/free-slots` with a 14-day default window. `openHoursCount: 0` is treated as a warning, not a blocker, when free slots are returned.
 - `activate-calendars --apply` includes the same free-slot smoke result in its verification payload.
 - `website-assets` is read-only; it proves generated HTML/images and GHL website/page inventory but does not publish or edit the GHL page.
@@ -59,6 +62,7 @@ Older artifacts from 2026-06-09 mention Windows Chrome Profile 9 and PowerShell 
 - `plan`: JSON planned actions for failed or blocked checks.
 - `assign-calendar-owner`: JSON dry-run/apply evidence and fresh verification readback.
 - `activate-calendars`: JSON dry-run/apply evidence and fresh activation verification readback.
+- `normalize-calendar-booking-rules`: JSON dry-run/apply evidence, fresh rule readback, and free-slot QA.
 - `calendar-availability-qa`: JSON read-only schedule checks and free-slot smoke results.
 - `website-assets`: JSON generated HTML/images plus read-only GHL website/page inventory.
 - `apply-brand-board`: JSON dry-run/apply evidence and fresh Brand Board readback.

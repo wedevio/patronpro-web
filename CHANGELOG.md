@@ -2,6 +2,9 @@
 
 ## 2026-06-11
 
+- Completed `ppweb-7` calendar booking-rule normalization for Liverpool Digital: `Consulta Gratuita` now has next-day minimum notice, 15-minute pre/post buffers, and max 8 bookings/day; `On Site Visit` keeps next-day notice and 45-minute buffers with max 4 bookings/day. Free-slot QA passed for both calendars.
+- Advanced `ppweb-8` Email Services setup through WSL Chrome Profile 9 after public API probes and internal endpoint probes did not provide a supported token path. Created `email.build.picturelle.com` in GHL and stopped at the DNS records screen for Cloudflare verification; default From headers and `Automation Sender Email` remain pending until DNS verifies.
+- Completed `ppweb-9` no-mutation appointment-date probe: current HighLevel docs confirm `POST /calendars/events/appointments` can create a custom dated appointment and `PUT /calendars/events/appointments/:eventId` can reschedule one. No test appointment was created.
 - Agent manual-QA snapshot completed with Supabase-backed read-only QC: `qc-agent-supabase-ghl-2026-06-11.json` shows Supabase and GHL access passing with 12 pass / 11 fail / 0 blocked; `manual-qa-agent-walkthrough-2026-06-11.md` lists every onboarding manual point with Manual/Agent status. No DB writes were performed.
 
 ## 2026-06-10

@@ -1,0 +1,296 @@
+[
+  {
+    "path": "/emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /emails/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /email-isv/public-apis/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /email-isv/public-apis/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /email-isv/public-apis/domains?locationId=4cPIvLND9hFAIzWQ1ZbL"
+    }
+  },
+  {
+    "path": "/email-services/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/email-services/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/email-services/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/email-services",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/email-services"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/email-services",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/email-services"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/email-services",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/email-services"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/emails/domains"
+    }
+  },
+  {
+    "path": "/lc-email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/lc-email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/lc-email/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/mailgun/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/mailgun/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/mailgun/domains?locationId=4cPIvLND9hFAIzWQ1ZbL",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/domains?locationId=4cPIvLND9hFAIzWQ1ZbL&type=email",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/domains?locationId=4cPIvLND9hFAIzWQ1ZbL&type=email",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/domains?locationId=4cPIvLND9hFAIzWQ1ZbL&type=email",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": ""
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/domains",
+    "version": "2021-07-28",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/domains"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/domains",
+    "version": "2021-04-15",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/domains"
+    }
+  },
+  {
+    "path": "/locations/4cPIvLND9hFAIzWQ1ZbL/domains",
+    "version": "2023-02-21",
+    "status": 404,
+    "ok": false,
+    "body": {
+      "keys": [
+        "message",
+        "error",
+        "statusCode"
+      ],
+      "message": "Cannot GET /locations/4cPIvLND9hFAIzWQ1ZbL/domains"
+    }
+  }
+]

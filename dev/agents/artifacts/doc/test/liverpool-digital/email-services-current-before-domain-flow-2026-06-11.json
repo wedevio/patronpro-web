@@ -1,0 +1,377 @@
+{
+  "url": "https://app.gohighlevel.com/v2/location/4cPIvLND9hFAIzWQ1ZbL/settings/smtp_service",
+  "text": "Liverpool Digital's Account\nQueretaro, Querétaro\nSearch\nctrlK\nGo Back\nSettings\n\nMY BUSINESS\n\nBusiness Profile\nBilling\nMy Staff\nOpportunities & Pipelines\n\nBUSINESS SERVICES\n\nCalendars\nEmail Services\nPhone System\nWhatsApp\n\nOTHER SETTINGS\n\nObjects\nCustom Fields\nCustom Values\nImport Data\nManage Scoring\nDomains & URL Redirects\nExternal Tracking\nIntegrations\nPrivate Integrations\nTags\nLabs\nNew\nAudit Logs\nBrand Boards\n1/1\nSummer of AI: Your AI tools are free all summer.\nActivate now\nAsk AI\nView Changelog\nNotifications\nSupport\nOB",
+  "buttons": [
+    {
+      "i": 0,
+      "text": "Business Profile",
+      "id": "sb_business_info",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 1,
+      "text": "Billing",
+      "id": "sb_saas-billing",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 2,
+      "text": "My Staff",
+      "id": "sb_my-staff",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 3,
+      "text": "Opportunities & Pipelines",
+      "id": "sb_Opportunities-Pipelines",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 4,
+      "text": "Calendars",
+      "id": "sb_calendars",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 5,
+      "text": "Email Services",
+      "id": "sb_location-email-services",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 6,
+      "text": "Phone System",
+      "id": "sb_phone-system",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 7,
+      "text": "WhatsApp",
+      "id": "sb_whatsapp",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 8,
+      "text": "Objects",
+      "id": "sb_objects",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 9,
+      "text": "Custom Fields",
+      "id": "sb_custom-fields-settings",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 10,
+      "text": "Custom Values",
+      "id": "sb_custom-values",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 11,
+      "text": "Import Data",
+      "id": "sb_import-data",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 12,
+      "text": "Manage Scoring",
+      "id": "sb_manage-scoring",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 13,
+      "text": "Domains & URL Redirects",
+      "id": "sb_domains-urlRedirects",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 14,
+      "text": "External Tracking",
+      "id": "sb_external-tracking",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 15,
+      "text": "Integrations",
+      "id": "sb_common.sidebar.lcIntegrations",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 16,
+      "text": "Private Integrations",
+      "id": "sb_common.sidebar.privateIntegrations",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 17,
+      "text": "Tags",
+      "id": "sb_tags",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 18,
+      "text": "Labs New",
+      "id": "sb_labs",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 19,
+      "text": "Audit Logs",
+      "id": "sb_audit-logs-location",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 20,
+      "text": "Brand Boards",
+      "id": "sb_brand-boards",
+      "cls": "w-full group px-3 flex items-center justify-start lg:justify-start xl:justify-st",
+      "disabled": ""
+    },
+    {
+      "i": 21,
+      "text": "Previous notification",
+      "id": "notification_banner-btn-navigation_previous",
+      "cls": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabl",
+      "disabled": true
+    },
+    {
+      "i": 22,
+      "text": "Next notification",
+      "id": "notification_banner-btn-navigation_next",
+      "cls": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabl",
+      "disabled": true
+    },
+    {
+      "i": 23,
+      "text": "Activate now",
+      "id": "notification-btn-primary_banner-6a228121e8a5aebf82eca080",
+      "cls": "notification-btn",
+      "disabled": ""
+    },
+    {
+      "i": 24,
+      "text": "Close notification",
+      "id": "notification_banner-btn-close",
+      "cls": "w-7 h-7 flex items-center justify-center rounded-full disabled:opacity-40 disabl",
+      "disabled": ""
+    },
+    {
+      "i": 25,
+      "text": "Voice Calling",
+      "id": "",
+      "cls": "flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-success-",
+      "disabled": ""
+    },
+    {
+      "i": 26,
+      "text": "Ask AI",
+      "id": "hl_header--copilot-icon",
+      "cls": "btn btn-circle btn-primary hl_header--copy-link !w-auto",
+      "disabled": ""
+    },
+    {
+      "i": 27,
+      "text": "View Changelog",
+      "id": "canny_logs-toggle",
+      "cls": "btn btn-circle btn-changelog",
+      "disabled": ""
+    },
+    {
+      "i": 28,
+      "text": "Notifications",
+      "id": "recent_activities-toggle",
+      "cls": "flex justify-center items-center btn btn-circle btn-yellow hl_header--recent-act",
+      "disabled": ""
+    },
+    {
+      "i": 29,
+      "text": "Support",
+      "id": "hl_header--help-icon",
+      "cls": "btn btn-circle btn-primary hl_header--copy-link",
+      "disabled": ""
+    },
+    {
+      "i": 30,
+      "text": "OB",
+      "id": "",
+      "cls": "hl_header--avatar dropdown-toggle",
+      "disabled": ""
+    },
+    {
+      "i": 31,
+      "text": "Login As",
+      "id": "",
+      "cls": "py-2 cursor-pointer dropdown-item",
+      "disabled": ""
+    },
+    {
+      "i": 32,
+      "text": "Signout",
+      "id": "",
+      "cls": "py-2 dropdown-item",
+      "disabled": ""
+    },
+    {
+      "i": 33,
+      "text": "×",
+      "id": "",
+      "cls": "close",
+      "disabled": ""
+    },
+    {
+      "i": 34,
+      "text": "",
+      "id": "",
+      "cls": "flex h-7 w-7 items-center justify-center rounded-full transition-all duration-20",
+      "disabled": ""
+    },
+    {
+      "i": 35,
+      "text": "",
+      "id": "",
+      "cls": "flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-gray-500 ",
+      "disabled": ""
+    },
+    {
+      "i": 36,
+      "text": "",
+      "id": "",
+      "cls": "close-icon cursor-pointer",
+      "disabled": ""
+    },
+    {
+      "i": 37,
+      "text": "Use your existing phone number",
+      "id": "use-existing-phone-btn",
+      "cls": "hr-button hr-button--default-type hr-button--medium-type hr-button--primary hr-b",
+      "disabled": ""
+    },
+    {
+      "i": 38,
+      "text": "Buy phone number",
+      "id": "buy-phone-number-btn",
+      "cls": "hr-button hr-button--default-type hr-button--medium-type hr-button--secondary hr",
+      "disabled": ""
+    },
+    {
+      "i": 39,
+      "text": "Help me decide",
+      "id": "help-me-decide-btn",
+      "cls": "hr-button hr-button--default-type hr-button--medium-type hr-button--text hr-butt",
+      "disabled": ""
+    },
+    {
+      "i": 40,
+      "text": "1",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 41,
+      "text": "2",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 42,
+      "text": "3",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 43,
+      "text": "4",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 44,
+      "text": "5",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 45,
+      "text": "6",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 46,
+      "text": "7",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 47,
+      "text": "8",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 48,
+      "text": "9",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 49,
+      "text": "*",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 50,
+      "text": "0+",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 51,
+      "text": "#",
+      "id": "",
+      "cls": "dial-item flex flex-col items-center justify-center bg-gray-200",
+      "disabled": ""
+    },
+    {
+      "i": 52,
+      "text": "",
+      "id": "",
+      "cls": "dial-item dial-btn",
+      "disabled": ""
+    }
+  ]
+}

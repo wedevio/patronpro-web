@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-06-12T00:58:30.305Z",
+  "locationId": "4cPIvLND9hFAIzWQ1ZbL",
+  "domain": "email.build.picturelle.com",
+  "mode": "browser-context-request-read-only",
+  "probes": [
+    {
+      "method": "GET",
+      "path": "/email-isv/onload?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/email-isv/smtp-connections?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/email-isv/feature/domain/list?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/email-isv/feature/domain/email.build.picturelle.com?locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/email-isv/feature/domain/v2/mx-and-spf-record?domain=email.build.picturelle.com&locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/email-isv/feature/domain/mx-and-spf-record?domain=email.build.picturelle.com&locationId=4cPIvLND9hFAIzWQ1ZbL",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/email-isv/feature/domain/validate",
+      "ok": false,
+      "status": 401,
+      "body": {
+        "statusCode": 401,
+        "message": "version header was not found."
+      }
+    }
+  ]
+}
