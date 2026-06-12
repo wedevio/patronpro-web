@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-06-12T18:00:00.000Z",
+  "artifactRole": "onboarding-calendar-invite-sample",
+  "bead": "ppweb-0ka.2",
+  "payload": {
+    "id": "demo-onboarding",
+    "title": "PatronPro Onboarding",
+    "start": "2026-06-15T10:00:00-06:00",
+    "end": "2026-06-15T11:00:00-06:00",
+    "timeZone": "America/Mexico_City",
+    "description": "Demo onboarding call for a non-live sample client.",
+    "location": "Google Meet",
+    "joinUrl": "https://meet.google.com/demo-demo-demo",
+    "organizerName": "PatronPro",
+    "organizerEmail": "support@example.com",
+    "attendeeName": "Demo Client",
+    "attendeeEmail": "client@example.com",
+    "createdAt": "2026-06-12T18:00:00Z"
+  },
+  "output": {
+    "fileName": "demo-onboarding.ics",
+    "links": {
+      "google": "https://calendar.google.com/calendar/render?action=TEMPLATE&text=PatronPro+Onboarding&dates=20260615T160000Z%2F20260615T170000Z&details=Demo+onboarding+call+for+a+non-live+sample+client.%0A%0AJoin%3A+https%3A%2F%2Fmeet.google.com%2Fdemo-demo-demo&location=Google+Meet&ctz=America%2FMexico_City",
+      "outlook": "https://outlook.live.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&subject=PatronPro+Onboarding&startdt=2026-06-15T16%3A00%3A00.000Z&enddt=2026-06-15T17%3A00%3A00.000Z&body=Demo+onboarding+call+for+a+non-live+sample+client.%0A%0AJoin%3A+https%3A%2F%2Fmeet.google.com%2Fdemo-demo-demo&location=Google+Meet",
+      "office365": "https://outlook.office.com/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&subject=PatronPro+Onboarding&startdt=2026-06-15T16%3A00%3A00.000Z&enddt=2026-06-15T17%3A00%3A00.000Z&body=Demo+onboarding+call+for+a+non-live+sample+client.%0A%0AJoin%3A+https%3A%2F%2Fmeet.google.com%2Fdemo-demo-demo&location=Google+Meet",
+      "apple": "data:text/calendar;charset=utf-8;base64,QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KUFJPRElEOi0vL1BhdHJvblByby8vT25ib2FyZGluZyBDYWxlbmRhciBJbnZpdGUvL0VODQpDQUxTQ0FMRTpHUkVHT1JJQU4NCk1FVEhPRDpQVUJMSVNIDQpCRUdJTjpWRVZFTlQNClVJRDpkZW1vLW9uYm9hcmRpbmdAcGF0cm9ucHJvLmNvbQ0KRFRTVEFNUDoyMDI2MDYxMlQxODAwMDBaDQpEVFNUQVJUOjIwMjYwNjE1VDE2MDAwMFoNCkRURU5EOjIwMjYwNjE1VDE3MDAwMFoNClNVTU1BUlk6UGF0cm9uUHJvIE9uYm9hcmRpbmcNCkRFU0NSSVBUSU9OOkRlbW8gb25ib2FyZGluZyBjYWxsIGZvciBhIG5vbi1saXZlIHNhbXBsZSBjbGllbnQuXG5cbkpvaW46IGh0dA0KIHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpMT0NBVElPTjpHb29nbGUgTWVldA0KVVJMOmh0dHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpPUkdBTklaRVI7Q049UGF0cm9uUHJvOm1haWx0bzpzdXBwb3J0QGV4YW1wbGUuY29tDQpBVFRFTkRFRTtDTj1EZW1vIENsaWVudDtST0xFPVJFUS1QQVJUSUNJUEFOVDptYWlsdG86Y2xpZW50QGV4YW1wbGUuY29tDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUDFEDQpFTkQ6VkFMQVJNDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUFQxSA0KRU5EOlZBTEFSTQ0KQkVHSU46VkFMQVJNDQpBQ1RJT046RElTUExBWQ0KREVTQ1JJUFRJT046UmVtaW5kZXINClRSSUdHRVI6LVBUMTVNDQpFTkQ6VkFMQVJNDQpFTkQ6VkVWRU5UDQpFTkQ6VkNBTEVOREFSDQo=",
+      "zoho": "data:text/calendar;charset=utf-8;base64,QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KUFJPRElEOi0vL1BhdHJvblByby8vT25ib2FyZGluZyBDYWxlbmRhciBJbnZpdGUvL0VODQpDQUxTQ0FMRTpHUkVHT1JJQU4NCk1FVEhPRDpQVUJMSVNIDQpCRUdJTjpWRVZFTlQNClVJRDpkZW1vLW9uYm9hcmRpbmdAcGF0cm9ucHJvLmNvbQ0KRFRTVEFNUDoyMDI2MDYxMlQxODAwMDBaDQpEVFNUQVJUOjIwMjYwNjE1VDE2MDAwMFoNCkRURU5EOjIwMjYwNjE1VDE3MDAwMFoNClNVTU1BUlk6UGF0cm9uUHJvIE9uYm9hcmRpbmcNCkRFU0NSSVBUSU9OOkRlbW8gb25ib2FyZGluZyBjYWxsIGZvciBhIG5vbi1saXZlIHNhbXBsZSBjbGllbnQuXG5cbkpvaW46IGh0dA0KIHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpMT0NBVElPTjpHb29nbGUgTWVldA0KVVJMOmh0dHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpPUkdBTklaRVI7Q049UGF0cm9uUHJvOm1haWx0bzpzdXBwb3J0QGV4YW1wbGUuY29tDQpBVFRFTkRFRTtDTj1EZW1vIENsaWVudDtST0xFPVJFUS1QQVJUSUNJUEFOVDptYWlsdG86Y2xpZW50QGV4YW1wbGUuY29tDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUDFEDQpFTkQ6VkFMQVJNDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUFQxSA0KRU5EOlZBTEFSTQ0KQkVHSU46VkFMQVJNDQpBQ1RJT046RElTUExBWQ0KREVTQ1JJUFRJT046UmVtaW5kZXINClRSSUdHRVI6LVBUMTVNDQpFTkQ6VkFMQVJNDQpFTkQ6VkVWRU5UDQpFTkQ6VkNBTEVOREFSDQo=",
+      "ics": "data:text/calendar;charset=utf-8;base64,QkVHSU46VkNBTEVOREFSDQpWRVJTSU9OOjIuMA0KUFJPRElEOi0vL1BhdHJvblByby8vT25ib2FyZGluZyBDYWxlbmRhciBJbnZpdGUvL0VODQpDQUxTQ0FMRTpHUkVHT1JJQU4NCk1FVEhPRDpQVUJMSVNIDQpCRUdJTjpWRVZFTlQNClVJRDpkZW1vLW9uYm9hcmRpbmdAcGF0cm9ucHJvLmNvbQ0KRFRTVEFNUDoyMDI2MDYxMlQxODAwMDBaDQpEVFNUQVJUOjIwMjYwNjE1VDE2MDAwMFoNCkRURU5EOjIwMjYwNjE1VDE3MDAwMFoNClNVTU1BUlk6UGF0cm9uUHJvIE9uYm9hcmRpbmcNCkRFU0NSSVBUSU9OOkRlbW8gb25ib2FyZGluZyBjYWxsIGZvciBhIG5vbi1saXZlIHNhbXBsZSBjbGllbnQuXG5cbkpvaW46IGh0dA0KIHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpMT0NBVElPTjpHb29nbGUgTWVldA0KVVJMOmh0dHBzOi8vbWVldC5nb29nbGUuY29tL2RlbW8tZGVtby1kZW1vDQpPUkdBTklaRVI7Q049UGF0cm9uUHJvOm1haWx0bzpzdXBwb3J0QGV4YW1wbGUuY29tDQpBVFRFTkRFRTtDTj1EZW1vIENsaWVudDtST0xFPVJFUS1QQVJUSUNJUEFOVDptYWlsdG86Y2xpZW50QGV4YW1wbGUuY29tDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUDFEDQpFTkQ6VkFMQVJNDQpCRUdJTjpWQUxBUk0NCkFDVElPTjpESVNQTEFZDQpERVNDUklQVElPTjpSZW1pbmRlcg0KVFJJR0dFUjotUFQxSA0KRU5EOlZBTEFSTQ0KQkVHSU46VkFMQVJNDQpBQ1RJT046RElTUExBWQ0KREVTQ1JJUFRJT046UmVtaW5kZXINClRSSUdHRVI6LVBUMTVNDQpFTkQ6VkFMQVJNDQpFTkQ6VkVWRU5UDQpFTkQ6VkNBTEVOREFSDQo="
+    },
+    "providerNotes": {
+      "google": "Google Calendar opens a web prefill URL. User must save the event.",
+      "outlook": "Outlook.com opens a web prefill URL. User must save the event.",
+      "office365": "Microsoft 365 opens a web prefill URL. Tenant rendering may vary; user must save the event.",
+      "apple": "Apple Calendar does not have a stable public web compose URL for this scope. Open or import the ICS file.",
+      "zoho": "Zoho uses the ICS fallback in this scope. Open or import the ICS file unless a Zoho-specific URL/API path is approved later.",
+      "ics": "Portable RFC 5545 ICS fallback for calendar clients that support importing or opening .ics files."
+    },
+    "icsDataUrlPrefix": "data:text/calendar;charset=utf-8;base64,",
+    "icsTextExcerpt": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//PatronPro//Onboarding Calendar Invite//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\nUID:demo-onboarding@patronpro.com\r\nDTSTAMP:20260612T180000Z\r\nDTSTART:20260615T160000Z\r\nDTEND:20260615T170000Z\r\nSUMMARY:PatronPro Onboarding\r\nDESCRIPTION:Demo onboarding call for a non-liv",
+    "checksums": {
+      "icsTextSha256": "0c33a3f9e17b0e8e6059a57bcca91514cb1a8708305152c38c52b70f40d7c039"
+    }
+  },
+  "safety": {
+    "usesFakeDataOnly": true,
+    "containsSecrets": false,
+    "performedLiveProviderProbe": false,
+    "performedGhlMutation": false
+  }
+}

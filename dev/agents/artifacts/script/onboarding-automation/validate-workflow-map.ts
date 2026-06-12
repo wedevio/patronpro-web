@@ -13,6 +13,33 @@ const EVIDENCE_VALUES = new Set(["api", "profile9-ui", "rlm-prior"]);
 const GAP_VALUES = new Set(["gap_proven", "gap_partial", "gap_not_applicable", "gap_blocked"]);
 const HASH_RE = /^[a-f0-9]{64}$/;
 
+interface WorkflowMapArtifact {
+  schemaVersion?: unknown;
+  workflowTargets?: WorkflowTarget[];
+  noMutationProof?: NoMutationProof;
+  safeRateLimitHeaders?: SafeRateLimitHeaders;
+}
+
+interface WorkflowTarget {
+  targetName?: unknown;
+  status?: unknown;
+  evidenceSource?: unknown;
+  meetingInviteGap?: unknown;
+  safetyNote?: unknown;
+}
+
+interface NoMutationProof {
+  status?: unknown;
+  hashCanonicalizationVersion?: unknown;
+  preRunHash?: unknown;
+  postRunHash?: unknown;
+  blocker?: unknown;
+}
+
+interface SafeRateLimitHeaders {
+  values?: Record<string, unknown>;
+}
+
 function parseArgs(argv: string[]) {
   const args: { json?: string; md?: string; help?: boolean } = {};
   for (let i = 2; i < argv.length; i += 1) {
@@ -75,13 +102,13 @@ function assertNoSensitiveText(text: string, source: string) {
   }
 }
 
-function validateWorkflowTargets(json: any) {
+function validateWorkflowTargets(json: WorkflowMapArtifact) {
   assert(Array.isArray(json.workflowTargets), "workflowTargets must be an array");
   assert(json.workflowTargets.length === 4, "workflowTargets must contain exactly four entries");
 
   for (const name of TARGET_WORKFLOWS) {
     assert(
-      json.workflowTargets.some((workflow: any) => workflow.targetName === name),
+      json.workflowTargets.some((workflow) => workflow.targetName === name),
       `missing target workflow ${name}`
     );
   }
@@ -94,7 +121,7 @@ function validateWorkflowTargets(json: any) {
   }
 }
 
-function validateNoMutationProof(json: any) {
+function validateNoMutationProof(json: WorkflowMapArtifact) {
   const proof = json.noMutationProof;
   assert(proof && typeof proof === "object", "missing noMutationProof");
   assert(
@@ -103,14 +130,14 @@ function validateNoMutationProof(json: any) {
   );
 
   if (proof.status === "hashes_match_after_read_only_gets" || proof.status === "hashes_differ_after_read_only_gets") {
-    assert(HASH_RE.test(proof.preRunHash), "invalid preRunHash");
-    assert(HASH_RE.test(proof.postRunHash), "invalid postRunHash");
+    assert(typeof proof.preRunHash === "string" && HASH_RE.test(proof.preRunHash), "invalid preRunHash");
+    assert(typeof proof.postRunHash === "string" && HASH_RE.test(proof.postRunHash), "invalid postRunHash");
   } else {
     assert(typeof proof.blocker === "string" && proof.blocker.length > 0, "blocked proof requires blocker");
   }
 }
 
-function validateSafeRateLimitHeaders(json: any) {
+function validateSafeRateLimitHeaders(json: WorkflowMapArtifact) {
   const headers = json.safeRateLimitHeaders;
   assert(headers && typeof headers === "object", "missing safeRateLimitHeaders");
   const values = headers.values ?? {};
@@ -141,7 +168,7 @@ async function main() {
 
   const jsonText = await readFile(args.json, "utf8");
   const markdown = await readFile(args.md, "utf8");
-  const json = JSON.parse(jsonText);
+  const json = JSON.parse(jsonText) as WorkflowMapArtifact;
 
   assert(json.schemaVersion === "patronpro-onboarding-workflow-map-v1", "unexpected schemaVersion");
   validateWorkflowTargets(json);
