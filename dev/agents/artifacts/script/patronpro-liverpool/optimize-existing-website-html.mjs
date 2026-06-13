@@ -14,7 +14,15 @@ const DEFAULTS = {
   supabaseBucket: "website-assets",
 };
 
-const WIDTHS = [640, 960, 1440];
+const WIDTHS = [320, 480, 720, 960, 1440];
+const MOBILE_WIDTHS = new Set([320, 480, 720]);
+const DESKTOP_WIDTHS = new Set([960, 1440]);
+const LOGO_WIDTHS = [96, 192, 384];
+const MOBILE_MEDIA = "(max-width: 767px)";
+const DESKTOP_MEDIA = "(min-width: 768px)";
+const MOBILE_SIZES = "100vw";
+const DESKTOP_SIZES = "100vw";
+const COMBINED_SIZES = `${MOBILE_MEDIA} ${MOBILE_SIZES}, ${DESKTOP_SIZES}`;
 const SUBJECTS = ["hero", "about", "contact"];
 
 function parseArgs(argv) {
@@ -26,6 +34,7 @@ function parseArgs(argv) {
     supabaseUrlEnv: DEFAULTS.supabaseUrlEnv,
     supabaseKeyEnv: DEFAULTS.supabaseKeyEnv,
     supabaseBucket: DEFAULTS.supabaseBucket,
+    logoUrl: "",
     applyUpload: false,
     supabaseUpload: false,
     help: false,
@@ -42,6 +51,7 @@ function parseArgs(argv) {
     else if (arg === "--supabase-url-env") args.supabaseUrlEnv = argv[++i] ?? "";
     else if (arg === "--supabase-key-env") args.supabaseKeyEnv = argv[++i] ?? "";
     else if (arg === "--supabase-bucket") args.supabaseBucket = argv[++i] ?? "";
+    else if (arg === "--logo-url") args.logoUrl = argv[++i] ?? "";
     else if (arg === "--help" || arg === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -59,8 +69,10 @@ Usage:
 What it does:
   - Reuses the current website images from the PatronPro public endpoint.
   - Generates AVIF/WebP/JPEG responsive variants and a JPEG social preview.
+  - Generates 320/480/720 mobile candidates plus 960/1440 desktop candidates.
+  - Optimizes the current square logo when a logo URL can be inferred or --logo-url is provided.
   - Writes optimized HTML with <picture>, Open Graph/Twitter tags, and JSON-LD.
-  - With --apply-upload, uploads variants to GHL Media and writes public URLs into the HTML.
+  - With --apply-upload, uploads JPEG page images and PNG logo files to GHL Media.
   - With --supabase-upload, uploads variants to the public Supabase Storage website-assets bucket.
 
 Guardrail:
@@ -130,6 +142,22 @@ async function convert(input, subject, width, format, stamp) {
     format,
     contentType,
     filename: `patronpro-${subject}-${stamp}-${width}.${ext}`,
+    buffer: await pipeline.toBuffer(),
+  };
+}
+
+async function convertLogo(input, width, stamp) {
+  const pipeline = sharp(input)
+    .rotate()
+    .resize({ width, withoutEnlargement: true })
+    .png({ compressionLevel: 9, palette: true });
+
+  return {
+    subject: "logo",
+    width,
+    format: "png",
+    contentType: "image/png",
+    filename: `patronpro-logo-${stamp}-${width}.png`,
     buffer: await pipeline.toBuffer(),
   };
 }
@@ -239,9 +267,9 @@ async function uploadToSupabaseStorage({ supabaseUrl, supabaseKey, bucket, locat
   };
 }
 
-function srcset(assets, format) {
+function srcset(assets, format, widthFilter = () => true) {
   return assets
-    .filter((asset) => asset.format === format)
+    .filter((asset) => asset.format === format && widthFilter(asset.width))
     .sort((a, b) => a.width - b.width)
     .map((asset) => `${asset.publicUrl} ${asset.width}w`)
     .join(", ");
@@ -255,19 +283,70 @@ function fallback(assets) {
   );
 }
 
+function buildResponsiveSet(assets) {
+  return {
+    avif: srcset(assets, "avif"),
+    webp: srcset(assets, "webp"),
+    jpeg: srcset(assets, "jpg"),
+    avifMobile: srcset(assets, "avif", (width) => MOBILE_WIDTHS.has(width)),
+    avifDesktop: srcset(assets, "avif", (width) => DESKTOP_WIDTHS.has(width)),
+    webpMobile: srcset(assets, "webp", (width) => MOBILE_WIDTHS.has(width)),
+    webpDesktop: srcset(assets, "webp", (width) => DESKTOP_WIDTHS.has(width)),
+    jpegMobile: srcset(assets, "jpg", (width) => MOBILE_WIDTHS.has(width)),
+    jpegDesktop: srcset(assets, "jpg", (width) => DESKTOP_WIDTHS.has(width)),
+    jpegFallback: fallback(assets),
+  };
+}
+
+function buildLogoSet(assets) {
+  return {
+    png: srcset(assets, "png"),
+    fallback: assets.find((asset) => asset.format === "png" && asset.width === 192)?.publicUrl ??
+      assets.find((asset) => asset.format === "png")?.publicUrl ??
+      "",
+  };
+}
+
+function sourceTag({ media, type, srcsetValue, sizes }) {
+  if (!srcsetValue) return "";
+  return `        <source media="${escapeAttr(media)}" type="${escapeAttr(type)}" srcset="${escapeAttr(srcsetValue)}" sizes="${escapeAttr(sizes)}">\n`;
+}
+
 function pictureMarkup(set, options = {}) {
   const eager = Boolean(options.eager);
-  const sizes = options.sizes ?? "100vw";
+  const sizes = options.sizes ?? COMBINED_SIZES;
   const width = options.width ?? 1440;
   const height = options.height ?? 810;
   const className = options.className ? ` ${options.className}` : "";
+  const jpegSrcset = set.jpeg ? ` srcset="${escapeAttr(set.jpeg)}" sizes="${escapeAttr(sizes)}"` : "";
+  const sourceTags = [
+    sourceTag({ media: MOBILE_MEDIA, type: "image/avif", srcsetValue: set.avifMobile, sizes: MOBILE_SIZES }),
+    sourceTag({ media: DESKTOP_MEDIA, type: "image/avif", srcsetValue: set.avifDesktop, sizes: DESKTOP_SIZES }),
+    sourceTag({ media: MOBILE_MEDIA, type: "image/webp", srcsetValue: set.webpMobile, sizes: MOBILE_SIZES }),
+    sourceTag({ media: DESKTOP_MEDIA, type: "image/webp", srcsetValue: set.webpDesktop, sizes: DESKTOP_SIZES }),
+  ].join("");
   return `<div class="optimized-media-bg${className}" aria-hidden="true">
       <picture>
-        <source type="image/avif" srcset="${escapeAttr(set.avif)}" sizes="${escapeAttr(sizes)}">
-        <source type="image/webp" srcset="${escapeAttr(set.webp)}" sizes="${escapeAttr(sizes)}">
-        <img src="${escapeAttr(set.jpegFallback)}" width="${width}" height="${height}" alt="" loading="${eager ? "eager" : "lazy"}" decoding="async"${eager ? ' fetchpriority="high"' : ""}>
+${sourceTags}        <img src="${escapeAttr(set.jpegFallback)}"${jpegSrcset} width="${width}" height="${height}" alt="" loading="${eager ? "eager" : "lazy"}" decoding="async"${eager ? ' fetchpriority="high"' : ""}>
       </picture>
     </div>`;
+}
+
+function preloadTag({ media, type, srcsetValue, sizes }) {
+  if (!srcsetValue) return "";
+  return `  <link rel="preload" as="image" media="${escapeAttr(media)}" type="${escapeAttr(type)}" imagesrcset="${escapeAttr(srcsetValue)}" imagesizes="${escapeAttr(sizes)}" fetchpriority="high" />`;
+}
+
+function preloadBlock(heroSet) {
+  const mobile =
+    preloadTag({ media: MOBILE_MEDIA, type: "image/avif", srcsetValue: heroSet.avifMobile, sizes: MOBILE_SIZES }) ||
+    preloadTag({ media: MOBILE_MEDIA, type: "image/webp", srcsetValue: heroSet.webpMobile, sizes: MOBILE_SIZES }) ||
+    preloadTag({ media: MOBILE_MEDIA, type: "image/jpeg", srcsetValue: heroSet.jpegMobile, sizes: MOBILE_SIZES });
+  const desktop =
+    preloadTag({ media: DESKTOP_MEDIA, type: "image/avif", srcsetValue: heroSet.avifDesktop, sizes: DESKTOP_SIZES }) ||
+    preloadTag({ media: DESKTOP_MEDIA, type: "image/webp", srcsetValue: heroSet.webpDesktop, sizes: DESKTOP_SIZES }) ||
+    preloadTag({ media: DESKTOP_MEDIA, type: "image/jpeg", srcsetValue: heroSet.jpegDesktop, sizes: DESKTOP_SIZES });
+  return [mobile, desktop].filter(Boolean).join("\n");
 }
 
 function buildSeoBlock(heroSet, socialUrl) {
@@ -288,7 +367,7 @@ function buildSeoBlock(heroSet, socialUrl) {
   <meta name="twitter:title" content="{{custom_values.company_name}} | Roofing en Glendale" />
   <meta name="twitter:description" content="Roofing confiable en Glendale. Cotizaciones claras, trabajo garantizado y precio justo." />
   <meta name="twitter:image" content="${escapeAttr(socialUrl)}" />
-  <link rel="preload" as="image" type="image/avif" imagesrcset="${escapeAttr(heroSet.avif)}" imagesizes="100vw" fetchpriority="high" />
+${preloadBlock(heroSet)}
   <script type="application/ld+json">
   [
     {
@@ -379,13 +458,37 @@ function buildCssBlock() {
 `;
 }
 
+function inferLogoUrl({ explicitLogoUrl, sourceUrls, locationId }) {
+  if (explicitLogoUrl) return explicitLogoUrl;
+  try {
+    const heroUrl = new URL(sourceUrls.hero);
+    return `${heroUrl.origin}/storage/v1/object/public/logos/logos/${locationId}/logo_square.png`;
+  } catch {
+    return "";
+  }
+}
+
+function replaceLogoMarkup(html, logoSet) {
+  if (!logoSet?.fallback || !logoSet?.png) return html;
+  const srcsetAttr = `src="${escapeAttr(logoSet.fallback)}" srcset="${escapeAttr(logoSet.png)}"`;
+  return html
+    .replace(
+      /src="\{\{custom_values\.logo\}\}"/g,
+      `${srcsetAttr} sizes="76px"`,
+    )
+    .replace(
+      /src="\{\{custom_values\.logo_cuadrado\}\}"/g,
+      `${srcsetAttr} sizes="60px"`,
+    );
+}
+
 function replaceOrThrow(input, searchValue, replaceValue, label) {
   const output = input.replace(searchValue, replaceValue);
   if (output === input) throw new Error(`Failed to replace ${label}`);
   return output;
 }
 
-function transformHtml(html, sets, socialUrl) {
+function transformHtml(html, sets, socialUrl, logoSet) {
   let output = html;
   const heroPicture = pictureMarkup(sets.hero, { eager: true, width: 1440, height: 810 });
   const aboutPicture = pictureMarkup(sets.about, { width: 1440, height: 960 });
@@ -434,6 +537,7 @@ function transformHtml(html, sets, socialUrl) {
     `<section class="urgent-cta">\n    ${contactPicture}`,
     "contact picture insertion",
   );
+  output = replaceLogoMarkup(output, logoSet);
 
   return output;
 }
@@ -477,6 +581,7 @@ async function main() {
 
   const originalBuffers = {};
   const sets = {};
+  let logoSet = null;
   const allAssetRecords = [];
 
   for (const subject of SUBJECTS) {
@@ -501,10 +606,12 @@ async function main() {
           });
           asset.publicUrl = uploaded.url;
           asset.supabaseObjectPath = uploaded.objectPath;
-        } else if (args.applyUpload) {
+        } else if (args.applyUpload && asset.format === "jpg") {
           const uploaded = await uploadToGhl(args.locationId, asset, token);
           asset.publicUrl = uploaded.url;
           asset.uploadResponseKeys = uploaded.responseKeys;
+        } else if (args.applyUpload) {
+          asset.uploadSkippedReason = "GHL Media mode uses JPEG page images only because GHL rejected AVIF; Supabase mode remains the optimized derivative host.";
         }
         variants.push(asset);
         allAssetRecords.push({
@@ -516,17 +623,66 @@ async function main() {
           localPath: asset.localPath,
           publicUrl: asset.publicUrl,
           supabaseObjectPath: asset.supabaseObjectPath ?? "",
+          uploadSkippedReason: asset.uploadSkippedReason ?? "",
           bytes: asset.buffer.length,
           sha256: sha256(asset.buffer),
         });
       }
     }
-    sets[subject] = {
-      avif: srcset(variants, "avif"),
-      webp: srcset(variants, "webp"),
-      jpeg: srcset(variants, "jpg"),
-      jpegFallback: fallback(variants),
-    };
+    const htmlVariants = args.applyUpload ? variants.filter((asset) => asset.format === "jpg") : variants;
+    sets[subject] = buildResponsiveSet(htmlVariants);
+  }
+
+  const logoUrl = inferLogoUrl({ explicitLogoUrl: args.logoUrl, sourceUrls, locationId: args.locationId });
+  if (logoUrl) {
+    try {
+      const logoOriginal = await download(logoUrl);
+      const logoVariants = [];
+      for (const width of LOGO_WIDTHS) {
+        const asset = await convertLogo(logoOriginal, width, stamp);
+        const assetPath = path.join(assetsDir, asset.filename);
+        await writeAsset(assetPath, asset.buffer);
+        asset.localPath = path.relative(process.cwd(), assetPath);
+        asset.publicUrl = `assets/${asset.filename}`;
+        if (args.supabaseUpload) {
+          const uploaded = await uploadToSupabaseStorage({
+            supabaseUrl,
+            supabaseKey,
+            bucket: args.supabaseBucket,
+            locationId: args.locationId,
+            stamp,
+            asset,
+          });
+          asset.publicUrl = uploaded.url;
+          asset.supabaseObjectPath = uploaded.objectPath;
+        } else if (args.applyUpload) {
+          const uploaded = await uploadToGhl(args.locationId, asset, token);
+          asset.publicUrl = uploaded.url;
+          asset.uploadResponseKeys = uploaded.responseKeys;
+        }
+        logoVariants.push(asset);
+        allAssetRecords.push({
+          subject: "logo",
+          width,
+          format: asset.format,
+          contentType: asset.contentType,
+          filename: asset.filename,
+          localPath: asset.localPath,
+          publicUrl: asset.publicUrl,
+          supabaseObjectPath: asset.supabaseObjectPath ?? "",
+          uploadSkippedReason: "",
+          bytes: asset.buffer.length,
+          sha256: sha256(asset.buffer),
+        });
+      }
+      logoSet = buildLogoSet(logoVariants);
+    } catch (err) {
+      logoSet = {
+        skipped: true,
+        sourceUrl: logoUrl,
+        reason: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   const social = await createSocialPreview(originalBuffers.hero, stamp);
@@ -551,7 +707,7 @@ async function main() {
     social.uploadResponseKeys = uploaded.responseKeys;
   }
 
-  const optimizedHtml = transformHtml(html, sets, social.publicUrl);
+  const optimizedHtml = transformHtml(html, sets, social.publicUrl, logoSet);
   const htmlPath = path.join(outDir, "test-onboarding-account-01-optimized-2026-06-12.html");
   await writeFile(htmlPath, optimizedHtml, "utf8");
 
@@ -562,6 +718,17 @@ async function main() {
       aiImageGenerationCalled: false,
       credentialsPrintedOrStored: false,
       sourceImagesReused: true,
+      ghlAvifUploadAttempted: false,
+    },
+    responsivePolicy: {
+      widths: WIDTHS,
+      logoWidths: LOGO_WIDTHS,
+      mobileMedia: MOBILE_MEDIA,
+      desktopMedia: DESKTOP_MEDIA,
+      mobileSizes: MOBILE_SIZES,
+      desktopSizes: DESKTOP_SIZES,
+      combinedSizes: COMBINED_SIZES,
+      ghlMediaMode: "GHL upload mode generates all local page-image formats but uploads/uses JPEG page images only. Supabase upload mode uses AVIF/WebP/JPEG derivatives.",
     },
     endpoint: {
       url: args.endpoint,
@@ -590,6 +757,13 @@ async function main() {
     },
     sourceImages: sourceUrls,
     responsiveSets: sets,
+    logo: {
+      sourceUrl: logoUrl,
+      optimized: Boolean(logoSet?.fallback),
+      skipped: Boolean(logoSet?.skipped),
+      skipReason: logoSet?.reason ?? "",
+      responsiveSet: logoSet?.fallback ? logoSet : null,
+    },
     assets: allAssetRecords,
     socialPreview: {
       filename: social.filename,

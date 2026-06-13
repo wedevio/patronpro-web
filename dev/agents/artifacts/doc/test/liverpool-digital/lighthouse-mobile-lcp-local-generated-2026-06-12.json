@@ -1,0 +1,288 @@
+{
+  "generatedAt": "2026-06-13T00:05:37.593Z",
+  "input": "/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-raw-2026-06-12-mobile-lcp-local",
+  "runs": [
+    {
+      "file": "/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-raw-2026-06-12-mobile-lcp-local/lighthouse-desktop-20260613T000514Z.json",
+      "finalUrl": "http://127.0.0.1:4175/test-onboarding-account-01-optimized-2026-06-12.html",
+      "fetchTime": "2026-06-13T00:05:28.560Z",
+      "lighthouseVersion": "13.0.1",
+      "formFactor": "desktop",
+      "screenEmulation": {
+        "mobile": false,
+        "width": 1350,
+        "height": 940,
+        "deviceScaleFactor": 1,
+        "disabled": false
+      },
+      "scores": {
+        "performance": 99,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 100
+      },
+      "metrics": {
+        "fcp": "0.7 s",
+        "lcp": "0.7 s",
+        "lcpMs": 699.56235,
+        "speedIndex": "0.7 s",
+        "tbt": "0 ms",
+        "cls": "0.001",
+        "lcpElement": {
+          "auditPresent": false,
+          "snippet": "",
+          "selector": "",
+          "nodeLabel": "",
+          "path": "",
+          "url": "",
+          "boundingRect": null
+        },
+        "lcpPhases": {
+          "auditNumericMs": 699.56235,
+          "lcpResult": 700,
+          "observedLargestContentfulPaint": 321,
+          "observedLargestContentfulPaintTs": 20849876544,
+          "observedLoad": 368,
+          "phases": []
+        }
+      },
+      "resourceSummary": {
+        "totalTransferBytes": 317590,
+        "imageTransferBytes": 95955,
+        "imagePercent": 30.2
+      },
+      "imageRequests": [
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-hero-20260613T000226Z-1440.avif",
+          "mimeType": "image/avif",
+          "transferSize": 50987
+        },
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-about-20260613T000226Z-1440.avif",
+          "mimeType": "image/avif",
+          "transferSize": 40748
+        },
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-logo-20260613T000226Z-96.png",
+          "mimeType": "image/png",
+          "transferSize": 4220
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.99,
+          "displayValue": "0.7 s",
+          "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+        },
+        {
+          "id": "unminified-css",
+          "title": "Minify CSS",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "description": "Minifying CSS files can reduce network payload sizes. [Learn how to minify CSS](https://developer.chrome.com/docs/lighthouse/performance/unminified-css/)."
+        },
+        {
+          "id": "unminified-javascript",
+          "title": "Minify JavaScript",
+          "score": 0.5,
+          "displayValue": "Est savings of 23 KiB",
+          "description": "Minifying JavaScript files can reduce payload sizes and script parse time. [Learn how to minify JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript/)."
+        }
+      ],
+      "budget": {
+        "formFactor": "desktop",
+        "thresholds": {
+          "performanceMin": 90,
+          "lcpMs": 1500,
+          "targetLcpMs": 1000,
+          "imageTransferBytes": 819200,
+          "totalTransferBytes": 1536000
+        },
+        "checks": [
+          {
+            "label": "performance",
+            "actual": 99,
+            "threshold": 90,
+            "operator": ">=",
+            "pass": true
+          },
+          {
+            "label": "lcpMs",
+            "actual": 699.56235,
+            "threshold": 1500,
+            "operator": "<=",
+            "pass": true
+          },
+          {
+            "label": "imageTransferBytes",
+            "actual": 95955,
+            "threshold": 819200,
+            "operator": "<=",
+            "pass": true
+          },
+          {
+            "label": "totalTransferBytes",
+            "actual": 317590,
+            "threshold": 1536000,
+            "operator": "<=",
+            "pass": true
+          }
+        ],
+        "pass": true,
+        "targetChecks": [
+          {
+            "label": "targetLcpMs",
+            "actual": 699.56235,
+            "threshold": 1000,
+            "operator": "<=",
+            "pass": true
+          }
+        ],
+        "targetPass": true
+      }
+    },
+    {
+      "file": "/home/oz/projects/2026/onboarding-automation/dev/agents/artifacts/doc/test/liverpool-digital/lighthouse-raw-2026-06-12-mobile-lcp-local/lighthouse-mobile-20260613T000514Z.json",
+      "finalUrl": "http://127.0.0.1:4175/test-onboarding-account-01-optimized-2026-06-12.html",
+      "fetchTime": "2026-06-13T00:05:17.115Z",
+      "lighthouseVersion": "13.0.1",
+      "formFactor": "mobile",
+      "screenEmulation": {
+        "mobile": true,
+        "width": 412,
+        "height": 823,
+        "deviceScaleFactor": 1.75,
+        "disabled": false
+      },
+      "scores": {
+        "performance": 91,
+        "accessibility": 96,
+        "bestPractices": 96,
+        "seo": 100
+      },
+      "metrics": {
+        "fcp": "2.3 s",
+        "lcp": "3.2 s",
+        "lcpMs": 3166.4835,
+        "speedIndex": "2.3 s",
+        "tbt": "0 ms",
+        "cls": "0.028",
+        "lcpElement": {
+          "auditPresent": false,
+          "snippet": "",
+          "selector": "",
+          "nodeLabel": "",
+          "path": "",
+          "url": "",
+          "boundingRect": null
+        },
+        "lcpPhases": {
+          "auditNumericMs": 3166.4835,
+          "lcpResult": 3166,
+          "observedLargestContentfulPaint": 397,
+          "observedLargestContentfulPaintTs": 20838493101,
+          "observedLoad": 377,
+          "phases": []
+        }
+      },
+      "resourceSummary": {
+        "totalTransferBytes": 269625,
+        "imageTransferBytes": 48607,
+        "imagePercent": 18
+      },
+      "imageRequests": [
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-hero-20260613T000226Z-720.avif",
+          "mimeType": "image/avif",
+          "transferSize": 21263
+        },
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-about-20260613T000226Z-720.avif",
+          "mimeType": "image/avif",
+          "transferSize": 15797
+        },
+        {
+          "url": "http://127.0.0.1:4175/assets/patronpro-logo-20260613T000226Z-192.png",
+          "mimeType": "image/png",
+          "transferSize": 11547
+        }
+      ],
+      "opportunities": [
+        {
+          "id": "largest-contentful-paint",
+          "title": "Largest Contentful Paint",
+          "score": 0.73,
+          "displayValue": "3.2 s",
+          "description": "Largest Contentful Paint marks the time at which the largest text or image is painted. [Learn more about the Largest Contentful Paint metric](https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/)"
+        },
+        {
+          "id": "unminified-css",
+          "title": "Minify CSS",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "description": "Minifying CSS files can reduce network payload sizes. [Learn how to minify CSS](https://developer.chrome.com/docs/lighthouse/performance/unminified-css/)."
+        },
+        {
+          "id": "unminified-javascript",
+          "title": "Minify JavaScript",
+          "score": 0.5,
+          "displayValue": "Est savings of 23 KiB",
+          "description": "Minifying JavaScript files can reduce payload sizes and script parse time. [Learn how to minify JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript/)."
+        }
+      ],
+      "budget": {
+        "formFactor": "mobile",
+        "thresholds": {
+          "performanceMin": 70,
+          "lcpMs": 2500,
+          "targetLcpMs": 1000,
+          "imageTransferBytes": 204800,
+          "totalTransferBytes": 819200
+        },
+        "checks": [
+          {
+            "label": "performance",
+            "actual": 91,
+            "threshold": 70,
+            "operator": ">=",
+            "pass": true
+          },
+          {
+            "label": "lcpMs",
+            "actual": 3166.4835,
+            "threshold": 2500,
+            "operator": "<=",
+            "pass": false
+          },
+          {
+            "label": "imageTransferBytes",
+            "actual": 48607,
+            "threshold": 204800,
+            "operator": "<=",
+            "pass": true
+          },
+          {
+            "label": "totalTransferBytes",
+            "actual": 269625,
+            "threshold": 819200,
+            "operator": "<=",
+            "pass": true
+          }
+        ],
+        "pass": false,
+        "targetChecks": [
+          {
+            "label": "targetLcpMs",
+            "actual": 3166.4835,
+            "threshold": 1000,
+            "operator": "<=",
+            "pass": false
+          }
+        ],
+        "targetPass": false
+      }
+    }
+  ]
+}
