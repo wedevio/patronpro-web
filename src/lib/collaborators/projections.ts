@@ -93,8 +93,10 @@ function numberOrNull(value: number | string | null | undefined) {
   return Number.isFinite(number) ? number : null;
 }
 
-function cleanString(value: string | null | undefined) {
-  if (!value) return null;
+function cleanString(value: unknown) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed || trimmed === "pending" || trimmed === "n/a") return null;
   if (/\/mnt\/|\/home\/|cookie|token|signed_url|api[_-]?key|secret/i.test(trimmed)) return null;
