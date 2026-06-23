@@ -58,6 +58,12 @@ export type CollaboratorProjection = {
   primaryUrl?: string | null;
   score?: number | null;
   evidenceConfidence?: number | null;
+  scoreVersion?: string | null;
+  reviewedAt?: string | null;
+  shortlistStatus?: string | null;
+  opportunityTier?: string | null;
+  scoreInputs?: Record<string, unknown> | null;
+  evidenceIds: string[];
   totalReach?: number | null;
   tags: string[];
   summary?: string | null;

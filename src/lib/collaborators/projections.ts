@@ -19,6 +19,10 @@ export type RawCandidateRow = {
   capture_summary: string | null;
   combined_reach: number | string | null;
   shortlist_status: string | null;
+  opportunity_tier: string | null;
+  score_version: string | null;
+  reviewed_at: string | null;
+  score_inputs: Record<string, unknown> | null;
   collaboration_fit_score: number | string | null;
   evidence_confidence_score: number | string | null;
   recommended_collaboration_angle: string | null;
@@ -93,6 +97,7 @@ function cleanString(value: string | null | undefined) {
   if (!value) return null;
   const trimmed = value.trim();
   if (!trimmed || trimmed === "pending" || trimmed === "n/a") return null;
+  if (/\/mnt\/|\/home\/|cookie|token|signed_url|api[_-]?key|secret/i.test(trimmed)) return null;
   return trimmed;
 }
 
@@ -165,6 +170,10 @@ function projectMedia(row: MediaRow): MediaEvidenceProjection {
   };
 }
 
+function collectEvidenceIds(media: MediaEvidenceProjection[]): string[] {
+  return media.map((item) => item.id).filter(Boolean);
+}
+
 function projectContact(row: ContactRow): ContactProjection {
   return {
     status: cleanString(row.status),
@@ -176,6 +185,7 @@ function projectContact(row: ContactRow): ContactProjection {
 
 export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
   const score = numberOrNull(row.collaboration_fit_score);
+  const media = (row.media_items ?? []).map(projectMedia).filter((item) => hasMeaningfulContent(item));
   return {
     id: row.candidate_id,
     lane: row.source_lane,
@@ -185,6 +195,12 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     primaryUrl: cleanString(row.primary_url),
     score,
     evidenceConfidence: numberOrNull(row.evidence_confidence_score),
+    scoreVersion: cleanString(row.score_version),
+    reviewedAt: cleanString(row.reviewed_at),
+    shortlistStatus: cleanString(row.shortlist_status),
+    opportunityTier: cleanString(row.opportunity_tier),
+    scoreInputs: row.score_inputs && hasMeaningfulContent(row.score_inputs) ? row.score_inputs : null,
+    evidenceIds: collectEvidenceIds(media),
     totalReach: numberOrNull(row.combined_reach),
     tags: cleanList(row.category_tags),
     summary: cleanString(row.rank_reason) ?? cleanString(row.capture_summary),
@@ -194,7 +210,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     risks: cleanList(row.risks),
     socialProfiles: (row.social_profiles ?? []).map(projectSocial).filter(Boolean) as SocialProfileProjection[],
     websites: (row.websites ?? []).map(projectWebsite).filter(Boolean) as WebsiteProjection[],
-    media: (row.media_items ?? []).map(projectMedia).filter((item) => hasMeaningfulContent(item)),
+    media,
     contacts: (row.contact_intelligence ?? []).map(projectContact).filter((item) => hasMeaningfulContent(item)),
     missingFields: cleanList(row.missing_fields),
     nextAction: cleanString(row.suggested_next_action),
