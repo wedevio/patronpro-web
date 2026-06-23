@@ -1,0 +1,151 @@
+import type { CollaboratorProjection } from "@/lib/collaborators/types";
+import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+
+function Section({ title, children, value }: { title: string; children: React.ReactNode; value: unknown }) {
+  if (!hasMeaningfulContent(value)) return null;
+  return (
+    <section className="rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
+      <h2 className="text-lg font-semibold text-[#182235]">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: React.ReactNode }) {
+  if (!hasMeaningfulContent(value)) return null;
+  return (
+    <div className="rounded-2xl bg-[#f5f7fb] p-4">
+      <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{label}</span>
+      <strong className="mt-2 block text-2xl text-[#182235]">{value}</strong>
+    </div>
+  );
+}
+
+function bullets(items: string[]) {
+  return (
+    <ul className="grid gap-2 text-sm leading-6 text-[#42506a]">
+      {items.map((item) => (
+        <li key={item} className="rounded-xl bg-[#f8fafc] px-3 py-2">
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function formatNumber(value?: number | null) {
+  if (!value) return null;
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
+  return (
+    <div className="space-y-5">
+      <header className="rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">{candidate.lane}</p>
+        <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight md:text-5xl">{candidate.name}</h1>
+        {candidate.summary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.summary}</p> : null}
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Metric label="Compatibility" value={candidate.score ? `${(candidate.score / 20).toFixed(1)} / 5` : null} />
+        <Metric label="Confidence" value={candidate.evidenceConfidence ?? null} />
+        <Metric label="Reach" value={formatNumber(candidate.totalReach)} />
+        <Metric label="Reviewed media" value={candidate.media.length || null} />
+      </div>
+
+      <Section title="Recommendation" value={candidate.recommendation}>
+        <p className="text-base leading-7 text-[#42506a]">{candidate.recommendation}</p>
+      </Section>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Section title="Opportunities" value={candidate.opportunities}>
+          {bullets(candidate.opportunities)}
+        </Section>
+        <Section title="Shortcomings / Caveats" value={[candidate.shortcomings, candidate.risks]}>
+          {bullets([...candidate.shortcomings, ...candidate.risks])}
+        </Section>
+      </div>
+
+      <Section title="Verified social profiles" value={candidate.socialProfiles}>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="text-xs uppercase tracking-[0.14em] text-[#68758d]">
+              <tr>
+                <th className="border-b border-[#dfe5ee] pb-3">Platform</th>
+                <th className="border-b border-[#dfe5ee] pb-3">Profile</th>
+                <th className="border-b border-[#dfe5ee] pb-3">Metric</th>
+                <th className="border-b border-[#dfe5ee] pb-3">Captured</th>
+              </tr>
+            </thead>
+            <tbody>
+              {candidate.socialProfiles.map((profile) => (
+                <tr key={`${profile.platform}-${profile.url}`} className="border-b border-[#edf1f6]">
+                  <td className="py-3 font-semibold capitalize">{profile.platform}</td>
+                  <td className="py-3">
+                    <a className="text-[#1d5fa7] underline-offset-4 hover:underline" href={profile.url} target="_blank" rel="noreferrer">
+                      {profile.url}
+                    </a>
+                  </td>
+                  <td className="py-3">
+                    {formatNumber(profile.followers) ? `${formatNumber(profile.followers)} followers` : null}
+                    {formatNumber(profile.subscribers) ? `${formatNumber(profile.subscribers)} subscribers` : null}
+                    {formatNumber(profile.likes) ? `${formatNumber(profile.likes)} likes` : null}
+                  </td>
+                  <td className="py-3">{profile.capturedAt}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
+      <Section title="Website analysis" value={candidate.websites}>
+        <div className="grid gap-3 md:grid-cols-2">
+          {candidate.websites.map((website) => (
+            <article key={website.url} className="rounded-2xl bg-[#f8fafc] p-4">
+              <a href={website.url} className="font-semibold text-[#1d5fa7]" target="_blank" rel="noreferrer">
+                {website.url}
+              </a>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm text-[#42506a]">
+                <div>Clarity: {website.clarityGrade ?? "n/a"}</div>
+                <div>Persuasion: {website.persuasionGrade ?? "n/a"}</div>
+                <div>Contact: {website.contactability ?? "n/a"}</div>
+                <div>Commercial: {website.commercialExchangeStatus ?? "n/a"}</div>
+              </dl>
+              {website.summary ? <p className="mt-3 text-sm leading-6 text-[#526078]">{website.summary}</p> : null}
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Reviewed media evidence" value={candidate.media}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {candidate.media.slice(0, 12).map((item) => (
+            <article key={item.id} className="rounded-2xl border border-[#edf1f6] p-4">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+                <span>{item.platform}</span>
+                {item.comments ? <span>{item.comments} comments</span> : null}
+                {item.likes ? <span>{item.likes} likes</span> : null}
+              </div>
+              {item.url ? (
+                <a href={item.url} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm text-[#1d5fa7]">
+                  Open source
+                </a>
+              ) : null}
+              {item.hook ? <p className="mt-3 text-sm leading-6 text-[#42506a]"><strong>Hook:</strong> {item.hook}</p> : null}
+              {item.seminarPotential ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Seminar:</strong> {item.seminarPotential}</p> : null}
+              {item.audioSummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Audio:</strong> {item.audioSummary}</p> : null}
+              {item.riskSummary ? <p className="mt-2 text-sm leading-6 text-[#7c4a05]"><strong>Risk:</strong> {item.riskSummary}</p> : null}
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Evidence gaps" value={candidate.missingFields}>
+        <p className="text-sm text-[#526078]">Next action: {candidate.nextAction ?? "review"}</p>
+        <div className="mt-3">{bullets(candidate.missingFields)}</div>
+      </Section>
+    </div>
+  );
+}
