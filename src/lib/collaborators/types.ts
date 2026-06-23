@@ -63,6 +63,57 @@ export type ContactProjection = {
   companyContext?: unknown;
 };
 
+export type ContactRouteProjection = {
+  id: string;
+  type?: string | null;
+  value?: string | null;
+  url?: string | null;
+  label?: string | null;
+  isPreferred: boolean;
+  isDirect: boolean;
+  isBusinessRoute: boolean;
+  verificationStatus?: string | null;
+  confidence?: string | null;
+  sourceUrl?: string | null;
+  capturedAt?: string | null;
+  latestGhlSyncStatus?: string | null;
+  latestGhlContactIdPresent: boolean;
+};
+
+export type ContactBookProjection = {
+  rank?: number | null;
+  personId: string;
+  name: string;
+  headline?: string | null;
+  biographySummary?: string | null;
+  geography?: string | null;
+  primaryPublicUrl?: string | null;
+  tags: string[];
+  relationshipId?: string | null;
+  relationshipType?: string | null;
+  roleTaxonomyKey?: string | null;
+  roleTaxonomyLabel?: string | null;
+  roleGroup?: string | null;
+  roleTitle?: string | null;
+  relationshipStatus?: string | null;
+  relationshipConfidence?: string | null;
+  relationshipEvidenceSummary?: string | null;
+  sourceUrls: string[];
+  group?: string | null;
+  label?: string | null;
+  isDecisionMaker: boolean;
+  isInfluencer: boolean;
+  isPrimaryContact: boolean;
+  isBusinessContact: boolean;
+  hasPreferredRoute: boolean;
+  hasBusinessRoute: boolean;
+  hasDirectRoute: boolean;
+  routes: ContactRouteProjection[];
+  latestGhlSyncStatus?: string | null;
+  latestGhlSyncAt?: string | null;
+  latestGhlContactIdPresent: boolean;
+};
+
 export type CollaboratorProjection = {
   id: string;
   lane: CollaboratorLane;
@@ -91,6 +142,7 @@ export type CollaboratorProjection = {
   websites: WebsiteProjection[];
   media: MediaEvidenceProjection[];
   contacts: ContactProjection[];
+  contactBook: ContactBookProjection[];
   missingFields: string[];
   nextAction?: string | null;
 };

@@ -1,7 +1,9 @@
 import type {
   CollaboratorLane,
   CollaboratorProjection,
+  ContactBookProjection,
   ContactProjection,
+  ContactRouteProjection,
   DashboardSummary,
   EvidenceImageProjection,
   MediaEvidenceProjection,
@@ -36,6 +38,7 @@ export type RawCandidateRow = {
   websites: WebsiteRow[] | null;
   media_items: MediaRow[] | null;
   contact_intelligence: ContactRow[] | null;
+  contact_book: ContactBookRow[] | null;
   missing_fields: string[] | null;
   suggested_next_action: string | null;
 };
@@ -108,6 +111,57 @@ type ContactRow = {
   company_context?: unknown;
 };
 
+type ContactRouteRow = {
+  person_contact_route_id?: string | null;
+  type?: string | null;
+  value?: string | null;
+  url?: string | null;
+  label?: string | null;
+  is_preferred?: boolean | null;
+  is_direct?: boolean | null;
+  is_business_route?: boolean | null;
+  verification_status?: string | null;
+  confidence?: string | null;
+  source_url?: string | null;
+  captured_at?: string | null;
+  ghl_sync_status?: string | null;
+  ghl_contact_id?: string | null;
+};
+
+type ContactBookRow = {
+  contact_book_rank?: number | string | null;
+  person_id: string;
+  full_name: string;
+  headline?: string | null;
+  biography_summary?: string | null;
+  geography?: string | null;
+  primary_public_url?: string | null;
+  category_tags?: string[] | null;
+  relationship_id?: string | null;
+  relationship_type?: string | null;
+  role_taxonomy_key?: string | null;
+  role_group?: string | null;
+  role_taxonomy_label?: string | null;
+  role_title?: string | null;
+  relationship_status?: string | null;
+  is_decision_maker?: boolean | null;
+  is_influencer?: boolean | null;
+  is_primary_contact?: boolean | null;
+  is_business_contact?: boolean | null;
+  relationship_confidence?: string | null;
+  relationship_evidence_summary?: string | null;
+  source_urls?: string[] | null;
+  contact_routes?: ContactRouteRow[] | null;
+  has_preferred_route?: boolean | null;
+  has_business_route?: boolean | null;
+  has_direct_route?: boolean | null;
+  latest_ghl_contact_id?: string | null;
+  latest_ghl_sync_status?: string | null;
+  latest_ghl_sync_at?: string | null;
+  contact_book_group?: string | null;
+  contact_book_label?: string | null;
+};
+
 function numberOrNull(value: number | string | null | undefined) {
   if (value === null || value === undefined || value === "") return null;
   const number = Number(value);
@@ -130,6 +184,19 @@ function cleanList(values: unknown): string[] {
     .filter((value): value is string => typeof value === "string")
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+function cleanUrlList(values: unknown): string[] {
+  if (!Array.isArray(values)) return [];
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  for (const value of values) {
+    const url = cleanString(value);
+    if (!url || !/^https?:\/\//i.test(url) || seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
+  }
+  return urls;
 }
 
 export function hasMeaningfulContent(value: unknown): boolean {
@@ -226,6 +293,69 @@ function projectContact(row: ContactRow): ContactProjection {
     preferredBusinessContact: row.preferred_business_contact,
     people: Array.isArray(row.people) ? row.people : [],
     companyContext: row.company_context,
+  };
+}
+
+function projectContactRoute(row: ContactRouteRow): ContactRouteProjection | null {
+  const id = cleanString(row.person_contact_route_id);
+  const value = cleanString(row.value);
+  const url = cleanString(row.url);
+  if (!id || (!value && !url)) return null;
+  return {
+    id,
+    type: cleanString(row.type),
+    value,
+    url,
+    label: cleanString(row.label),
+    isPreferred: Boolean(row.is_preferred),
+    isDirect: Boolean(row.is_direct),
+    isBusinessRoute: Boolean(row.is_business_route),
+    verificationStatus: cleanString(row.verification_status),
+    confidence: cleanString(row.confidence),
+    sourceUrl: cleanString(row.source_url),
+    capturedAt: cleanString(row.captured_at),
+    latestGhlSyncStatus: cleanString(row.ghl_sync_status),
+    latestGhlContactIdPresent: Boolean(cleanString(row.ghl_contact_id)),
+  };
+}
+
+function projectContactBook(row: ContactBookRow): ContactBookProjection | null {
+  const personId = cleanString(row.person_id);
+  const name = cleanString(row.full_name);
+  if (!personId || !name) return null;
+  const routes = (row.contact_routes ?? []).map(projectContactRoute).filter(Boolean) as ContactRouteProjection[];
+  return {
+    rank: numberOrNull(row.contact_book_rank),
+    personId,
+    name,
+    headline: cleanString(row.headline),
+    biographySummary: cleanString(row.biography_summary),
+    geography: cleanString(row.geography),
+    primaryPublicUrl: cleanString(row.primary_public_url),
+    tags: cleanList(row.category_tags),
+    relationshipId: cleanString(row.relationship_id),
+    relationshipType: cleanString(row.relationship_type),
+    roleTaxonomyKey: cleanString(row.role_taxonomy_key),
+    roleTaxonomyLabel: cleanString(row.role_taxonomy_label),
+    roleGroup: cleanString(row.role_group),
+    roleTitle: cleanString(row.role_title),
+    relationshipStatus: cleanString(row.relationship_status),
+    relationshipConfidence: cleanString(row.relationship_confidence),
+    relationshipEvidenceSummary: cleanString(row.relationship_evidence_summary),
+    sourceUrls: cleanUrlList(row.source_urls),
+    group: cleanString(row.contact_book_group),
+    label: cleanString(row.contact_book_label),
+    isDecisionMaker: Boolean(row.is_decision_maker),
+    isInfluencer: Boolean(row.is_influencer),
+    isPrimaryContact: Boolean(row.is_primary_contact),
+    isBusinessContact: Boolean(row.is_business_contact),
+    hasPreferredRoute: Boolean(row.has_preferred_route),
+    hasBusinessRoute: Boolean(row.has_business_route),
+    hasDirectRoute: Boolean(row.has_direct_route),
+    routes,
+    latestGhlSyncStatus: cleanString(row.latest_ghl_sync_status),
+    latestGhlSyncAt: cleanString(row.latest_ghl_sync_at),
+    latestGhlContactIdPresent: Boolean(cleanString(row.latest_ghl_contact_id)),
   };
 }
 
@@ -374,6 +504,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     websites,
     media,
     contacts: (row.contact_intelligence ?? []).map(projectContact).filter((item) => hasMeaningfulContent(item)),
+    contactBook: (row.contact_book ?? []).map(projectContactBook).filter(Boolean) as ContactBookProjection[],
     missingFields: cleanList(row.missing_fields),
     nextAction: cleanString(row.suggested_next_action),
   };

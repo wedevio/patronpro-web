@@ -1,5 +1,6 @@
-import type { CollaboratorProjection } from "@/lib/collaborators/types";
+import type { CollaboratorProjection, ContactBookProjection, ContactRouteProjection } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+import { GhlContactButton } from "./GhlContactButton";
 import { MediaEvidenceGallery } from "./MediaEvidenceGallery";
 
 function Section({ title, children, value }: { title: string; children: React.ReactNode; value: unknown }) {
@@ -64,6 +65,10 @@ function isUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
 
+function linkTargetProps(href: string) {
+  return href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {};
+}
+
 function InlineValue({ value }: { value: unknown }) {
   if (Array.isArray(value)) {
     const items = value.map(safeText).filter(Boolean) as string[];
@@ -109,6 +114,201 @@ function KeyValueGrid({ value }: { value: unknown }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function routeHref(route: ContactRouteProjection) {
+  const value = route.value ?? route.url;
+  if (!value) return null;
+  if (route.type === "email") return `mailto:${value.replace(/^mailto:/i, "")}`;
+  if (route.type === "phone") return `tel:${value.replace(/[^\d+]/g, "")}`;
+  if (/^https?:\/\//i.test(value)) return value;
+  return null;
+}
+
+function routeDisplay(route: ContactRouteProjection) {
+  return route.value ?? route.url ?? route.label ?? route.type ?? "contact route";
+}
+
+function routeCanSyncToGhl(route: ContactRouteProjection) {
+  return route.type === "email" || route.type === "phone";
+}
+
+function bestGhlRoute(contact: ContactBookProjection) {
+  return contact.routes.find((route) => route.type === "email") ?? contact.routes.find((route) => route.type === "phone") ?? null;
+}
+
+function contactBadges(contact: ContactBookProjection) {
+  return [
+    contact.isDecisionMaker ? "decision maker" : null,
+    contact.isPrimaryContact ? "primary" : null,
+    contact.isBusinessContact ? "business contact" : null,
+    contact.isInfluencer ? "influencer" : null,
+    contact.hasDirectRoute ? "direct route" : null,
+  ].filter(Boolean) as string[];
+}
+
+function ContactRouteList({ routes }: { routes: ContactRouteProjection[] }) {
+  if (!routes.length) return <p className="text-sm text-[#68758d]">No reliable route captured yet.</p>;
+  return (
+    <div className="grid gap-2">
+      {routes.map((route) => {
+        const href = routeHref(route);
+        const display = routeDisplay(route);
+        return (
+          <div key={route.id} className="rounded-xl border border-[#e4eaf2] bg-white p-3 text-sm">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="font-semibold capitalize text-[#182235]">{route.label ?? route.type ?? "route"}</p>
+                {href ? (
+                  <a className="mt-1 block break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={href} {...linkTargetProps(href)}>
+                    {display}
+                  </a>
+                ) : (
+                  <p className="mt-1 break-all text-[#42506a]">{display}</p>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-end gap-1 text-xs">
+                {route.isPreferred ? <span className="rounded-full bg-[#fff3df] px-2 py-1 font-semibold text-[#9b5200]">preferred</span> : null}
+                {route.isBusinessRoute ? <span className="rounded-full bg-[#e9f6ef] px-2 py-1 font-semibold text-[#1d6a3a]">business</span> : null}
+                {route.verificationStatus ? <span className="rounded-full bg-[#f1f5f9] px-2 py-1 font-semibold text-[#526078]">{route.verificationStatus}</span> : null}
+                {route.latestGhlSyncStatus ? <span className="rounded-full bg-[#eef4ff] px-2 py-1 font-semibold text-[#1d5fa7]">GHL {route.latestGhlSyncStatus}</span> : null}
+              </div>
+            </div>
+            {route.sourceUrl && isUrl(route.sourceUrl) ? (
+              <a className="mt-2 block break-all text-xs text-[#68758d] underline-offset-4 hover:underline" href={route.sourceUrl} target="_blank" rel="noreferrer">
+                Source: {route.sourceUrl}
+              </a>
+            ) : route.sourceUrl ? (
+              <p className="mt-2 text-xs text-[#68758d]">Source: {route.sourceUrl}</p>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
+  if (candidate.contactBook.length) {
+    return (
+      <div className="space-y-3">
+        {candidate.contactBook.map((contact) => {
+          const route = bestGhlRoute(contact);
+          const badges = contactBadges(contact);
+          return (
+            <details key={contact.personId} className="group rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4" open={contact.rank === 1}>
+              <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">
+                    {contact.rank ? `#${contact.rank} · ` : ""}
+                    {contact.label ?? "Contact"}
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold text-[#182235]">{contact.name}</h3>
+                  <p className="mt-1 text-sm text-[#526078]">{contact.roleTitle ?? contact.headline ?? contact.relationshipType ?? "Role needs verification"}</p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#1E2C46] shadow-sm group-open:bg-[#fff3df] group-open:text-[#9b5200]">
+                  {contact.routes.length} routes
+                </span>
+              </summary>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+                <div className="space-y-4">
+                  {badges.length ? (
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#42506a]">
+                      {badges.map((badge) => (
+                        <span key={badge} className="rounded-full bg-white px-2 py-1">
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {contact.biographySummary ? <p className="text-sm leading-6 text-[#42506a]">{contact.biographySummary}</p> : null}
+                  {contact.relationshipEvidenceSummary ? (
+                    <p className="rounded-xl bg-white p-3 text-sm leading-6 text-[#42506a]">
+                      <strong className="text-[#182235]">Evidence:</strong> {contact.relationshipEvidenceSummary}
+                    </p>
+                  ) : null}
+                  {contact.primaryPublicUrl && (isUrl(contact.primaryPublicUrl) || contact.primaryPublicUrl.startsWith("mailto:") || contact.primaryPublicUrl.startsWith("tel:")) ? (
+                    <a className="block break-all text-sm font-semibold text-[#1d5fa7] underline-offset-4 hover:underline" href={contact.primaryPublicUrl} {...linkTargetProps(contact.primaryPublicUrl)}>
+                      Public profile: {contact.primaryPublicUrl}
+                    </a>
+                  ) : contact.primaryPublicUrl ? (
+                    <p className="break-all text-sm font-semibold text-[#526078]">Public profile: {contact.primaryPublicUrl}</p>
+                  ) : null}
+                  {contact.sourceUrls.length ? (
+                    <div>
+                      <h4 className="text-sm font-semibold text-[#182235]">Source links</h4>
+                      <div className="mt-2 grid gap-1">
+                        {contact.sourceUrls.map((url) => (
+                          <a key={url} className="break-all text-sm text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                            {url}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="space-y-4">
+                  <ContactRouteList routes={contact.routes} />
+                  {route && routeCanSyncToGhl(route) ? (
+                    <div className="rounded-xl border border-[#dfe5ee] bg-white p-3">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">
+                        CRM action
+                      </p>
+                      <GhlContactButton
+                        candidateId={candidate.id}
+                        personId={contact.personId}
+                        routeId={route.id}
+                        latestStatus={contact.latestGhlSyncStatus}
+                      />
+                      <p className="mt-2 text-xs leading-5 text-[#68758d]">Creates or updates the contact only. It does not send outreach.</p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </details>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {candidate.contacts.map((contact, index) => (
+        <article key={`${contact.status ?? "contact"}-${index}`} className="rounded-2xl bg-[#f8fafc] p-4">
+          {contact.status ? <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#68758d]">{contact.status}</p> : null}
+          <div className="mt-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-[#182235]">Preferred contact</h3>
+              <div className="mt-2">
+                <KeyValueGrid value={contact.preferredBusinessContact} />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#182235]">Company context</h3>
+              <div className="mt-2">
+                <KeyValueGrid value={contact.companyContext} />
+              </div>
+            </div>
+            {Array.isArray(contact.people) && contact.people.length ? (
+              <div>
+                <h3 className="text-sm font-semibold text-[#182235]">People</h3>
+                <div className="mt-2 grid gap-2">
+                  {contact.people.map((person, personIndex) => (
+                    <div key={personIndex} className="rounded-xl bg-white p-3">
+                      <KeyValueGrid value={person} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -199,40 +399,8 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         </div>
       </Section>
 
-      <Section title="Contact intelligence" value={candidate.contacts}>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {candidate.contacts.map((contact, index) => (
-            <article key={`${contact.status ?? "contact"}-${index}`} className="rounded-2xl bg-[#f8fafc] p-4">
-              {contact.status ? <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#68758d]">{contact.status}</p> : null}
-              <div className="mt-4 space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-[#182235]">Preferred contact</h3>
-                  <div className="mt-2">
-                    <KeyValueGrid value={contact.preferredBusinessContact} />
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-[#182235]">Company context</h3>
-                  <div className="mt-2">
-                    <KeyValueGrid value={contact.companyContext} />
-                  </div>
-                </div>
-                {Array.isArray(contact.people) && contact.people.length ? (
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#182235]">People</h3>
-                    <div className="mt-2 grid gap-2">
-                      {contact.people.map((person, personIndex) => (
-                        <div key={personIndex} className="rounded-xl bg-white p-3">
-                          <KeyValueGrid value={person} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </article>
-          ))}
-        </div>
+      <Section title="Contact book" value={[candidate.contactBook, candidate.contacts]}>
+        <ContactBook candidate={candidate} />
       </Section>
 
       <Section title="Reviewed media evidence" value={candidate.media}>

@@ -48,6 +48,11 @@ SELECT
     FROM patronpro_collab.contact_intelligence ci
     WHERE ci.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS contact_intelligence,
+  COALESCE((
+    SELECT jsonb_agg(to_jsonb(cb) ORDER BY cb.contact_book_rank)
+    FROM patronpro_collab.candidate_contact_book cb
+    WHERE cb.candidate_id = c.candidate_id
+  ), '[]'::jsonb) AS contact_book,
   COALESCE(a.missing_fields, ARRAY[]::text[]) AS missing_fields,
   a.suggested_next_action
 FROM patronpro_collab.candidates c
