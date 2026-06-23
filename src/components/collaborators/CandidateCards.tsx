@@ -32,7 +32,12 @@ export function CandidateGrid({ candidates }: { candidates: CollaboratorProjecti
               {scoreLabel(candidate.score)}
             </span>
           </div>
-          {candidate.summary ? <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#526078]">{candidate.summary}</p> : null}
+          {candidate.overviewSummary ? <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#526078]">{candidate.overviewSummary}</p> : null}
+          {candidate.fitSummary ? (
+            <p className="mt-3 line-clamp-2 border-l-2 border-[#f1a13c] pl-3 text-sm leading-6 text-[#33415c]">
+              <strong>PatronPro fit:</strong> {candidate.fitSummary}
+            </p>
+          ) : null}
           <div className="mt-5 grid grid-cols-3 gap-2 text-sm">
             <div className="rounded-xl bg-[#f5f7fb] p-3">
               <span className="block text-xs text-[#68758d]">Reach</span>

@@ -118,7 +118,13 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
       <header className="rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">{candidate.lane}</p>
         <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight md:text-5xl">{candidate.name}</h1>
-        {candidate.summary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.summary}</p> : null}
+        {candidate.overviewSummary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.overviewSummary}</p> : null}
+        {candidate.fitSummary ? (
+          <div className="mt-5 max-w-5xl rounded-2xl border border-white/15 bg-white/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">PatronPro fit</p>
+            <p className="mt-2 text-sm leading-6 text-[#f2f6fb] md:text-base">{candidate.fitSummary}</p>
+          </div>
+        ) : null}
       </header>
 
       <div className="grid gap-4 md:grid-cols-4">

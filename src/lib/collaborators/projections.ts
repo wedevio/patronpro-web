@@ -229,9 +229,123 @@ function projectContact(row: ContactRow): ContactProjection {
   };
 }
 
+function firstWebsiteSummary(websites: WebsiteProjection[]) {
+  for (const website of websites) {
+    const summary = cleanString(website.summary);
+    if (summary) return summary;
+  }
+  return null;
+}
+
+function isResearchProcessSummary(text: string | null) {
+  if (!text) return false;
+  return /\b(M3|yt-dlp|Bright Data|Profile 6|Profile 9|crawl|deep crawl|dry-run|download|transcript-backed|media evidence|evidence|verification|selected set|top-8|screenshots|comments captured|fallback|repair|analysis)\b/i.test(text);
+}
+
+function sentenceList(text: string | null) {
+  if (!text) return [];
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function firstNonProcessSummary(...sources: (string | null | undefined)[]) {
+  for (const source of sources) {
+    const text = cleanString(source);
+    if (text && !isResearchProcessSummary(text)) return text;
+  }
+  return null;
+}
+
+function extractHistoryFact(...sources: (string | null | undefined)[]) {
+  for (const source of sources) {
+    for (const sentence of sentenceList(cleanString(source))) {
+      if (!isResearchProcessSummary(sentence) && /\b(since|founded|established|opened|started|operating|has been|[12][0-9]{3})\b/i.test(sentence)) {
+        return sentence;
+      }
+    }
+  }
+  return null;
+}
+
+function typeLabel(type: string, lane: CollaboratorLane) {
+  if (type === "school" || lane === "schools") return "contractor-licensing school or training provider";
+  if (type === "creator") return "contractor-focused creator";
+  if (type === "facebook_group") return "contractor community group";
+  if (type === "community" || lane === "communities") return "contractor community";
+  return "contractor-market collaborator prospect";
+}
+
+function reachPhrase(reach: number | null) {
+  if (!reach) return null;
+  return `Captured public reach is about ${new Intl.NumberFormat("en-US").format(reach)} across the verified profiles we have in the database.`;
+}
+
+function tagPhrase(tags: string[]) {
+  const cleanTags = tags.slice(0, 3).map((tag) => tag.replace(/_/g, " "));
+  if (!cleanTags.length) return null;
+  return `Current signals: ${cleanTags.join(", ")}.`;
+}
+
+function buildCandidateOverview({
+  name,
+  type,
+  lane,
+  tags,
+  reach,
+  primaryUrl,
+  captureSummary,
+  rankReason,
+  websiteSummary,
+}: {
+  name: string;
+  type: string;
+  lane: CollaboratorLane;
+  tags: string[];
+  reach: number | null;
+  primaryUrl: string | null;
+  captureSummary: string | null;
+  rankReason: string | null;
+  websiteSummary: string | null;
+}) {
+  const directSummary = firstNonProcessSummary(captureSummary, websiteSummary, rankReason);
+  const historyFact = extractHistoryFact(captureSummary, websiteSummary, rankReason);
+  if (directSummary) {
+    return [directSummary, historyFact && historyFact !== directSummary ? historyFact : null].filter(Boolean).join(" ");
+  }
+
+  const pieces = [`${name} is a ${typeLabel(type, lane)}${primaryUrl ? " with a verified public web presence" : ""}.`];
+  const history = historyFact;
+  if (history) pieces.push(history);
+  const tagsText = tagPhrase(tags);
+  if (tagsText) pieces.push(tagsText);
+  const reachText = reachPhrase(reach);
+  if (reachText) pieces.push(reachText);
+  return pieces.join(" ");
+}
+
 export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
   const score = numberOrNull(row.collaboration_fit_score);
   const media = (row.media_items ?? []).map(projectMedia).filter((item) => hasMeaningfulContent(item));
+  const websites = (row.websites ?? []).map(projectWebsite).filter(Boolean) as WebsiteProjection[];
+  const totalReach = numberOrNull(row.combined_reach);
+  const tags = cleanList(row.category_tags);
+  const captureSummary = cleanString(row.capture_summary);
+  const rankReason = cleanString(row.rank_reason);
+  const websiteSummary = firstWebsiteSummary(websites);
+  const overviewSummary = buildCandidateOverview({
+    name: row.canonical_name,
+    type: row.candidate_type,
+    lane: row.source_lane,
+    tags,
+    reach: totalReach,
+    primaryUrl: cleanString(row.primary_url),
+    captureSummary,
+    rankReason,
+    websiteSummary,
+  });
+  const fitSummary = cleanString(row.recommended_collaboration_angle) ?? cleanString(row.rank_reason);
   return {
     id: row.candidate_id,
     lane: row.source_lane,
@@ -247,15 +361,17 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     opportunityTier: cleanString(row.opportunity_tier),
     scoreInputs: row.score_inputs && hasMeaningfulContent(row.score_inputs) ? row.score_inputs : null,
     evidenceIds: collectEvidenceIds(media),
-    totalReach: numberOrNull(row.combined_reach),
-    tags: cleanList(row.category_tags),
-    summary: cleanString(row.rank_reason) ?? cleanString(row.capture_summary),
+    totalReach,
+    tags,
+    summary: overviewSummary,
+    overviewSummary,
+    fitSummary,
     recommendation: cleanString(row.recommended_collaboration_angle),
     opportunities: cleanList(row.opportunities),
     shortcomings: cleanList(row.shortcomings),
     risks: cleanList(row.risks),
     socialProfiles: (row.social_profiles ?? []).map(projectSocial).filter(Boolean) as SocialProfileProjection[],
-    websites: (row.websites ?? []).map(projectWebsite).filter(Boolean) as WebsiteProjection[],
+    websites,
     media,
     contacts: (row.contact_intelligence ?? []).map(projectContact).filter((item) => hasMeaningfulContent(item)),
     missingFields: cleanList(row.missing_fields),

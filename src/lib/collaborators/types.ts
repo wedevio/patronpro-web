@@ -81,6 +81,8 @@ export type CollaboratorProjection = {
   totalReach?: number | null;
   tags: string[];
   summary?: string | null;
+  overviewSummary?: string | null;
+  fitSummary?: string | null;
   recommendation?: string | null;
   opportunities: string[];
   shortcomings: string[];
