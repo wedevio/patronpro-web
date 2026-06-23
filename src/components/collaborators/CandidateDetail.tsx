@@ -38,6 +38,69 @@ function formatNumber(value?: number | null) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function humanizeKey(key: string) {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function safeText(value: unknown) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text || /\/mnt\/|\/home\/|cookie|token|signed_url|api[_-]?key|secret/i.test(text)) return null;
+  return text;
+}
+
+function isUrl(value: string) {
+  return /^https?:\/\//i.test(value);
+}
+
+function InlineValue({ value }: { value: unknown }) {
+  if (Array.isArray(value)) {
+    const items = value.map(safeText).filter(Boolean) as string[];
+    if (!items.length) return null;
+    return (
+      <span className="space-x-2">
+        {items.map((item) =>
+          isUrl(item) ? (
+            <a key={item} href={item} target="_blank" rel="noreferrer" className="break-all text-[#1d5fa7] underline-offset-4 hover:underline">
+              {item}
+            </a>
+          ) : (
+            <span key={item}>{item}</span>
+          ),
+        )}
+      </span>
+    );
+  }
+  const text = safeText(value);
+  if (!text) return null;
+  if (isUrl(text)) {
+    return (
+      <a href={text} target="_blank" rel="noreferrer" className="break-all text-[#1d5fa7] underline-offset-4 hover:underline">
+        {text}
+      </a>
+    );
+  }
+  return <span>{text}</span>;
+}
+
+function KeyValueGrid({ value }: { value: unknown }) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const entries = Object.entries(value).filter(([, entryValue]) => hasMeaningfulContent(entryValue));
+  if (!entries.length) return null;
+  return (
+    <dl className="grid gap-3 text-sm text-[#42506a] md:grid-cols-2">
+      {entries.map(([key, entryValue]) => (
+        <div key={key} className="rounded-xl bg-[#f8fafc] p-3">
+          <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">{humanizeKey(key)}</dt>
+          <dd className="mt-1 leading-6">
+            <InlineValue value={entryValue} />
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
   return (
     <div className="space-y-5">
@@ -114,6 +177,42 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
                 <div>Commercial: {website.commercialExchangeStatus ?? "n/a"}</div>
               </dl>
               {website.summary ? <p className="mt-3 text-sm leading-6 text-[#526078]">{website.summary}</p> : null}
+            </article>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Contact intelligence" value={candidate.contacts}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {candidate.contacts.map((contact, index) => (
+            <article key={`${contact.status ?? "contact"}-${index}`} className="rounded-2xl bg-[#f8fafc] p-4">
+              {contact.status ? <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#68758d]">{contact.status}</p> : null}
+              <div className="mt-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#182235]">Preferred contact</h3>
+                  <div className="mt-2">
+                    <KeyValueGrid value={contact.preferredBusinessContact} />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#182235]">Company context</h3>
+                  <div className="mt-2">
+                    <KeyValueGrid value={contact.companyContext} />
+                  </div>
+                </div>
+                {Array.isArray(contact.people) && contact.people.length ? (
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#182235]">People</h3>
+                    <div className="mt-2 grid gap-2">
+                      {contact.people.map((person, personIndex) => (
+                        <div key={personIndex} className="rounded-xl bg-white p-3">
+                          <KeyValueGrid value={person} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>
