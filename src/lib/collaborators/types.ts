@@ -22,6 +22,18 @@ export type WebsiteProjection = {
   summary?: string | null;
 };
 
+export type EvidenceImageProjection = {
+  kind?: string | null;
+  thumbUrl: string;
+  detailUrl: string;
+  thumbWidth?: number | null;
+  thumbHeight?: number | null;
+  detailWidth?: number | null;
+  detailHeight?: number | null;
+  thumbByteSize?: number | null;
+  detailByteSize?: number | null;
+};
+
 export type MediaEvidenceProjection = {
   id: string;
   platform?: string | null;
@@ -40,6 +52,8 @@ export type MediaEvidenceProjection = {
   riskSummary?: string | null;
   contactSheetPath?: string | null;
   representativeScreenshotPath?: string | null;
+  contactSheet?: EvidenceImageProjection | null;
+  representativeScreenshot?: EvidenceImageProjection | null;
 };
 
 export type ContactProjection = {

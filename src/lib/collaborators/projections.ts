@@ -3,10 +3,12 @@ import type {
   CollaboratorProjection,
   ContactProjection,
   DashboardSummary,
+  EvidenceImageProjection,
   MediaEvidenceProjection,
   SocialProfileProjection,
   WebsiteProjection,
 } from "./types";
+import mediaDerivativeManifest from "./media-derivatives.generated.json";
 
 export type RawCandidateRow = {
   candidate_id: string;
@@ -80,6 +82,25 @@ type MediaRow = {
   representative_screenshot_path?: string | null;
 };
 
+type MediaDerivativeVariant = {
+  url?: string;
+  width?: number | null;
+  height?: number | null;
+  byteSize?: number | null;
+};
+
+type MediaDerivativeRecord = {
+  kind?: string | null;
+  sourceWidth?: number | null;
+  sourceHeight?: number | null;
+  variants?: {
+    thumb?: MediaDerivativeVariant;
+    detail?: MediaDerivativeVariant;
+  };
+};
+
+const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
+
 type ContactRow = {
   status?: string | null;
   preferred_business_contact?: unknown;
@@ -150,7 +171,28 @@ function projectWebsite(row: WebsiteRow): WebsiteProjection | null {
   };
 }
 
+function resolveEvidenceImage(sourcePath: string | null): EvidenceImageProjection | null {
+  if (!sourcePath) return null;
+  const derivative = mediaDerivatives[sourcePath];
+  const thumb = derivative?.variants?.thumb;
+  const detail = derivative?.variants?.detail;
+  if (!thumb?.url || !detail?.url) return null;
+  return {
+    kind: cleanString(derivative.kind),
+    thumbUrl: thumb.url,
+    detailUrl: detail.url,
+    thumbWidth: numberOrNull(thumb.width),
+    thumbHeight: numberOrNull(thumb.height),
+    detailWidth: numberOrNull(detail.width),
+    detailHeight: numberOrNull(detail.height),
+    thumbByteSize: numberOrNull(thumb.byteSize),
+    detailByteSize: numberOrNull(detail.byteSize),
+  };
+}
+
 function projectMedia(row: MediaRow): MediaEvidenceProjection {
+  const contactSheetPath = cleanString(row.contact_sheet_path);
+  const representativeScreenshotPath = cleanString(row.representative_screenshot_path);
   return {
     id: row.media_item_id,
     platform: cleanString(row.platform),
@@ -167,8 +209,10 @@ function projectMedia(row: MediaRow): MediaEvidenceProjection {
     audioSummary: cleanString(row.audio_summary),
     cta: cleanString(row.cta),
     riskSummary: cleanString(row.risk_summary),
-    contactSheetPath: cleanString(row.contact_sheet_path),
-    representativeScreenshotPath: cleanString(row.representative_screenshot_path),
+    contactSheetPath,
+    representativeScreenshotPath,
+    contactSheet: resolveEvidenceImage(contactSheetPath),
+    representativeScreenshot: resolveEvidenceImage(representativeScreenshotPath),
   };
 }
 

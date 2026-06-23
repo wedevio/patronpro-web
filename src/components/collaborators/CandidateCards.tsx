@@ -3,7 +3,7 @@ import type { CollaboratorProjection } from "@/lib/collaborators/types";
 
 function scoreLabel(score?: number | null) {
   if (score === null || score === undefined) return "No score";
-  return `${(score / 20).toFixed(1)} / 5`;
+  return (score / 20).toFixed(1);
 }
 
 function reachLabel(reach?: number | null) {
@@ -27,7 +27,8 @@ export function CandidateGrid({ candidates }: { candidates: CollaboratorProjecti
                 {candidate.name}
               </h2>
             </div>
-            <span className="rounded-full bg-[#fff3df] px-3 py-1 text-sm font-semibold text-[#9b5200]">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#fff3df] px-3 py-1 text-sm font-semibold text-[#9b5200]">
+              <span aria-hidden="true">&#9733;</span>
               {scoreLabel(candidate.score)}
             </span>
           </div>

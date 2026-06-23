@@ -1,5 +1,6 @@
 import type { CollaboratorProjection } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+import { MediaEvidenceGallery } from "./MediaEvidenceGallery";
 
 function Section({ title, children, value }: { title: string; children: React.ReactNode; value: unknown }) {
   if (!hasMeaningfulContent(value)) return null;
@@ -36,6 +37,16 @@ function bullets(items: string[]) {
 function formatNumber(value?: number | null) {
   if (!value) return null;
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function scoreValue(score?: number | null) {
+  if (score === null || score === undefined) return null;
+  return (
+    <span className="inline-flex items-center gap-1">
+      <span aria-hidden="true" className="text-[#f1a13c]">&#9733;</span>
+      {(score / 20).toFixed(1)}
+    </span>
+  );
 }
 
 function humanizeKey(key: string) {
@@ -111,7 +122,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
       </header>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="Compatibility" value={candidate.score ? `${(candidate.score / 20).toFixed(1)} / 5` : null} />
+        <Metric label="Compatibility" value={scoreValue(candidate.score)} />
         <Metric label="Confidence" value={candidate.evidenceConfidence ?? null} />
         <Metric label="Reach" value={formatNumber(candidate.totalReach)} />
         <Metric label="Reviewed media" value={candidate.media.length || null} />
@@ -219,26 +230,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
       </Section>
 
       <Section title="Reviewed media evidence" value={candidate.media}>
-        <div className="grid gap-4 lg:grid-cols-2">
-          {candidate.media.slice(0, 12).map((item) => (
-            <article key={item.id} className="rounded-2xl border border-[#edf1f6] p-4">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
-                <span>{item.platform}</span>
-                {item.comments ? <span>{item.comments} comments</span> : null}
-                {item.likes ? <span>{item.likes} likes</span> : null}
-              </div>
-              {item.url ? (
-                <a href={item.url} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm text-[#1d5fa7]">
-                  Open source
-                </a>
-              ) : null}
-              {item.hook ? <p className="mt-3 text-sm leading-6 text-[#42506a]"><strong>Hook:</strong> {item.hook}</p> : null}
-              {item.seminarPotential ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Seminar:</strong> {item.seminarPotential}</p> : null}
-              {item.audioSummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Audio:</strong> {item.audioSummary}</p> : null}
-              {item.riskSummary ? <p className="mt-2 text-sm leading-6 text-[#7c4a05]"><strong>Risk:</strong> {item.riskSummary}</p> : null}
-            </article>
-          ))}
-        </div>
+        <MediaEvidenceGallery media={candidate.media} />
       </Section>
 
       <Section title="Evidence gaps" value={candidate.missingFields}>
