@@ -53,6 +53,47 @@ SELECT
     FROM patronpro_collab.candidate_contact_book cb
     WHERE cb.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS contact_book,
+  COALESCE((
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'relationship_id', cr.candidate_relationship_id,
+        'relationship_type', cr.relationship_type,
+        'relationship_status', cr.relationship_status,
+        'confidence', cr.confidence,
+        'evidence_summary', cr.evidence_summary,
+        'source_urls', cr.source_urls,
+        'captured_at', cr.captured_at,
+        'candidate_id', tc.candidate_id,
+        'candidate_name', tc.canonical_name,
+        'candidate_lane', tc.source_lane,
+        'candidate_type', tc.candidate_type,
+        'primary_url', tc.primary_url,
+        'combined_reach', tc.combined_reach,
+        'shortlist_status', ts.shortlist_status,
+        'collaboration_fit_score', ts.collaboration_fit_score
+      )
+      ORDER BY
+        CASE cr.confidence WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END,
+        tc.canonical_name
+    )
+    FROM patronpro_collab.candidate_relationships cr
+    JOIN patronpro_collab.candidates tc ON tc.candidate_id = cr.target_candidate_id
+    LEFT JOIN LATERAL (
+      SELECT *
+      FROM patronpro_collab.scorecards sc_rel
+      WHERE sc_rel.candidate_id = tc.candidate_id
+      ORDER BY sc_rel.reviewed_at DESC NULLS LAST, sc_rel.created_at DESC
+      LIMIT 1
+    ) ts ON true
+    WHERE cr.source_candidate_id = c.candidate_id
+      AND cr.is_active
+      AND lower(coalesce(cr.relationship_type, '')) ~ '(external|collaborator|partner|sponsor|affiliate|featured)'
+  ), '[]'::jsonb) AS external_collaborators,
+  COALESCE((
+    SELECT cas.answers
+    FROM patronpro_collab.candidate_actionability_summary cas
+    WHERE cas.candidate_id = c.candidate_id
+  ), '{}'::jsonb) AS actionability_answers,
   COALESCE(a.missing_fields, ARRAY[]::text[]) AS missing_fields,
   a.suggested_next_action
 FROM patronpro_collab.candidates c

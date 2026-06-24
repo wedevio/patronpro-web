@@ -6,6 +6,8 @@ import type {
   ContactRouteProjection,
   DashboardSummary,
   EvidenceImageProjection,
+  ExternalCollaboratorProjection,
+  ActionabilityAnswerProjection,
   MediaEvidenceProjection,
   SocialProfileProjection,
   WebsiteProjection,
@@ -39,6 +41,8 @@ export type RawCandidateRow = {
   media_items: MediaRow[] | null;
   contact_intelligence: ContactRow[] | null;
   contact_book: ContactBookRow[] | null;
+  external_collaborators: ExternalCollaboratorRow[] | null;
+  actionability_answers: Record<string, ActionabilityAnswerRow> | null;
   missing_fields: string[] | null;
   suggested_next_action: string | null;
 };
@@ -162,6 +166,37 @@ type ContactBookRow = {
   contact_book_label?: string | null;
 };
 
+type ExternalCollaboratorRow = {
+  relationship_id?: string | null;
+  relationship_type?: string | null;
+  relationship_status?: string | null;
+  confidence?: string | null;
+  evidence_summary?: string | null;
+  source_urls?: string[] | null;
+  captured_at?: string | null;
+  candidate_id?: string | null;
+  candidate_name?: string | null;
+  candidate_lane?: CollaboratorLane | null;
+  candidate_type?: string | null;
+  primary_url?: string | null;
+  combined_reach?: number | string | null;
+  shortlist_status?: string | null;
+  collaboration_fit_score?: number | string | null;
+};
+
+type ActionabilityAnswerRow = {
+  label?: string | null;
+  short_label?: string | null;
+  dashboard_card_group?: string | null;
+  answer_status?: string | null;
+  answer_value?: string | null;
+  answer_json?: Record<string, unknown> | null;
+  confidence?: string | null;
+  evidence_summary?: string | null;
+  source_urls?: string[] | null;
+  display_order?: number | string | null;
+};
+
 function numberOrNull(value: number | string | null | undefined) {
   if (value === null || value === undefined || value === "") return null;
   const number = Number(value);
@@ -197,6 +232,11 @@ function cleanUrlList(values: unknown): string[] {
     urls.push(url);
   }
   return urls;
+}
+
+function candidateUrl(lane: CollaboratorLane | null | undefined, candidateId: string | null) {
+  if (!lane || !candidateId) return null;
+  return `/collaborators/${lane}/${candidateId}`;
 }
 
 export function hasMeaningfulContent(value: unknown): boolean {
@@ -359,6 +399,77 @@ function projectContactBook(row: ContactBookRow): ContactBookProjection | null {
   };
 }
 
+function projectExternalCollaborator(row: ExternalCollaboratorRow): ExternalCollaboratorProjection | null {
+  const relationshipId = cleanString(row.relationship_id);
+  const candidateId = cleanString(row.candidate_id);
+  const candidateName = cleanString(row.candidate_name);
+  const candidateLane = row.candidate_lane;
+  const candidateType = cleanString(row.candidate_type);
+  if (!relationshipId || !candidateId || !candidateName || !candidateLane || !candidateType) return null;
+  return {
+    relationshipId,
+    relationshipType: cleanString(row.relationship_type),
+    relationshipStatus: cleanString(row.relationship_status),
+    confidence: cleanString(row.confidence),
+    evidenceSummary: cleanString(row.evidence_summary),
+    sourceUrls: cleanUrlList(row.source_urls),
+    capturedAt: cleanString(row.captured_at),
+    candidateId,
+    candidateName,
+    candidateLane,
+    candidateType,
+    primaryUrl: cleanString(row.primary_url) ?? candidateUrl(candidateLane, candidateId),
+    totalReach: numberOrNull(row.combined_reach),
+    shortlistStatus: cleanString(row.shortlist_status),
+    score: numberOrNull(row.collaboration_fit_score),
+  };
+}
+
+function answerJsonFallback(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  for (const key of ["summary", "answer", "status", "recommendation", "value"]) {
+    const text = cleanString(record[key]);
+    if (text) return text;
+  }
+  return null;
+}
+
+function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswerRow> | null): ActionabilityAnswerProjection[] {
+  if (!answers || typeof answers !== "object") return [];
+  return Object.entries(answers)
+    .filter(([key]) => key !== "reliable_contact_routes")
+    .map(([key, answer]) => ({
+      key,
+      label: cleanString(answer.label) ?? humanizeQuestionKey(key),
+      shortLabel: cleanString(answer.short_label),
+      group: cleanString(answer.dashboard_card_group),
+      status: cleanString(answer.answer_status),
+      value: cleanString(answer.answer_value) ?? answerJsonFallback(answer.answer_json),
+      confidence: cleanString(answer.confidence),
+      evidenceSummary: cleanString(answer.evidence_summary),
+      sourceUrls: cleanUrlList(answer.source_urls),
+      displayOrder: numberOrNull(answer.display_order) ?? 999,
+    }))
+    .filter((answer) => hasMeaningfulContent(answer.value) || hasMeaningfulContent(answer.evidenceSummary) || hasMeaningfulContent(answer.status))
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((answer) => ({
+      key: answer.key,
+      label: answer.label,
+      shortLabel: answer.shortLabel,
+      group: answer.group,
+      status: answer.status,
+      value: answer.value,
+      confidence: answer.confidence,
+      evidenceSummary: answer.evidenceSummary,
+      sourceUrls: answer.sourceUrls,
+    }));
+}
+
+function humanizeQuestionKey(key: string) {
+  return key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function firstWebsiteSummary(websites: WebsiteProjection[]) {
   for (const website of websites) {
     const summary = cleanString(website.summary);
@@ -505,6 +616,8 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     media,
     contacts: (row.contact_intelligence ?? []).map(projectContact).filter((item) => hasMeaningfulContent(item)),
     contactBook: (row.contact_book ?? []).map(projectContactBook).filter(Boolean) as ContactBookProjection[],
+    externalCollaborators: (row.external_collaborators ?? []).map(projectExternalCollaborator).filter(Boolean) as ExternalCollaboratorProjection[],
+    actionabilityAnswers: projectActionabilityAnswers(row.actionability_answers),
     missingFields: cleanList(row.missing_fields),
     nextAction: cleanString(row.suggested_next_action),
   };

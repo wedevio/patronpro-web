@@ -114,6 +114,36 @@ export type ContactBookProjection = {
   latestGhlContactIdPresent: boolean;
 };
 
+export type ExternalCollaboratorProjection = {
+  relationshipId: string;
+  relationshipType?: string | null;
+  relationshipStatus?: string | null;
+  confidence?: string | null;
+  evidenceSummary?: string | null;
+  sourceUrls: string[];
+  capturedAt?: string | null;
+  candidateId: string;
+  candidateName: string;
+  candidateLane: CollaboratorLane;
+  candidateType: string;
+  primaryUrl?: string | null;
+  totalReach?: number | null;
+  shortlistStatus?: string | null;
+  score?: number | null;
+};
+
+export type ActionabilityAnswerProjection = {
+  key: string;
+  label: string;
+  shortLabel?: string | null;
+  group?: string | null;
+  status?: string | null;
+  value?: string | null;
+  confidence?: string | null;
+  evidenceSummary?: string | null;
+  sourceUrls: string[];
+};
+
 export type CollaboratorProjection = {
   id: string;
   lane: CollaboratorLane;
@@ -143,6 +173,8 @@ export type CollaboratorProjection = {
   media: MediaEvidenceProjection[];
   contacts: ContactProjection[];
   contactBook: ContactBookProjection[];
+  externalCollaborators: ExternalCollaboratorProjection[];
+  actionabilityAnswers: ActionabilityAnswerProjection[];
   missingFields: string[];
   nextAction?: string | null;
 };

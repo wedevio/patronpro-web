@@ -1,4 +1,4 @@
-import type { CollaboratorProjection, ContactBookProjection, ContactRouteProjection } from "@/lib/collaborators/types";
+import type { ActionabilityAnswerProjection, CollaboratorProjection, ContactBookProjection, ContactRouteProjection } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
 import { GhlContactButton } from "./GhlContactButton";
 import { MediaEvidenceGallery } from "./MediaEvidenceGallery";
@@ -148,6 +148,17 @@ function contactBadges(contact: ContactBookProjection) {
   ].filter(Boolean) as string[];
 }
 
+function isExternalContact(contact: ContactBookProjection) {
+  const relationship = `${contact.relationshipType ?? ""} ${contact.group ?? ""} ${contact.label ?? ""}`.toLowerCase();
+  return (
+    relationship.includes("external") ||
+    relationship.includes("collaborator") ||
+    relationship.includes("featured_creator") ||
+    relationship.includes("partner") ||
+    relationship.includes("sponsor")
+  );
+}
+
 function ContactRouteList({ routes }: { routes: ContactRouteProjection[] }) {
   if (!routes.length) return <p className="text-sm text-[#68758d]">No reliable route captured yet.</p>;
   return (
@@ -189,11 +200,11 @@ function ContactRouteList({ routes }: { routes: ContactRouteProjection[] }) {
   );
 }
 
-function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
-  if (candidate.contactBook.length) {
+function ContactBookList({ candidate, contacts }: { candidate: CollaboratorProjection; contacts: ContactBookProjection[] }) {
+  if (contacts.length) {
     return (
       <div className="space-y-3">
-        {candidate.contactBook.map((contact) => {
+        {contacts.map((contact) => {
           const route = bestGhlRoute(contact);
           const badges = contactBadges(contact);
           return (
@@ -275,6 +286,19 @@ function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
     );
   }
 
+  return <p className="text-sm text-[#68758d]">No contact book entries captured yet.</p>;
+}
+
+function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
+  const internalContacts = candidate.contactBook.filter((contact) => !isExternalContact(contact));
+  if (internalContacts.length) {
+    return <ContactBookList candidate={candidate} contacts={internalContacts} />;
+  }
+
+  if (!candidate.contacts.length) {
+    return <p className="text-sm text-[#68758d]">No internal contact book entries captured yet.</p>;
+  }
+
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {candidate.contacts.map((contact, index) => (
@@ -312,6 +336,91 @@ function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
   );
 }
 
+function actionabilityCardValue(answer: ActionabilityAnswerProjection) {
+  return answer.value ?? answer.evidenceSummary ?? answer.status ?? null;
+}
+
+function DuncanActionabilityCards({ answers }: { answers: ActionabilityAnswerProjection[] }) {
+  if (!answers.length) return null;
+  return (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {answers.map((answer) => (
+        <article key={answer.key} className="rounded-2xl border border-[#dfe5ee] bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{answer.shortLabel ?? answer.label}</p>
+            {answer.confidence ? <span className="rounded-full bg-[#f1f5f9] px-2 py-1 text-xs font-semibold text-[#526078]">{answer.confidence}</span> : null}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#42506a]">{actionabilityCardValue(answer)}</p>
+          {answer.evidenceSummary && answer.evidenceSummary !== answer.value ? (
+            <p className="mt-3 rounded-xl bg-[#f8fafc] p-3 text-xs leading-5 text-[#526078]">{answer.evidenceSummary}</p>
+          ) : null}
+          {answer.sourceUrls.length ? (
+            <div className="mt-3 grid gap-1">
+              {answer.sourceUrls.slice(0, 2).map((url) => (
+                <a key={url} className="break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                  {url}
+                </a>
+              ))}
+            </div>
+          ) : null}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ExternalCollaborators({ candidate }: { candidate: CollaboratorProjection }) {
+  const externalContacts = candidate.contactBook.filter(isExternalContact);
+  if (!candidate.externalCollaborators.length && !externalContacts.length) return null;
+  return (
+    <div className="space-y-4">
+      {candidate.externalCollaborators.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {candidate.externalCollaborators.map((collaborator) => (
+            <article key={collaborator.relationshipId} className="rounded-2xl bg-[#f8fafc] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">
+                {collaborator.relationshipType?.replace(/_/g, " ") ?? "external collaborator"}
+              </p>
+              <a
+                className="mt-2 block text-lg font-semibold text-[#1d5fa7] underline-offset-4 hover:underline"
+                href={`/collaborators/${collaborator.candidateLane}/${collaborator.candidateId}`}
+              >
+                {collaborator.candidateName}
+              </a>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#42506a]">
+                {collaborator.confidence ? <span className="rounded-full bg-white px-2 py-1">{collaborator.confidence} confidence</span> : null}
+                {formatNumber(collaborator.totalReach) ? <span className="rounded-full bg-white px-2 py-1">{formatNumber(collaborator.totalReach)} reach</span> : null}
+                {scoreValue(collaborator.score) ? <span className="rounded-full bg-white px-2 py-1">{scoreValue(collaborator.score)}</span> : null}
+              </div>
+              {collaborator.evidenceSummary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{collaborator.evidenceSummary}</p> : null}
+              {collaborator.primaryUrl ? (
+                <a className="mt-3 block break-all text-sm text-[#1d5fa7] underline-offset-4 hover:underline" href={collaborator.primaryUrl} {...linkTargetProps(collaborator.primaryUrl)}>
+                  {collaborator.primaryUrl}
+                </a>
+              ) : null}
+              {collaborator.sourceUrls.length ? (
+                <div className="mt-3 grid gap-1">
+                  {collaborator.sourceUrls.map((url) => (
+                    <a key={url} className="break-all text-xs text-[#68758d] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                      Source: {url}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      ) : null}
+      {externalContacts.length ? (
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">People / creator collaborators</h3>
+          <ContactBookList candidate={candidate} contacts={externalContacts} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
   return (
     <div className="space-y-5">
@@ -333,6 +442,10 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Metric label="Reach" value={formatNumber(candidate.totalReach)} />
         <Metric label="Reviewed media" value={candidate.media.length || null} />
       </div>
+
+      <Section title="Duncan actionability answers" value={candidate.actionabilityAnswers}>
+        <DuncanActionabilityCards answers={candidate.actionabilityAnswers} />
+      </Section>
 
       <Section title="Recommendation" value={candidate.recommendation}>
         <p className="text-base leading-7 text-[#42506a]">{candidate.recommendation}</p>
@@ -399,8 +512,12 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         </div>
       </Section>
 
-      <Section title="Contact book" value={[candidate.contactBook, candidate.contacts]}>
+      <Section title="Internal contacts / public routes" value={[candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts]}>
         <ContactBook candidate={candidate} />
+      </Section>
+
+      <Section title="External collaborators" value={[candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)]}>
+        <ExternalCollaborators candidate={candidate} />
       </Section>
 
       <Section title="Reviewed media evidence" value={candidate.media}>
