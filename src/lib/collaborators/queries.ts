@@ -90,9 +90,35 @@ SELECT
       AND lower(coalesce(cr.relationship_type, '')) ~ '(external|collaborator|partner|sponsor|affiliate|featured)'
   ), '[]'::jsonb) AS external_collaborators,
   COALESCE((
-    SELECT cas.answers
-    FROM patronpro_collab.candidate_actionability_summary cas
-    WHERE cas.candidate_id = c.candidate_id
+    SELECT jsonb_object_agg(
+      rq.question_key,
+      jsonb_build_object(
+        'question_id', rq.question_id,
+        'label', rq.label,
+        'short_label', rq.short_label,
+        'answer_type', rq.answer_type,
+        'display_order', rq.display_order,
+        'dashboard_card_group', rq.dashboard_card_group,
+        'answer_status', COALESCE(answer.payload->>'answer_status', 'missing_data'),
+        'answer_value', COALESCE(answer.payload->>'answer_value', 'Missing data: this still needs verification before outreach.'),
+        'answer_json', COALESCE(answer.payload->'answer_json', '{}'::jsonb),
+        'confidence', COALESCE(answer.payload->>'confidence', 'missing'),
+        'evidence_summary', COALESCE(answer.payload->>'evidence_summary', rq.guidance, 'No verified answer captured yet.'),
+        'source_urls', COALESCE(answer.payload->'source_urls', '[]'::jsonb),
+        'captured_at', answer.payload->>'captured_at',
+        'reviewed_at', answer.payload->>'reviewed_at'
+      )
+      ORDER BY rq.display_order
+    )
+    FROM patronpro_collab.research_goal_sets gs
+    JOIN patronpro_collab.research_questions rq ON rq.goal_set_id = gs.goal_set_id
+    LEFT JOIN LATERAL (
+      SELECT cas.answers -> rq.question_key AS payload
+      FROM patronpro_collab.candidate_actionability_summary cas
+      WHERE cas.candidate_id = c.candidate_id
+    ) answer ON true
+    WHERE gs.project_key = 'patron-pro-collab-prospect-research'
+      AND gs.status = 'active'
   ), '{}'::jsonb) AS actionability_answers,
   COALESCE((
     SELECT cas.public_tasks

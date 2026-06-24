@@ -521,7 +521,7 @@ function answerJsonFallback(value: unknown) {
 function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswerRow> | null): ActionabilityAnswerProjection[] {
   if (!answers || typeof answers !== "object") return [];
   return Object.entries(answers)
-    .filter(([key]) => key !== "reliable_contact_routes")
+    .filter(([key]) => key !== "missing_next_step")
     .map(([key, answer]) => ({
       key,
       label: cleanString(answer.label) ?? humanizeQuestionKey(key),
