@@ -5,12 +5,8 @@ import type { GHLLocationData, GHLSubAccount } from "@/lib/panel/ghl-enrich";
 export const LAB_LOCATION_ID = "lab-location-001";
 export const LAB_ACCOUNT_ID = "lab-account-001";
 
-function isLabCheckout(): boolean {
-  return process.cwd().includes("patronpro-panel-lab");
-}
-
 export function isPanelLabMode(): boolean {
-  return process.env.PATRONPRO_PANEL_LAB === "true" || isLabCheckout();
+  return process.env.PATRONPRO_PANEL_LAB === "true";
 }
 
 export function labPanelCredentials(): { email: string; password: string } {

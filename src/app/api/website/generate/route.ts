@@ -4,9 +4,10 @@ import { verifyPpSession } from "@/lib/auth/session";
 import { getAdminClient } from "@/lib/supabase/client";
 import { normalizeAssetManifest } from "@/lib/website/asset-optimizer";
 import { refreshHtmlImageReferences } from "@/lib/website/html-refresh";
-import { isPanelLabMode, LAB_ACCOUNT_ID } from "@/lib/lab/panel-lab";
+import { isPanelLabMode, LAB_ACCOUNT_ID, LAB_LOCATION_ID } from "@/lib/lab/panel-lab";
 import { readLabWebsite, writeLabWebsite } from "@/lib/lab/website-store";
 import { buildLabWebsiteHtml } from "@/lib/lab/html";
+import { accountBelongsToLocation } from "@/lib/website/account-scope";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -378,9 +379,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const body = (await request.json()) as WebsiteGenerateParams;
-    const { accountId, businessName } = body;
+    const { accountId, businessName, locationId } = body;
 
-    if (!accountId || !businessName) {
+    if (!accountId || !locationId || !businessName) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 });
     }
 
@@ -405,8 +406,8 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (isPanelLabMode()) {
-      if (accountId !== LAB_ACCOUNT_ID) {
-        return NextResponse.json({ error: "Invalid lab accountId" }, { status: 400 });
+      if (accountId !== LAB_ACCOUNT_ID || locationId !== LAB_LOCATION_ID) {
+        return NextResponse.json({ error: "Invalid lab account/location" }, { status: 400 });
       }
 
       const existingWebsite = await readLabWebsite();
@@ -488,6 +489,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const db = getAdminClient();
+    if (!(await accountBelongsToLocation(db, accountId, locationId))) {
+      return NextResponse.json({ error: "account_location_mismatch" }, { status: 404 });
+    }
+
     const { data: existingWebsite } = await db
       .from("account_websites")
       .select("html, asset_manifest")

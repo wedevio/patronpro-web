@@ -13,7 +13,8 @@ import {
 } from "@/lib/website/asset-optimizer";
 import { refreshHtmlImageReferences } from "@/lib/website/html-refresh";
 import type { WebsiteImageVariant } from "@/lib/website/image-variants";
-import { isPanelLabMode } from "@/lib/lab/panel-lab";
+import { isPanelLabMode, LAB_ACCOUNT_ID, LAB_LOCATION_ID } from "@/lib/lab/panel-lab";
+import { accountBelongsToLocation } from "@/lib/website/account-scope";
 import {
   readLabAssetBufferFromUrl,
   readLabWebsite,
@@ -121,6 +122,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (isPanelLabMode()) {
+      if (body.accountId !== LAB_ACCOUNT_ID || body.locationId !== LAB_LOCATION_ID) {
+        return NextResponse.json({ error: "Invalid lab account/location" }, { status: 400 });
+      }
+
       await writeLabWebsite({ asset_optimization_status: "running", asset_optimization_error: null });
 
       const website = await readLabWebsite();
@@ -253,6 +258,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const db = getAdminClient();
+    if (!(await accountBelongsToLocation(db, body.accountId, body.locationId))) {
+      return NextResponse.json({ error: "account_location_mismatch" }, { status: 404 });
+    }
+
     const { data: website } = await db
       .from("account_websites")
       .select("html, hero_image_url, about_image_url, contact_image_url, asset_manifest")

@@ -22,9 +22,10 @@ import {
   shouldSkipGhlWritesForLab,
   selectedWebsiteImageProvider,
 } from "@/lib/website/image-provider";
-import { isPanelLabMode } from "@/lib/lab/panel-lab";
+import { isPanelLabMode, LAB_ACCOUNT_ID, LAB_LOCATION_ID } from "@/lib/lab/panel-lab";
 import { readLabWebsite, writeLabVariant, writeLabWebsite } from "@/lib/lab/website-store";
 import { buildLabWebsiteHtml } from "@/lib/lab/html";
+import { accountBelongsToLocation } from "@/lib/website/account-scope";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -148,7 +149,7 @@ export async function POST(request: Request): Promise<Response> {
     const body = (await request.json()) as GenerateImagesBody;
     const { accountId, locationId, businessName } = body;
 
-    if (!accountId || !businessName) {
+    if (!accountId || !locationId || !businessName) {
       return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 });
     }
 
@@ -158,6 +159,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (isPanelLabMode()) {
+      if (accountId !== LAB_ACCOUNT_ID || locationId !== LAB_LOCATION_ID) {
+        return NextResponse.json({ error: "Invalid lab account/location" }, { status: 400 });
+      }
+
       assertTestProviderAllowed();
       const website = await readLabWebsite();
       const generated = await Promise.all(
@@ -252,6 +257,10 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const db = getAdminClient();
+    if (!(await accountBelongsToLocation(db, accountId, locationId))) {
+      return NextResponse.json({ error: "account_location_mismatch" }, { status: 404 });
+    }
+
     const { data: website } = await db
       .from("account_websites")
       .select("hero_image_url, about_image_url, contact_image_url, asset_manifest")
