@@ -240,7 +240,7 @@ export default function Step1Domain({ data, errors, onChange }: Step1Props) {
             )}
             {availabilityStatus === "idle" && (
               <p className="text-xs" style={{ color: "#5f6f88" }}>
-                Haz clic en "Verificar" para saber si está disponible.
+                Haz clic en &quot;Verificar&quot; para saber si está disponible.
               </p>
             )}
           </div>

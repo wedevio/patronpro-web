@@ -169,7 +169,10 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     }
   }, [locationId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [load]);
 
   // Auto-poll while generating
   useEffect(() => {
@@ -285,6 +288,8 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     );
   }
 
+  const imageVersion = data.updated_at ?? data.generated_at ?? "latest";
+
   return (
     <div className="space-y-3">
       {/* Status */}
@@ -323,7 +328,7 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
                <div key={label} className="relative">
                  {/* eslint-disable-next-line @next/next/no-img-element */}
                  <img
-                   src={`${url}?t=${data.updated_at ?? data.generated_at ?? Date.now()}`}
+                   src={`${url}?t=${imageVersion}`}
                    alt={label}
                    className="w-full h-16 object-cover rounded-lg border border-slate-200"
                  />

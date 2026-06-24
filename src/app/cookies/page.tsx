@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import {
   LegalPage,
   LegalSection,
@@ -5,7 +6,6 @@ import {
   LegalP,
   LegalUl,
   LegalContact,
-  LegalEmail,
 } from "@/components/LegalPage";
 
 export const metadata = {

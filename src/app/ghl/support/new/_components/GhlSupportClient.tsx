@@ -570,6 +570,7 @@ function NoteBody({ body }: { body: string }) {
     }
     parts.push(
       <a key={match.index} href={match[1]} target="_blank" rel="noopener noreferrer">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={match[1]}
           alt="adjunto"
@@ -668,7 +669,9 @@ export default function GhlSupportClient({ locationId: propLocationId, userId }:
   }, []);
 
   useEffect(() => {
-    if (authed) void loadTickets();
+    if (!authed) return;
+    const id = window.setTimeout(() => { void loadTickets(); }, 0);
+    return () => window.clearTimeout(id);
   }, [authed, loadTickets]);
 
   async function openDetail(ticketId: string) {

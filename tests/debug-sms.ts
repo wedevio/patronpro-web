@@ -1,25 +1,13 @@
-import { chromium } from "@playwright/test";
 import { getLocationAccessToken } from "../src/lib/ghl/oauth";
 
-const BASE = "https://www.getpatronpro.com";
-const EMAIL = "claude@getpatronpro.com";
-const PASSWORD = "Test1234!";
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const PATRONPRO_LOCATION_ID = "hHLZC7FaTtUINPf3cbHd";
 const GHL_VERSION = "2021-07-28";
-
-// Accounts that show "Enviado" but have no Twilio
-const TEST_EMAILS = [
-  "next layer constructions",  // we'll search by name
-];
 
 async function main() {
   // Get PatronPro location token
   const token = await getLocationAccessToken(PATRONPRO_LOCATION_ID);
   console.log("✓ Got location token\n");
-
-  // Test with Next Layer Constructions — find contact first
-  const emails = ["rmz28g2tRxN8K3F8CX5k"]; // locationId, use email from GHL
 
   // Search contacts by location name
   const contactRes = await fetch(

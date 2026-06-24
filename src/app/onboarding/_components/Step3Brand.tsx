@@ -85,6 +85,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
 
   useEffect(() => {
     if (data.logoSquareFile instanceof File || data.logoSquareUrl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNoLogo(true);
     }
   }, [data.logoSquareFile, data.logoSquareUrl]);
@@ -92,6 +93,7 @@ export default function Step3Brand({ data, errors, onChange }: Step3Props) {
   useEffect(() => {
     if (data.logoFile instanceof File) {
       const objectUrl = URL.createObjectURL(data.logoFile);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreview(objectUrl);
       return () => URL.revokeObjectURL(objectUrl);
     }

@@ -17,6 +17,7 @@ export default function OnboardingLayout({
           className="flex items-center justify-center px-6 py-4"
           style={{ backgroundColor: "#1E2C46" }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/assets/PatronPro-white.png"
             alt="PatronPro"

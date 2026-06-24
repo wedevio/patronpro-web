@@ -131,10 +131,9 @@ export async function POST(request: Request): Promise<Response> {
       { onConflict: "account_id" }
     );
 
-    // Generate 3 images in parallel
-    const subjects = ["hero", "about", "contact"] as const;
+    type ImageSubject = "hero" | "about" | "contact";
 
-    async function processSubject(subject: typeof subjects[number]): Promise<GeneratedAsset | null> {
+    async function processSubject(subject: ImageSubject): Promise<GeneratedAsset | null> {
       const prompt = buildImagePrompt(subject, body);
       const buffer = await generateImage(prompt, openaiKey!);
       if (!buffer) return null;

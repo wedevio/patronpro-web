@@ -12,6 +12,7 @@ export default function SeminarioPage() {
     <div className="min-h-screen flex flex-col" style={{ background: "#f7f3ec" }}>
       {/* Header */}
       <header className="flex items-center justify-center px-6 py-5" style={{ backgroundColor: "#1E2C46" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/PatronPro-white.png"
           alt="PatronPro"

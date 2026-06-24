@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import Script from "next/script";
-import { GraduationCap, Star, Check, CheckCircle2, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
+import { GraduationCap, Star, Check, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import CheckoutModal from "@/components/CheckoutModal";
 
@@ -216,8 +216,8 @@ function ContactForm() {
 export default function HomePage() {
   const [activeTab, setActiveTab]         = useState("pipeline");
   const [checkoutPlan, setCheckoutPlan]   = useState<"monthly" | "annual" | null>(null);
-  const [monthlySetup, setMonthlySetup]   = useState(true);
-  const [annualSetup, setAnnualSetup]     = useState(true);
+  const monthlySetup = true;
+  const annualSetup = true;
   const [playing, setPlaying]             = useState(false);
   const [muted, setMuted]                 = useState(false);
   const [progress, setProgress]           = useState(0);
