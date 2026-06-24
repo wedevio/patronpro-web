@@ -10,6 +10,8 @@ type GalleryImage = EvidenceImageProjection & {
   mediaTitle: string;
 };
 
+export type GalleryEvidenceImage = GalleryImage;
+
 function formatNumber(value?: number | null) {
   if (!value) return null;
   return new Intl.NumberFormat("en-US").format(value);
@@ -126,6 +128,29 @@ function Lightbox({
         ) : null}
       </div>
     </div>
+  );
+}
+
+export function EvidenceImageGrid({
+  images,
+  className = "grid gap-3 sm:grid-cols-2",
+}: {
+  images: GalleryEvidenceImage[];
+  className?: string;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  if (!images.length) return null;
+  return (
+    <>
+      <div className={className}>
+        {images.map((image, index) => (
+          <ImageThumb key={image.id} image={image} index={index} onOpen={setOpenIndex} />
+        ))}
+      </div>
+      {openIndex !== null && openIndex >= 0 ? (
+        <Lightbox images={images} index={openIndex} onClose={() => setOpenIndex(null)} onChange={setOpenIndex} />
+      ) : null}
+    </>
   );
 }
 

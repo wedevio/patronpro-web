@@ -20,6 +20,18 @@ export type WebsiteProjection = {
   commercialExchangeStatus?: string | null;
   locationsCount?: number | null;
   summary?: string | null;
+  socialLinks: Record<string, string>;
+  contactRoutes: unknown[];
+  reviewLinks: unknown[];
+  joinLinks: unknown[];
+  screenshots: WebsiteScreenshotProjection[];
+};
+
+export type WebsiteScreenshotProjection = {
+  id: string;
+  label: string;
+  path: string;
+  image: EvidenceImageProjection;
 };
 
 export type EvidenceImageProjection = {

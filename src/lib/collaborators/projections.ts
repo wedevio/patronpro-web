@@ -13,6 +13,7 @@ import type {
   MediaEvidenceProjection,
   SocialProfileProjection,
   WebsiteProjection,
+  WebsiteScreenshotProjection,
 } from "./types";
 import mediaDerivativeManifest from "./media-derivatives.generated.json";
 
@@ -71,6 +72,11 @@ type WebsiteRow = {
   commercial_exchange_status?: string | null;
   locations_count?: number | string | null;
   summary?: string | null;
+  social_links?: unknown;
+  contact_routes?: unknown;
+  review_links?: unknown;
+  join_links?: unknown;
+  screenshot_manifest?: unknown;
 };
 
 type MediaRow = {
@@ -269,6 +275,22 @@ function cleanUrlList(values: unknown): string[] {
   return urls;
 }
 
+function cleanUrlRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const output: Record<string, string> = {};
+  for (const [key, rawValue] of Object.entries(value)) {
+    const url = cleanString(rawValue);
+    if (!url || !/^https?:\/\//i.test(url)) continue;
+    output[key] = url;
+  }
+  return output;
+}
+
+function cleanObjectArray(value: unknown): unknown[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(hasMeaningfulContent);
+}
+
 function candidateUrl(lane: CollaboratorLane | null | undefined, candidateId: string | null) {
   if (!lane || !candidateId) return null;
   return `/collaborators/${lane}/${candidateId}`;
@@ -310,6 +332,11 @@ function projectWebsite(row: WebsiteRow): WebsiteProjection | null {
     commercialExchangeStatus: cleanString(row.commercial_exchange_status),
     locationsCount: numberOrNull(row.locations_count),
     summary: cleanString(row.summary),
+    socialLinks: cleanUrlRecord(row.social_links),
+    contactRoutes: cleanObjectArray(row.contact_routes),
+    reviewLinks: cleanObjectArray(row.review_links),
+    joinLinks: cleanObjectArray(row.join_links),
+    screenshots: projectWebsiteScreenshots(row.screenshot_manifest, url),
   };
 }
 
@@ -330,6 +357,27 @@ function resolveEvidenceImage(sourcePath: string | null): EvidenceImageProjectio
     thumbByteSize: numberOrNull(thumb.byteSize),
     detailByteSize: numberOrNull(detail.byteSize),
   };
+}
+
+function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): WebsiteScreenshotProjection[] {
+  if (!Array.isArray(manifest)) return [];
+  const screenshots: WebsiteScreenshotProjection[] = [];
+  for (const item of manifest) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    for (const [key, value] of Object.entries(item)) {
+      const path = cleanString(value);
+      if (!path) continue;
+      const image = resolveEvidenceImage(path);
+      if (!image) continue;
+      screenshots.push({
+        id: `${websiteUrl}-${key}-${screenshots.length}`,
+        label: humanizeQuestionKey(key),
+        path,
+        image,
+      });
+    }
+  }
+  return screenshots;
 }
 
 function projectMedia(row: MediaRow): MediaEvidenceProjection {

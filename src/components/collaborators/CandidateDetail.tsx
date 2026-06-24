@@ -5,10 +5,12 @@ import type {
   CollaboratorProjection,
   ContactBookProjection,
   ContactRouteProjection,
+  SocialProfileProjection,
+  WebsiteProjection,
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
 import { GhlContactButton } from "./GhlContactButton";
-import { MediaEvidenceGallery } from "./MediaEvidenceGallery";
+import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
 function Section({ title, children, value }: { title: string; children: React.ReactNode; value: unknown }) {
   if (!hasMeaningfulContent(value)) return null;
@@ -45,6 +47,15 @@ function bullets(items: string[]) {
 function formatNumber(value?: number | null) {
   if (!value) return null;
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function socialMetric(profile: SocialProfileProjection) {
+  const metrics = [
+    formatNumber(profile.followers) ? `${formatNumber(profile.followers)} followers` : null,
+    formatNumber(profile.subscribers) ? `${formatNumber(profile.subscribers)} subscribers` : null,
+    formatNumber(profile.likes) ? `${formatNumber(profile.likes)} likes` : null,
+  ].filter(Boolean);
+  return metrics.join(" + ") || profile.status || "captured";
 }
 
 function scoreValue(score?: number | null) {
@@ -121,6 +132,120 @@ function KeyValueGrid({ value }: { value: unknown }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function ObjectEvidenceList({ title, items }: { title: string; items: unknown[] }) {
+  const usefulItems = items.filter(hasMeaningfulContent);
+  if (!usefulItems.length) return null;
+  return (
+    <div>
+      <h4 className="text-sm font-semibold text-[#182235]">{title}</h4>
+      <div className="mt-2 grid gap-2">
+        {usefulItems.map((item, index) => (
+          <div key={index} className="rounded-xl bg-white p-3">
+            <KeyValueGrid value={item} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WebsiteFoundLinks({ links }: { links: Record<string, string> }) {
+  const entries = Object.entries(links).filter(([, url]) => isUrl(url));
+  if (!entries.length) return null;
+  return (
+    <div>
+      <h4 className="text-sm font-semibold text-[#182235]">Website-found social links</h4>
+      <div className="mt-2 overflow-x-auto rounded-xl border border-[#e4eaf2] bg-white">
+        <table className="w-full min-w-[520px] text-left text-sm">
+          <thead className="bg-[#f8fafc] text-xs uppercase tracking-[0.12em] text-[#68758d]">
+            <tr>
+              <th className="px-3 py-2">Platform</th>
+              <th className="px-3 py-2">URL found on website</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map(([platform, url]) => (
+              <tr key={`${platform}-${url}`} className="border-t border-[#edf1f6]">
+                <td className="px-3 py-2 font-semibold capitalize text-[#182235]">{platform}</td>
+                <td className="px-3 py-2">
+                  <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                    {url}
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function websiteScreenshotImages(website: WebsiteProjection): GalleryEvidenceImage[] {
+  return website.screenshots.map((screenshot) => ({
+    ...screenshot.image,
+    id: screenshot.id,
+    label: screenshot.label,
+    mediaTitle: website.url,
+  }));
+}
+
+function WebsiteAnalysis({ websites }: { websites: WebsiteProjection[] }) {
+  return (
+    <div className="grid gap-4">
+      {websites.map((website) => {
+        const screenshots = websiteScreenshotImages(website);
+        return (
+          <article key={website.url} className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Website review</p>
+                <a href={website.url} className="mt-1 block break-all text-lg font-semibold text-[#1d5fa7] underline-offset-4 hover:underline" target="_blank" rel="noreferrer">
+                  {website.url}
+                </a>
+              </div>
+              {website.crawlStatus ? <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#526078]">{website.crawlStatus}</span> : null}
+            </div>
+
+            {website.summary ? <p className="mt-4 text-sm leading-6 text-[#42506a]">{website.summary}</p> : null}
+
+            <dl className="mt-4 grid gap-2 text-sm text-[#42506a] md:grid-cols-2 xl:grid-cols-4">
+              {[
+                ["Clarity", website.clarityGrade],
+                ["Persuasion", website.persuasionGrade],
+                ["Contactability", website.contactability],
+                ["Commercial exchange", website.commercialExchangeStatus],
+                ["Locations", website.locationsCount ? formatNumber(website.locationsCount) : null],
+              ].map(([label, value]) =>
+                value ? (
+                  <div key={label} className="rounded-xl bg-white p-3">
+                    <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">{label}</dt>
+                    <dd className="mt-1 font-semibold text-[#182235]">{value}</dd>
+                  </div>
+                ) : null,
+              )}
+            </dl>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <WebsiteFoundLinks links={website.socialLinks} />
+              <ObjectEvidenceList title="Public contact routes found on website" items={website.contactRoutes} />
+              <ObjectEvidenceList title="Review links" items={website.reviewLinks} />
+              <ObjectEvidenceList title="Join / community links" items={website.joinLinks} />
+            </div>
+
+            {screenshots.length ? (
+              <div className="mt-4">
+                <h4 className="mb-2 text-sm font-semibold text-[#182235]">Website screenshots</h4>
+                <EvidenceImageGrid images={screenshots} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" />
+              </div>
+            ) : null}
+          </article>
+        );
+      })}
+    </div>
   );
 }
 
@@ -532,11 +657,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
                       {profile.url}
                     </a>
                   </td>
-                  <td className="py-3">
-                    {formatNumber(profile.followers) ? `${formatNumber(profile.followers)} followers` : null}
-                    {formatNumber(profile.subscribers) ? `${formatNumber(profile.subscribers)} subscribers` : null}
-                    {formatNumber(profile.likes) ? `${formatNumber(profile.likes)} likes` : null}
-                  </td>
+                  <td className="py-3">{socialMetric(profile)}</td>
                   <td className="py-3">{profile.capturedAt}</td>
                 </tr>
               ))}
@@ -546,22 +667,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
       </Section>
 
       <Section title="Website analysis" value={candidate.websites}>
-        <div className="grid gap-3 md:grid-cols-2">
-          {candidate.websites.map((website) => (
-            <article key={website.url} className="rounded-2xl bg-[#f8fafc] p-4">
-              <a href={website.url} className="font-semibold text-[#1d5fa7]" target="_blank" rel="noreferrer">
-                {website.url}
-              </a>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm text-[#42506a]">
-                <div>Clarity: {website.clarityGrade ?? "n/a"}</div>
-                <div>Persuasion: {website.persuasionGrade ?? "n/a"}</div>
-                <div>Contact: {website.contactability ?? "n/a"}</div>
-                <div>Commercial: {website.commercialExchangeStatus ?? "n/a"}</div>
-              </dl>
-              {website.summary ? <p className="mt-3 text-sm leading-6 text-[#526078]">{website.summary}</p> : null}
-            </article>
-          ))}
-        </div>
+        <WebsiteAnalysis websites={candidate.websites} />
       </Section>
 
       <Section title="Internal contacts / public routes" value={[candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts]}>
