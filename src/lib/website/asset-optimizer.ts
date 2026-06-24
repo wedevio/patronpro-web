@@ -178,6 +178,79 @@ export function manifestItemFromImageSet(
   };
 }
 
+function sortedDerivatives(item: WebsiteAssetManifestItem): WebsiteAssetDerivative[] {
+  return [...item.derivatives].filter((derivative) => derivative.url).sort((a, b) => a.width - b.width);
+}
+
+function srcsetFor(item: WebsiteAssetManifestItem, format: "avif" | "webp" | "jpg"): string {
+  return sortedDerivatives(item)
+    .filter((derivative) => derivative.format === format)
+    .map((derivative) => `${derivative.url} ${derivative.width}w`)
+    .join(", ");
+}
+
+function preferredDerivativeUrl(
+  item: WebsiteAssetManifestItem,
+  format: WebsiteAssetDerivative["format"],
+  width: number,
+): string | undefined {
+  const derivatives = sortedDerivatives(item);
+  return (
+    derivatives.find((derivative) => derivative.format === format && derivative.width === width)?.url ??
+    derivatives.find((derivative) => derivative.format === format)?.url
+  );
+}
+
+function preferredWebsiteUrl(item: WebsiteAssetManifestItem): string | undefined {
+  return (
+    preferredDerivativeUrl(item, "jpg", 960) ??
+    preferredDerivativeUrl(item, "webp", 960) ??
+    sortedDerivatives(item)[0]?.url
+  );
+}
+
+function preferredLogoUrl(item: WebsiteAssetManifestItem): string | undefined {
+  return (
+    preferredDerivativeUrl(item, "webp", 360) ??
+    preferredDerivativeUrl(item, "webp", 180) ??
+    sortedDerivatives(item)[0]?.url
+  );
+}
+
+export function optimizedAssetCustomValueMappings(
+  items: Array<WebsiteAssetManifestItem | undefined>,
+): Array<[string, string]> {
+  const mappings: Array<[string, string | undefined]> = [];
+
+  for (const item of items) {
+    if (!item || item.status !== "optimized") continue;
+
+    if (item.assetKey === "logo") {
+      mappings.push(["logo", preferredLogoUrl(item)]);
+      continue;
+    }
+
+    if (item.assetKey === "logo_square") {
+      mappings.push(["logo_cuadrado", preferredLogoUrl(item)]);
+      continue;
+    }
+
+    if (item.assetKey === "hero" || item.assetKey === "about" || item.assetKey === "contact") {
+      const prefix = `website_${item.assetKey}_image`;
+      const fallback = preferredWebsiteUrl(item);
+      mappings.push(
+        [prefix, fallback],
+        [`${prefix}_avif_srcset`, srcsetFor(item, "avif")],
+        [`${prefix}_webp_srcset`, srcsetFor(item, "webp")],
+        [`${prefix}_jpeg_srcset`, srcsetFor(item, "jpg")],
+        [`${prefix}_jpeg_fallback`, fallback],
+      );
+    }
+  }
+
+  return mappings.filter(([, value]) => value) as Array<[string, string]>;
+}
+
 export function rebuildVariantSetWithPublicUrls(
   subject: WebsiteImageSubject,
   variants: WebsiteImageVariant[],

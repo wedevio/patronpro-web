@@ -203,7 +203,9 @@ interface WebsiteData {
 }
 
 type WebsiteImageRole = "hero" | "about" | "contact";
+type WebsiteAssetRole = WebsiteImageRole | "logo" | "logo_square";
 type WebsiteImagePreview = { role: WebsiteImageRole; label: string; sourceUrl: string; url: string };
+type LogoTarget = { role: "logo" | "logo_square"; label: string; sourceUrl: string };
 type ManifestDerivative = { width?: number; format?: string; url?: string };
 type ManifestAsset = { sourceUrl?: string; status?: string; derivatives?: ManifestDerivative[] };
 
@@ -220,7 +222,7 @@ function sourceUrlForRole(data: WebsiteData, role: WebsiteImageRole): string | n
   return data.contact_image_url;
 }
 
-function manifestAsset(data: WebsiteData, role: WebsiteImageRole): ManifestAsset | null {
+function manifestAsset(data: WebsiteData, role: WebsiteAssetRole): ManifestAsset | null {
   const manifest = data.asset_manifest;
   if (!manifest || typeof manifest !== "object" || !("assets" in manifest)) return null;
   const assets = (manifest as { assets?: Record<string, unknown> }).assets;
@@ -239,11 +241,30 @@ function preferredDerivative(asset: ManifestAsset | null): string | null {
   );
 }
 
-function optimizedUrlForRole(data: WebsiteData, role: WebsiteImageRole): string | null {
-  const sourceUrl = sourceUrlForRole(data, role);
+function preferredLogoDerivative(asset: ManifestAsset | null): string | null {
+  const derivatives = Array.isArray(asset?.derivatives) ? asset.derivatives : [];
+  return (
+    derivatives.find((item) => item.format === "webp" && item.width === 360)?.url ??
+    derivatives.find((item) => item.format === "webp")?.url ??
+    derivatives[0]?.url ??
+    null
+  );
+}
+
+function optimizedUrlForAsset(
+  data: WebsiteData,
+  role: WebsiteAssetRole,
+  sourceUrl: string | null,
+  preferred: (asset: ManifestAsset | null) => string | null
+): string | null {
   const asset = manifestAsset(data, role);
   if (!sourceUrl || asset?.status !== "optimized" || asset.sourceUrl !== sourceUrl) return null;
-  return preferredDerivative(asset);
+  return preferred(asset);
+}
+
+function optimizedUrlForRole(data: WebsiteData, role: WebsiteImageRole): string | null {
+  const sourceUrl = sourceUrlForRole(data, role);
+  return optimizedUrlForAsset(data, role, sourceUrl, preferredDerivative);
 }
 
 function imagePreviews(data: WebsiteData): WebsiteImagePreview[] {
@@ -261,6 +282,42 @@ function imagesAreOptimized(data: WebsiteData): boolean {
 
 function unoptimizedImageCount(data: WebsiteData): number {
   return imagePreviews(data).filter((item) => !optimizedUrlForRole(data, item.role)).length;
+}
+
+function logoTargets(submission: PanelSubmission | null): LogoTarget[] {
+  const logoUrl = submission?.logoUrl?.trim();
+  if (!logoUrl) return [];
+  const logoSquareUrl = submission?.logoSquareUrl?.trim() || logoUrl;
+  return [
+    { role: "logo", label: "Logo", sourceUrl: logoUrl },
+    { role: "logo_square", label: "Logo cuadrado", sourceUrl: logoSquareUrl },
+  ];
+}
+
+function optimizedUrlForLogoTarget(data: WebsiteData, target: LogoTarget): string | null {
+  return optimizedUrlForAsset(data, target.role, target.sourceUrl, preferredLogoDerivative);
+}
+
+function logosAreOptimized(data: WebsiteData, submission: PanelSubmission | null): boolean {
+  const targets = logoTargets(submission);
+  return targets.length > 0 && targets.every((target) => Boolean(optimizedUrlForLogoTarget(data, target)));
+}
+
+function unoptimizedLogoCount(data: WebsiteData, submission: PanelSubmission | null): number {
+  return logoTargets(submission).filter((target) => !optimizedUrlForLogoTarget(data, target)).length;
+}
+
+function optimizableAssetCount(data: WebsiteData, submission: PanelSubmission | null): number {
+  return imagePreviews(data).length + logoTargets(submission).length;
+}
+
+function unoptimizedAssetCount(data: WebsiteData, submission: PanelSubmission | null): number {
+  return unoptimizedImageCount(data) + unoptimizedLogoCount(data, submission);
+}
+
+function optimizableAssetsAreOptimized(data: WebsiteData, submission: PanelSubmission | null): boolean {
+  const total = optimizableAssetCount(data, submission);
+  return total > 0 && unoptimizedAssetCount(data, submission) === 0;
 }
 
 function htmlHasImageReferences(data: WebsiteData): boolean {
@@ -293,6 +350,23 @@ function imageStatusDisplay(data: WebsiteData): { label: string; color: BadgeCol
   if (pending === 0) return { label: "Optimizadas", color: "green" };
   if (pending === previews.length) return { label: "Imágenes originales", color: "blue" };
   return { label: `${pending} ${pending === 1 ? "imagen" : "imágenes"} por optimizar`, color: "amber" };
+}
+
+function logoStatusDisplay(data: WebsiteData, submission: PanelSubmission | null): { label: string; color: BadgeColor } {
+  const targets = logoTargets(submission);
+  if (!targets.length) return { label: "Por subir", color: "gray" };
+  if (data.asset_optimization_status === "running") return { label: "Optimizando logo", color: "amber" };
+  if (logosAreOptimized(data, submission)) return { label: "Logo optimizado", color: "green" };
+
+  const pending = unoptimizedLogoCount(data, submission);
+  const failed = targets.some((target) => {
+    const asset = manifestAsset(data, target.role);
+    return asset?.status === "failed" && asset.sourceUrl === target.sourceUrl;
+  });
+
+  if (failed && pending === targets.length) return { label: "Error en logo", color: "red" };
+  if (pending < targets.length) return { label: `${pending} ${pending === 1 ? "variante" : "variantes"} por optimizar`, color: "amber" };
+  return { label: "Logo original", color: "blue" };
 }
 
 function htmlStatusDisplay(data: WebsiteData): { label: string; color: BadgeColor } {
@@ -445,7 +519,7 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   }
 
   async function optimizeAssets() {
-    if (!submission || !accountId || (data && imagesAreOptimized(data))) return;
+    if (!submission || !accountId || (data && optimizableAssetsAreOptimized(data, submission))) return;
     setOptimizingAssets(true);
     setImageFlashing(true);
 
@@ -548,10 +622,15 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   const previews = imagePreviews(data);
   const selectedImage = previews.find((item) => item.role === selectedImageRole) ?? null;
   const imageStatus = imageStatusDisplay(data);
+  const logoStatus = logoStatusDisplay(data, submission);
   const htmlStatus = htmlStatusDisplay(data);
-  const optimized = imagesAreOptimized(data);
-  const optimizeDisabled = optimizingAssets || data.asset_optimization_status === "running" || optimized;
-  const unoptimizedCount = unoptimizedImageCount(data);
+  const optimized = optimizableAssetsAreOptimized(data, submission);
+  const unoptimizedCount = unoptimizedAssetCount(data, submission);
+  const optimizeDisabled =
+    optimizingAssets ||
+    data.asset_optimization_status === "running" ||
+    optimizableAssetCount(data, submission) === 0 ||
+    optimized;
 
   function downloadImages(items: WebsiteImagePreview[]) {
     items.forEach((item, index) => {
@@ -593,13 +672,18 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
       )}
 
       <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
+        <span className="text-slate-500">HTML</span>
+        <Badge color={htmlStatus.color}>{htmlStatus.label}</Badge>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
         <span className="text-slate-500">Imágenes</span>
         <Badge color={imageStatus.color}>{imageStatus.label}</Badge>
       </div>
 
       <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
-        <span className="text-slate-500">HTML</span>
-        <Badge color={htmlStatus.color}>{htmlStatus.label}</Badge>
+        <span className="text-slate-500">Logo</span>
+        <Badge color={logoStatus.color}>{logoStatus.label}</Badge>
       </div>
 
       {/* Hero image preview */}
@@ -690,8 +774,8 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           {optimizingAssets || data.asset_optimization_status === "running"
             ? <><Loader2 size={14} className="animate-spin" />Optimizando imágenes...</>
             : optimized
-              ? <><Check size={14} />Imágenes optimizadas</>
-            : <><Sparkles size={14} />{unoptimizedCount ? `Optimizar ${unoptimizedCount} ${unoptimizedCount === 1 ? "imagen" : "imágenes"} pendiente${unoptimizedCount === 1 ? "" : "s"}` : "Optimizar imágenes"}</>
+              ? <><Check size={14} />Imágenes y logo optimizados</>
+            : <><Sparkles size={14} />{unoptimizedCount ? `Optimizar ${unoptimizedCount} ${unoptimizedCount === 1 ? "recurso" : "recursos"} pendiente${unoptimizedCount === 1 ? "" : "s"}` : "Optimizar imágenes"}</>
           }
         </button>
       )}

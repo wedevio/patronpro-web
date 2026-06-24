@@ -1,7 +1,7 @@
 import type { OnboardingFormData, GHLCustomValue, HoursOfOperation } from "../onboarding/types";
 import { ghlFetch } from "./client";
 
-async function listCustomValues(
+export async function listCustomValues(
   locationId: string,
   token: string
 ): Promise<GHLCustomValue[]> {
@@ -14,6 +14,20 @@ async function listCustomValues(
   return json.customValues ?? [];
 }
 
+function normalizeFieldKey(fieldKey: string): string {
+  return fieldKey.replace(/[{}\s]/g, "").replace(/^custom_values\./, "");
+}
+
+export function findCustomValue(
+  existingValues: GHLCustomValue[],
+  fieldKey: string
+): GHLCustomValue | undefined {
+  const target = normalizeFieldKey(fieldKey);
+  return existingValues.find((value) =>
+    normalizeFieldKey(value.fieldKey) === target || normalizeFieldKey(value.name) === target
+  );
+}
+
 export async function upsertCustomValue(
   locationId: string,
   fieldKey: string,
@@ -22,8 +36,7 @@ export async function upsertCustomValue(
   existingValues: GHLCustomValue[]
 ): Promise<boolean> {
   if (!value) return false;
-  // GHL returns fieldKeys like "{{ custom_values.company_name }}" — use includes() to match
-  const existing = existingValues.find((v) => v.fieldKey.includes(fieldKey));
+  const existing = findCustomValue(existingValues, fieldKey);
 
   if (existing) {
     const res = await ghlFetch(`/locations/${locationId}/customValues/${existing.id}`, {

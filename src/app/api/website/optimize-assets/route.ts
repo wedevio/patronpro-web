@@ -7,10 +7,13 @@ import {
   inspectImage,
   manifestItemFromImageSet,
   normalizeAssetManifest,
+  optimizedAssetCustomValueMappings,
   shouldSkipSmallAsset,
   type WebsiteAssetKey,
   type WebsiteAssetManifestItem,
 } from "@/lib/website/asset-optimizer";
+import { findCustomValue, listCustomValues, upsertCustomValue } from "@/lib/ghl/custom-values";
+import { getLocationAccessToken } from "@/lib/ghl/oauth";
 import { refreshHtmlImageReferences } from "@/lib/website/html-refresh";
 import type { WebsiteImageVariant } from "@/lib/website/image-variants";
 import { isPanelLabMode, LAB_ACCOUNT_ID, LAB_LOCATION_ID } from "@/lib/lab/panel-lab";
@@ -33,6 +36,15 @@ interface OptimizeAssetsBody {
   assetKeys?: WebsiteAssetKey[];
   logoUrl?: string;
   logoSquareUrl?: string;
+}
+
+interface GhlSyncResult {
+  status: "not_needed" | "skipped_unchanged" | "synced" | "partial" | "failed";
+  customValues: string[];
+  attempted: string[];
+  succeeded: string[];
+  skipped: string[];
+  failed: Array<{ fieldKey: string; error: string }>;
 }
 
 type DbClient = ReturnType<typeof getAdminClient>;
@@ -252,6 +264,7 @@ export async function POST(request: Request): Promise<Response> {
         optimized: results.map((item) => item.assetKey),
         skipped,
         failures,
+        ghlSync: { status: "skipped_lab_mode" },
         htmlReferenceStatus,
         manifest,
       });
@@ -388,6 +401,54 @@ export async function POST(request: Request): Promise<Response> {
       results.length ? "optimized" :
       "skipped";
 
+    const requestedOptimizedItems = requestedKeys.map((key) => manifest.assets[key]);
+    const customValueMappings = optimizedAssetCustomValueMappings(requestedOptimizedItems);
+    const ghlSync: GhlSyncResult = {
+      status: "not_needed",
+      customValues: customValueMappings.map(([fieldKey]) => fieldKey),
+      attempted: [],
+      succeeded: [],
+      skipped: [],
+      failed: [],
+    };
+
+    if (customValueMappings.length) {
+      try {
+        const token = await getLocationAccessToken(body.locationId);
+        const existingValues = await listCustomValues(body.locationId, token);
+
+        for (const [fieldKey, value] of customValueMappings) {
+          const existing = findCustomValue(existingValues, fieldKey);
+          if (existing?.value === value) {
+            ghlSync.skipped.push(fieldKey);
+            continue;
+          }
+
+          ghlSync.attempted.push(fieldKey);
+          const ok = await upsertCustomValue(body.locationId, fieldKey, value, token, existingValues);
+          if (ok) {
+            ghlSync.succeeded.push(fieldKey);
+          } else {
+            ghlSync.failed.push({ fieldKey, error: "upsert_failed" });
+          }
+        }
+
+        if (ghlSync.failed.length) {
+          ghlSync.status = ghlSync.succeeded.length || ghlSync.skipped.length ? "partial" : "failed";
+          failures.push(`ghl_custom_values: ${ghlSync.failed.map((item) => item.fieldKey).join(", ")}`);
+        } else if (ghlSync.succeeded.length) {
+          ghlSync.status = "synced";
+        } else {
+          ghlSync.status = "skipped_unchanged";
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "sync_failed";
+        ghlSync.status = "failed";
+        ghlSync.failed = customValueMappings.map(([fieldKey]) => ({ fieldKey, error: message }));
+        failures.push(`ghl_custom_values: ${message}`);
+      }
+    }
+
     await db.from("account_websites").upsert(
       {
         account_id: body.accountId,
@@ -408,6 +469,7 @@ export async function POST(request: Request): Promise<Response> {
       optimized: results.map((item) => item.assetKey),
       skipped,
       failures,
+      ghlSync,
       htmlReferenceStatus,
       manifest,
     });
