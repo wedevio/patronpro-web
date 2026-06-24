@@ -5,6 +5,8 @@ export type SocialProfileProjection = {
   url: string;
   handle?: string | null;
   status?: string | null;
+  visibleMetric?: string | null;
+  verificationStatus?: string | null;
   followers?: number | null;
   subscribers?: number | null;
   likes?: number | null;

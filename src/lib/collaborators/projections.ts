@@ -57,6 +57,8 @@ type SocialProfileRow = {
   canonical_url: string;
   handle?: string | null;
   status?: string | null;
+  visible_metric_text?: string | null;
+  verification_status?: string | null;
   followers_count?: number | string | null;
   subscribers_count?: number | string | null;
   likes_count?: number | string | null;
@@ -313,6 +315,8 @@ function projectSocial(row: SocialProfileRow): SocialProfileProjection | null {
     url,
     handle: cleanString(row.handle),
     status: cleanString(row.status),
+    visibleMetric: cleanString(row.visible_metric_text),
+    verificationStatus: cleanString(row.verification_status),
     followers: numberOrNull(row.followers_count),
     subscribers: numberOrNull(row.subscribers_count),
     likes: numberOrNull(row.likes_count),

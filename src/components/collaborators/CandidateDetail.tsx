@@ -55,7 +55,7 @@ function socialMetric(profile: SocialProfileProjection) {
     formatNumber(profile.subscribers) ? `${formatNumber(profile.subscribers)} subscribers` : null,
     formatNumber(profile.likes) ? `${formatNumber(profile.likes)} likes` : null,
   ].filter(Boolean);
-  return metrics.join(" + ") || profile.status || "captured";
+  return profile.visibleMetric || metrics.join(" + ") || profile.status || "captured";
 }
 
 function scoreValue(score?: number | null) {
@@ -657,7 +657,14 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
                       {profile.url}
                     </a>
                   </td>
-                  <td className="py-3">{socialMetric(profile)}</td>
+                  <td className="py-3">
+                    <div>{socialMetric(profile)}</div>
+                    {profile.verificationStatus ? (
+                      <span className="mt-1 inline-flex rounded-full bg-[#f1f5f9] px-2 py-1 text-xs font-semibold text-[#526078]">
+                        {profile.verificationStatus}
+                      </span>
+                    ) : null}
+                  </td>
                   <td className="py-3">{profile.capturedAt}</td>
                 </tr>
               ))}
