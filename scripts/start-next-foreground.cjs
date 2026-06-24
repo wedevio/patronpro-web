@@ -15,6 +15,7 @@ async function main() {
     hostname,
     port,
   });
+  await new Promise(() => {});
 }
 
 main().catch((error) => {
