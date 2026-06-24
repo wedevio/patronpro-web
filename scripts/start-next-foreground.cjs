@@ -8,7 +8,7 @@ const port = Number.parseInt(process.env.PORT || "3014", 10);
 const hostname = process.env.HOSTNAME || "0.0.0.0";
 
 async function main() {
-  const { startServer } = await import("next/dist/server/lib/start-server");
+  const { startServer } = await import("next/dist/server/lib/start-server.js");
   await startServer({
     dir: process.cwd(),
     isDev: false,
