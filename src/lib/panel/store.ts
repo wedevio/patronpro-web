@@ -9,6 +9,7 @@
 
 import { getAdminClient } from "@/lib/supabase/client";
 import type { HoursOfOperation } from "@/lib/onboarding/types";
+import { isPanelLabMode, labSubmission } from "@/lib/lab/panel-lab";
 
 export const CHECKLIST_ITEMS = [
   { id: "form",       label: "Formulario de onboarding recibido" },
@@ -151,6 +152,10 @@ export async function saveSubmission(
 
 /** Returns all submissions ordered by onboarding_at desc */
 export async function getAllSubmissions(): Promise<PanelSubmission[]> {
+  if (isPanelLabMode()) {
+    return [labSubmission()];
+  }
+
   const db = getAdminClient();
 
   // Fetch accounts with latest submission and checklist
@@ -233,6 +238,18 @@ export async function updateChecklist(
   checked: boolean,
   checkedBy: string = ""
 ): Promise<PanelSubmission | null> {
+  if (isPanelLabMode()) {
+    const submission = labSubmission();
+    if (submission.locationId !== locationId) return null;
+    return {
+      ...submission,
+      checklist: {
+        ...submission.checklist,
+        [itemId]: checked,
+      },
+    };
+  }
+
   const db = getAdminClient();
   const now = new Date().toISOString();
 

@@ -135,11 +135,14 @@ export async function syncCustomValues(
 
   const mappings: Array<[string, string]> = [
     ["company_name", data.businessName ?? ""],
+    ["company_phone", data.phone ?? ""],
     ["company_address", fullAddress],
     ["dominio_web", domain],
     ["logo", data.logoUrl ?? ""],
     ["logo_cuadrado", data.logoSquareUrl ?? data.logoUrl ?? ""],
     ["hours_of_operation", hoursStr],
+    ["preferred_platform_language", data.preferredPlatformLanguage ?? ""],
+    ["customer_communication_language", data.customerCommunicationLanguage ?? ""],
     ["domain_purchase_authorized", data.authorizeDomainPurchase ? "Sí" : ""],
     // Calendar booking links — auto-detected from location calendars
     ["on_site_visit_calendar", calendarLinks.onSiteVisit],

@@ -7,6 +7,8 @@ import {
   X,
   Search,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Building2,
   Mail,
   Phone,
@@ -21,6 +23,7 @@ import {
   CheckCheck,
   CalendarClock,
   Copy,
+  Download,
   Check,
   Loader2,
   AlertCircle,
@@ -39,6 +42,21 @@ export interface EnrichedAccount {
   locationId: string;
   submission: PanelSubmission | null;
   ghl: GHLLocationData;
+}
+
+type SetupMode = "inspect" | "apply" | "verify" | "reset";
+type SetupStatus = "pass" | "updated" | "warning" | "blocked" | "failed" | "skipped" | "needs_browser";
+interface SetupStepResult {
+  id: string;
+  label: string;
+  status: SetupStatus;
+  details?: unknown;
+  error?: string;
+}
+interface SetupResult {
+  mode: SetupMode;
+  ok: boolean;
+  steps: SetupStepResult[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -119,6 +137,38 @@ function YesNoBadge({ active, labelYes, labelNo }: { active: boolean; labelYes: 
     : <Badge color="gray">{labelNo}</Badge>;
 }
 
+function setupStatusColor(status: SetupStatus): BadgeColor {
+  if (status === "pass" || status === "updated") return "green";
+  if (status === "warning" || status === "needs_browser") return "amber";
+  if (status === "failed" || status === "blocked") return "red";
+  return "gray";
+}
+
+function setupStatusLabel(status: SetupStatus): string {
+  const labels: Record<SetupStatus, string> = {
+    pass: "OK",
+    updated: "Actualizado",
+    warning: "Revisar",
+    blocked: "Bloqueado",
+    failed: "Falló",
+    skipped: "Omitido",
+    needs_browser: "Navegador",
+  };
+  return labels[status];
+}
+
+function setupModeLabel(mode: SetupMode): string {
+  const labels: Record<SetupMode, string> = {
+    inspect: "Revisión",
+    apply: "Configuración previa",
+    verify: "Verificación",
+    reset: "Reset test",
+  };
+  return labels[mode];
+}
+
+const LIVERPOOL_DIGITAL_LOCATION_ID = "4cPIvLND9hFAIzWQ1ZbL";
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ProgressBar({ pct, width = "w-20" }: { pct: number; width?: string }) {
@@ -142,9 +192,127 @@ interface WebsiteData {
   about_image_url: string | null;
   contact_image_url: string | null;
   images_status: "pending" | "generating" | "ready" | "error" | null;
+  asset_manifest?: unknown;
+  asset_optimization_status?: "idle" | "running" | "optimized" | "partial" | "skipped" | "failed" | null;
+  asset_optimization_error?: string | null;
+  html_reference_status?: "current_merge_tags" | "refreshed" | "noop_unsupported" | null;
+  html_last_refreshed_at?: string | null;
   generated_at: string | null;
   updated_at: string | null;
   error_message: string | null;
+}
+
+type WebsiteImageRole = "hero" | "about" | "contact";
+type WebsiteImagePreview = { role: WebsiteImageRole; label: string; sourceUrl: string; url: string };
+type ManifestDerivative = { width?: number; format?: string; url?: string };
+type ManifestAsset = { sourceUrl?: string; status?: string; derivatives?: ManifestDerivative[] };
+
+const WEBSITE_IMAGE_ROLES: Array<{ role: WebsiteImageRole; label: string }> = [
+  { role: "hero", label: "Hero" },
+  { role: "about", label: "Nosotros" },
+  { role: "contact", label: "Contacto" },
+];
+const WEBSITE_IMAGE_MERGE_TAG_PATTERN = /\{\{\s*custom_values\.website_/;
+
+function sourceUrlForRole(data: WebsiteData, role: WebsiteImageRole): string | null {
+  if (role === "hero") return data.hero_image_url;
+  if (role === "about") return data.about_image_url;
+  return data.contact_image_url;
+}
+
+function manifestAsset(data: WebsiteData, role: WebsiteImageRole): ManifestAsset | null {
+  const manifest = data.asset_manifest;
+  if (!manifest || typeof manifest !== "object" || !("assets" in manifest)) return null;
+  const assets = (manifest as { assets?: Record<string, unknown> }).assets;
+  const asset = assets?.[role];
+  return asset && typeof asset === "object" ? asset as ManifestAsset : null;
+}
+
+function preferredDerivative(asset: ManifestAsset | null): string | null {
+  const derivatives = Array.isArray(asset?.derivatives) ? asset.derivatives : [];
+  return (
+    derivatives.find((item) => item.format === "webp" && item.width === 960)?.url ??
+    derivatives.find((item) => item.format === "webp")?.url ??
+    derivatives.find((item) => item.format === "jpg")?.url ??
+    derivatives[0]?.url ??
+    null
+  );
+}
+
+function optimizedUrlForRole(data: WebsiteData, role: WebsiteImageRole): string | null {
+  const sourceUrl = sourceUrlForRole(data, role);
+  const asset = manifestAsset(data, role);
+  if (!sourceUrl || asset?.status !== "optimized" || asset.sourceUrl !== sourceUrl) return null;
+  return preferredDerivative(asset);
+}
+
+function imagePreviews(data: WebsiteData): WebsiteImagePreview[] {
+  return WEBSITE_IMAGE_ROLES.flatMap(({ role, label }) => {
+    const sourceUrl = sourceUrlForRole(data, role);
+    if (!sourceUrl) return [];
+    return [{ role, label, sourceUrl, url: optimizedUrlForRole(data, role) ?? sourceUrl }];
+  });
+}
+
+function imagesAreOptimized(data: WebsiteData): boolean {
+  const previews = imagePreviews(data);
+  return previews.length > 0 && previews.every((item) => Boolean(optimizedUrlForRole(data, item.role)));
+}
+
+function unoptimizedImageCount(data: WebsiteData): number {
+  return imagePreviews(data).filter((item) => !optimizedUrlForRole(data, item.role)).length;
+}
+
+function htmlHasImageReferences(data: WebsiteData): boolean {
+  const html = data.html ?? "";
+  if (!html) return false;
+  if (WEBSITE_IMAGE_MERGE_TAG_PATTERN.test(html)) return true;
+  return imagePreviews(data).some((item) => {
+    const optimizedUrl = optimizedUrlForRole(data, item.role);
+    return html.includes(item.sourceUrl) || Boolean(optimizedUrl && html.includes(optimizedUrl));
+  });
+}
+
+function htmlUsesOptimizedImages(data: WebsiteData): boolean {
+  const html = data.html ?? "";
+  if (!html) return false;
+  if (WEBSITE_IMAGE_MERGE_TAG_PATTERN.test(html)) return imagesAreOptimized(data);
+  return imagePreviews(data).some((item) => {
+    const optimizedUrl = optimizedUrlForRole(data, item.role);
+    return Boolean(optimizedUrl && html.includes(optimizedUrl));
+  });
+}
+
+function imageStatusDisplay(data: WebsiteData): { label: string; color: BadgeColor } {
+  if (data.images_status === "generating") return { label: "Creando imágenes", color: "amber" };
+  if (data.images_status === "error") return { label: "Error en imágenes", color: "red" };
+  const previews = imagePreviews(data);
+  if (!previews.length) return { label: "Por crear", color: "gray" };
+  if (data.asset_optimization_status === "running") return { label: "Optimizando imágenes", color: "amber" };
+  const pending = unoptimizedImageCount(data);
+  if (pending === 0) return { label: "Optimizadas", color: "green" };
+  if (pending === previews.length) return { label: "Imágenes originales", color: "blue" };
+  return { label: `${pending} ${pending === 1 ? "imagen" : "imágenes"} por optimizar`, color: "amber" };
+}
+
+function htmlStatusDisplay(data: WebsiteData): { label: string; color: BadgeColor } {
+  if (data.status === "generating") return { label: "Generando HTML", color: "amber" };
+  if (data.status === "error") return { label: "Error en HTML", color: "red" };
+  if (!data.html) return { label: "Por generar", color: "gray" };
+  if (!htmlHasImageReferences(data)) return { label: "Página sin imágenes", color: "blue" };
+  return htmlUsesOptimizedImages(data)
+    ? { label: "Página con imágenes optimizadas", color: "green" }
+    : { label: "Página con imágenes originales", color: "blue" };
+}
+
+function withCacheToken(url: string, token: string): string {
+  try {
+    const next = new URL(url, window.location.origin);
+    next.searchParams.set("t", token);
+    return next.toString();
+  } catch {
+    return url;
+  }
 }
 
 function WebsiteSection({ locationId, submission }: { locationId: string; submission: PanelSubmission | null }) {
@@ -154,9 +322,24 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   const [copied, setCopied]     = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [generatingImages, setGeneratingImages] = useState(false);
+  const [optimizingAssets, setOptimizingAssets] = useState(false);
+  const [imageFlashing, setImageFlashing] = useState(false);
+  const [selectedImageRole, setSelectedImageRole] = useState<WebsiteImageRole | null>(null);
+  const [regeneratingImage, setRegeneratingImage] = useState<WebsiteImageRole | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const selectAdjacentImage = useCallback((step: number) => {
+    setSelectedImageRole((current) => {
+      if (!data || !current) return current;
+      const items = imagePreviews(data);
+      if (!items.length) return current;
+      const index = items.findIndex((item) => item.role === current);
+      const nextIndex = ((index < 0 ? 0 : index) + step + items.length) % items.length;
+      return items[nextIndex]?.role ?? current;
+    });
+  }, [data]);
+
+  const load = useCallback(async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const res = await fetch(`/api/website/${locationId}`);
       const json = await res.json() as { website: WebsiteData | null; accountId: string | null };
@@ -165,25 +348,48 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     } catch {
       setData(null);
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   }, [locationId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [load]);
 
   // Auto-poll while generating
   useEffect(() => {
     if (data?.status !== "generating") return;
-    const id = setInterval(() => { void load(); }, 5000);
+    const id = setInterval(() => { void load(false); }, 5000);
     return () => clearInterval(id);
   }, [data?.status, load]);
 
   // Auto-poll while generating images
   useEffect(() => {
     if (data?.images_status !== "generating") return;
-    const id = setInterval(() => { void load(); }, 5000);
+    const id = setInterval(() => { void load(false); }, 5000);
     return () => clearInterval(id);
   }, [data?.images_status, load]);
+
+  // Auto-poll while optimizing assets
+  useEffect(() => {
+    if (data?.asset_optimization_status !== "running") return;
+    const id = setInterval(() => { void load(false); }, 5000);
+    return () => clearInterval(id);
+  }, [data?.asset_optimization_status, load]);
+
+  useEffect(() => {
+    if (!selectedImageRole) return;
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSelectedImageRole(null);
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") selectAdjacentImage(1);
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") selectAdjacentImage(-1);
+    }
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [selectedImageRole, selectAdjacentImage]);
 
   async function copyHtml() {
     if (!data?.html) return;
@@ -192,9 +398,11 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function generateImages() {
+  async function generateImages(assetKeys?: WebsiteImageRole[]) {
     if (!submission || !accountId) return;
-    setGeneratingImages(true);
+    if (assetKeys?.length) setRegeneratingImage(assetKeys[0]);
+    else setGeneratingImages(true);
+    setImageFlashing(true);
 
     const domain = submission.domainType === "existing" || submission.domainType === "new"
       ? submission.domain
@@ -220,17 +428,49 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           complementaryColor: submission.complementaryColor || "#FFFFFF",
           domain,
           hoursOfOperation:   submission.hoursOfOperation ?? null,
+          logoUrl:            submission.logoUrl ?? "",
+          logoSquareUrl:      submission.logoSquareUrl ?? "",
+          regenerateHtmlAfterImages: true,
+          ...(assetKeys?.length ? { assetKeys } : {}),
         }),
       });
-      await load();
+      await load(false);
     } catch (err) {
       console.error("generateImages failed:", err);
     } finally {
       setGeneratingImages(false);
+      setRegeneratingImage(null);
+      setImageFlashing(false);
     }
   }
 
-  async function regenerate() {
+  async function optimizeAssets() {
+    if (!submission || !accountId || (data && imagesAreOptimized(data))) return;
+    setOptimizingAssets(true);
+    setImageFlashing(true);
+
+    try {
+      await fetch("/api/website/optimize-assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId,
+          locationId,
+          refreshHtml: Boolean(data?.html),
+          logoUrl:       submission.logoUrl ?? "",
+          logoSquareUrl: submission.logoSquareUrl ?? "",
+        }),
+      });
+      await load(false);
+    } catch (err) {
+      console.error("optimizeAssets failed:", err);
+    } finally {
+      setOptimizingAssets(false);
+      setImageFlashing(false);
+    }
+  }
+
+  async function regenerate(mode?: "refresh" | "regenerate") {
     if (!submission || !accountId) return;
     setRegenerating(true);
 
@@ -257,10 +497,13 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           complementaryColor: submission.complementaryColor || "#FFFFFF",
           domain,
           hoursOfOperation:   submission.hoursOfOperation ?? null,
+          logoUrl:            submission.logoUrl ?? "",
+          logoSquareUrl:      submission.logoSquareUrl ?? "",
+          ...(mode ? { mode } : {}),
         }),
       });
 
-      await load();
+      await load(false);
     } catch (err) {
       console.error("regenerate failed:", err);
     } finally {
@@ -279,10 +522,48 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
 
   if (!data) {
     return (
-      <p className="text-[13px] text-slate-400 italic">
-        No hay website generada. Se creará automáticamente tras el onboarding.
-      </p>
+      <div className="space-y-3">
+        <p className="text-[13px] text-slate-400 italic">
+          No hay website generada. Se creará automáticamente tras el onboarding.
+        </p>
+        {submission && accountId && (
+          <button type="button"
+            onClick={() => regenerate()}
+            disabled={regenerating}
+            className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+            style={{ backgroundColor: "#1E2C46" }}
+          >
+            {regenerating
+              ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
+              : <><RefreshCw size={14} />Generar HTML</>
+            }
+          </button>
+        )}
+      </div>
     );
+  }
+
+  const imageCacheToken = data.updated_at ?? data.generated_at ?? "preview";
+  const hasHtml = Boolean(data.html);
+  const previews = imagePreviews(data);
+  const selectedImage = previews.find((item) => item.role === selectedImageRole) ?? null;
+  const imageStatus = imageStatusDisplay(data);
+  const htmlStatus = htmlStatusDisplay(data);
+  const optimized = imagesAreOptimized(data);
+  const optimizeDisabled = optimizingAssets || data.asset_optimization_status === "running" || optimized;
+  const unoptimizedCount = unoptimizedImageCount(data);
+
+  function downloadImages(items: WebsiteImagePreview[]) {
+    items.forEach((item, index) => {
+      window.setTimeout(() => {
+        const link = document.createElement("a");
+        link.href = item.url;
+        link.download = `${locationId}-${item.role}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }, index * 120);
+    });
   }
 
   return (
@@ -311,34 +592,54 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
         <p className="text-[12px] text-red-500 bg-red-50 rounded px-3 py-2">{data.error_message}</p>
       )}
 
+      <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
+        <span className="text-slate-500">Imágenes</span>
+        <Badge color={imageStatus.color}>{imageStatus.label}</Badge>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
+        <span className="text-slate-500">HTML</span>
+        <Badge color={htmlStatus.color}>{htmlStatus.label}</Badge>
+      </div>
+
       {/* Hero image preview */}
-       {(data.hero_image_url || data.about_image_url || data.contact_image_url) && (
-         <div className="grid grid-cols-3 gap-1.5">
-           {[
-             { url: data.hero_image_url,    label: "Hero" },
-             { url: data.about_image_url,   label: "Nosotros" },
-             { url: data.contact_image_url, label: "Contacto" },
-           ].map(({ url, label }) =>
-             url ? (
-               <div key={label} className="relative">
-                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                 <img
-                   src={`${url}?t=${data.updated_at ?? data.generated_at ?? Date.now()}`}
-                   alt={label}
-                   className="w-full h-16 object-cover rounded-lg border border-slate-200"
-                 />
-                 <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
-                   {label}
-                 </span>
-               </div>
-             ) : null
-          )}
+      {previews.length > 0 && (
+        <div className={`grid grid-cols-3 gap-1.5 transition-opacity duration-300 ${imageFlashing ? "opacity-35" : "opacity-100"}`}>
+          {previews.map((item) => (
+              <button
+                key={item.role}
+                type="button"
+                onClick={() => setSelectedImageRole(item.role)}
+                className="relative text-left"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={withCacheToken(item.url, imageCacheToken)}
+                  alt={item.label}
+                  className="w-full h-16 object-cover rounded-lg border border-slate-200"
+                />
+                <span className="absolute bottom-1 left-1 text-[9px] font-semibold text-white bg-black/50 rounded px-1">
+                  {item.label}
+                </span>
+              </button>
+          ))}
         </div>
+      )}
+
+      {previews.length > 1 && (
+        <button
+          type="button"
+          onClick={() => downloadImages(previews)}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2 text-xs font-semibold border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50"
+        >
+          <Download size={13} />Descargar las 3 imágenes
+        </button>
       )}
 
       {/* Copy HTML button */}
       {data.status === "ready" && data.html && (
         <button
+          type="button"
           onClick={copyHtml}
           className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all"
           style={{ backgroundColor: copied ? "#22c55e" : "#1E2C46" }}
@@ -351,16 +652,17 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
       )}
 
       {/* Generate images button */}
-      {data.status === "ready" && submission && accountId && data.images_status !== "ready" && data.images_status !== "generating" && (
+      {data.status === "ready" && submission && accountId && data.images_status !== "generating" && (
         <button
-          onClick={generateImages}
+          type="button"
+          onClick={() => generateImages()}
           disabled={generatingImages}
           className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
           style={{ backgroundColor: "#F67D0A" }}
         >
           {generatingImages
             ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
-            : <><Sparkles size={14} />Generar imágenes con IA</>
+            : <><Sparkles size={14} />{previews.length ? "Crear nuevas imágenes" : "Generar imágenes"}</>
           }
         </button>
       )}
@@ -373,19 +675,70 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
         </div>
       )}
 
-      {/* Regenerate button */}
-      {submission && accountId && data.status !== "generating" && (
+      {/* Optimize images button */}
+      {submission && accountId && data.images_status !== "generating" && (
         <button
-          onClick={regenerate}
-          disabled={regenerating}
-          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-medium border transition-colors disabled:opacity-50"
-          style={{ borderColor: "#e5e7eb", color: "#5f6f88" }}
+          type="button"
+          onClick={optimizeAssets}
+          disabled={optimizeDisabled}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold border transition-colors disabled:opacity-50"
+          style={optimized
+            ? { borderColor: "#cbd5e1", color: "#64748b", backgroundColor: "#f8fafc" }
+            : { borderColor: "#F67D0A", color: "#C46300", backgroundColor: "#fff7ed" }
+          }
         >
-          {regenerating
-            ? <><Loader2 size={14} className="animate-spin" />Iniciando regeneración...</>
-            : <><RefreshCw size={14} />Regenerar website</>
+          {optimizingAssets || data.asset_optimization_status === "running"
+            ? <><Loader2 size={14} className="animate-spin" />Optimizando imágenes...</>
+            : optimized
+              ? <><Check size={14} />Imágenes optimizadas</>
+            : <><Sparkles size={14} />{unoptimizedCount ? `Optimizar ${unoptimizedCount} ${unoptimizedCount === 1 ? "imagen" : "imágenes"} pendiente${unoptimizedCount === 1 ? "" : "s"}` : "Optimizar imágenes"}</>
           }
         </button>
+      )}
+
+      {/* HTML mode buttons */}
+      {submission && accountId && data.status !== "generating" && (
+        hasHtml ? (
+          <div className="grid grid-cols-1 gap-2">
+            <button
+              type="button"
+              onClick={() => regenerate("refresh")}
+              disabled={regenerating}
+              className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold border transition-colors disabled:opacity-50"
+              style={{ borderColor: "#1E2C46", color: "#1E2C46" }}
+            >
+              {regenerating
+                ? <><Loader2 size={14} className="animate-spin" />Actualizando...</>
+                : <><RefreshCw size={14} />Actualizar HTML con imágenes</>
+              }
+            </button>
+            <button
+              type="button"
+              onClick={() => regenerate("regenerate")}
+              disabled={regenerating}
+              className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-medium border transition-colors disabled:opacity-50"
+              style={{ borderColor: "#e5e7eb", color: "#5f6f88" }}
+            >
+              {regenerating
+                ? <><Loader2 size={14} className="animate-spin" />Iniciando regeneración...</>
+                : <><RefreshCw size={14} />Regenerar desde cero</>
+              }
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => regenerate()}
+            disabled={regenerating}
+            className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+            style={{ backgroundColor: "#1E2C46" }}
+          >
+            {regenerating
+              ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
+              : <><RefreshCw size={14} />Generar HTML</>
+            }
+          </button>
+        )
       )}
 
       {/* HTML preview hint */}
@@ -394,6 +747,93 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           <Code2 size={11} />
           {(data.html.length / 1024).toFixed(0)} KB · Pegá en un bloque Custom HTML de GHL
         </p>
+      )}
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/75 px-4 py-6 flex items-center justify-center"
+          onClick={() => setSelectedImageRole(null)}
+          onWheel={(event) => {
+            if (Math.abs(event.deltaY) < 10) return;
+            event.preventDefault();
+            selectAdjacentImage(event.deltaY > 0 ? 1 : -1);
+          }}
+        >
+          <div className="w-full max-w-4xl rounded-xl bg-white shadow-2xl overflow-hidden" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+              <strong className="text-sm text-[#1E2C46]">
+                {selectedImage.label}
+                <span className="ml-2 text-xs font-normal text-slate-400">
+                  {previews.findIndex((item) => item.role === selectedImage.role) + 1}/{previews.length}
+                </span>
+              </strong>
+              <button
+                type="button"
+                onClick={() => setSelectedImageRole(null)}
+                className="p-1 rounded text-slate-400 hover:text-slate-700"
+                aria-label="Cerrar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="relative bg-slate-950">
+              {previews.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => selectAdjacentImage(-1)}
+                    className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-800 shadow"
+                    aria-label="Imagen anterior"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectAdjacentImage(1)}
+                    className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-800 shadow"
+                    aria-label="Siguiente imagen"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={withCacheToken(selectedImage.url, imageCacheToken)}
+                alt={selectedImage.label}
+                className={`w-full max-h-[70vh] object-contain transition-opacity duration-300 ${imageFlashing ? "opacity-35" : "opacity-100"}`}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-4">
+              <a
+                href={selectedImage.url}
+                download={`${locationId}-${selectedImage.role}.jpg`}
+                className="flex items-center gap-2 justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700"
+              >
+                <Download size={14} />Descargar
+              </a>
+              <button
+                type="button"
+                onClick={() => generateImages([selectedImage.role])}
+                disabled={Boolean(regeneratingImage)}
+                className="flex items-center gap-2 justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                style={{ backgroundColor: "#F67D0A" }}
+              >
+                {regeneratingImage === selectedImage.role
+                  ? <><Loader2 size={14} className="animate-spin" />Creando...</>
+                  : <><RefreshCw size={14} />Crear nueva versión</>
+                }
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadImages(previews)}
+                className="flex items-center gap-2 justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold border border-slate-200 text-slate-700"
+              >
+                <Download size={14} />Descargar todas
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -413,9 +853,14 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
   const [manualLinkCopied, setManualLinkCopied] = useState(false);
   const [manualLinkLoading, setManualLinkLoading] = useState(false);
   const [manualLinkError, setManualLinkError] = useState<string | null>(null);
+  const [setupMode, setSetupMode] = useState<SetupMode | null>(null);
+  const [setupResult, setSetupResult] = useState<SetupResult | null>(null);
+  const [setupError, setSetupError] = useState<string | null>(null);
+  const [resetText, setResetText] = useState("");
 
   const done = countDone(checklist);
   const pct  = progressPct(checklist);
+  const canResetTestAccount = account.locationId === LIVERPOOL_DIGITAL_LOCATION_ID;
 
   async function toggle(itemId: ChecklistItemId) {
     const newVal = !checklist[itemId];
@@ -495,6 +940,32 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
     }
   }
 
+  async function runSetup(mode: SetupMode) {
+    if (mode === "reset" && (resetText !== "reset" || !window.confirm("Resetear solo la configuración de prueba de Liverpool Digital?"))) {
+      return;
+    }
+
+    setSetupMode(mode);
+    setSetupError(null);
+    try {
+      const res = await fetch(`/api/panel/accounts/${account.locationId}/post-onboarding-setup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          ...(mode === "reset" ? { resetText, resetLocationId: account.locationId } : {}),
+        }),
+      });
+      const json = await res.json() as SetupResult & { error?: string };
+      if (!json.steps) throw new Error(json.error ?? "No se pudo ejecutar el setup.");
+      setSetupResult(json);
+    } catch (err) {
+      setSetupError(err instanceof Error ? err.message : "No se pudo ejecutar el setup.");
+    } finally {
+      setSetupMode(null);
+    }
+  }
+
   const DAYS: Array<[string, string]> = [
     ["monday",    "Lunes"],
     ["tuesday",   "Martes"],
@@ -521,7 +992,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
           </div>
           <div className="flex items-center gap-2">
             {submission && approvedAt === null && (
-              <button
+              <button type="button"
                 onClick={approveAccount}
                 disabled={approving}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold rounded-md bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-50"
@@ -532,7 +1003,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                 Aprobar cuenta
               </button>
             )}
-            <button onClick={onClose} className="text-white/60 hover:text-white transition-colors p-1 rounded">
+            <button type="button" onClick={onClose} className="text-white/60 hover:text-white transition-colors p-1 rounded">
               <X size={20} />
             </button>
           </div>
@@ -543,7 +1014,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
           <section>
             <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">Onboarding manual</h3>
             <div className="space-y-3">
-              <button
+              <button type="button"
                 onClick={generateManualOnboardingLink}
                 disabled={manualLinkLoading}
                 className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
@@ -579,6 +1050,108 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
               )}
             </div>
           </section>
+
+          {submission && (
+            <section>
+              <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">Configuración previa</h3>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => void runSetup("apply")}
+                  disabled={setupMode !== null}
+                  className="flex w-full items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: "#1E2C46" }}
+                >
+                  {setupMode === "apply"
+                    ? <><Loader2 size={14} className="animate-spin" />Aplicando...</>
+                    : <><RefreshCw size={14} />Aplicar configuración previa</>}
+                </button>
+
+                <p className="text-[12px] text-slate-500">
+                  Ejecuta solo tareas de Fase 2 probadas por API: custom values, Brand Board y calendarios. Lo que aún requiera revisión manual aparecerá como pendiente.
+                </p>
+
+                <details className="rounded-md border border-slate-200 bg-white">
+                  <summary className="cursor-pointer px-3 py-2 text-[12px] font-semibold text-slate-600">
+                    Controles de prueba
+                  </summary>
+
+                  <div className="space-y-3 border-t border-slate-100 px-3 py-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {([
+                        ["inspect", "Revisar estado"],
+                        ["verify", "Verificar resultado"],
+                      ] as Array<[SetupMode, string]>).map(([mode, label]) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => void runSetup(mode)}
+                          disabled={setupMode !== null}
+                          className="flex items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 disabled:opacity-50"
+                        >
+                          {setupMode === mode ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-slate-200 pt-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-red-500 mb-2">Reset test Liverpool</p>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          value={resetText}
+                          onChange={(event) => setResetText(event.target.value)}
+                          placeholder='Escribí "reset"'
+                          className="min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 py-2 text-[12px] outline-none focus:border-red-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void runSetup("reset")}
+                          disabled={setupMode !== null || resetText !== "reset" || !canResetTestAccount}
+                          className="flex items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-semibold text-red-700 disabled:opacity-50"
+                        >
+                          {setupMode === "reset" ? <Loader2 size={13} className="animate-spin" /> : <AlertCircle size={13} />}
+                          Reset
+                        </button>
+                      </div>
+                      <p className="mt-2 text-[11px] text-slate-500">
+                        Solo Liverpool Digital. Revierte estados de prueba soportados por API. No borra mensajes, notas ni contactos.
+                      </p>
+                    </div>
+                  </div>
+                </details>
+
+                {setupError && (
+                  <p className="text-[12px] text-red-500 bg-red-50 rounded px-3 py-2">{setupError}</p>
+                )}
+
+                {setupResult && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-semibold text-slate-600">Resultado: {setupModeLabel(setupResult.mode)}</span>
+                      <Badge color={setupResult.ok ? "green" : "amber"}>{setupResult.ok ? "OK" : "Revisar"}</Badge>
+                    </div>
+                    <ul className="grid gap-2">
+                      {setupResult.steps.map((item) => (
+                        <li key={item.id} className="rounded border border-slate-200 bg-white px-3 py-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[12px] font-semibold text-slate-700">{item.label}</span>
+                            <Badge color={setupStatusColor(item.status)}>{setupStatusLabel(item.status)}</Badge>
+                          </div>
+                          {item.error && <p className="mt-1 text-[11px] text-red-500">{item.error}</p>}
+                          {item.details !== undefined && (
+                            <pre className="mt-2 max-h-28 overflow-auto rounded bg-slate-50 p-2 text-[10px] text-slate-500">
+                              {JSON.stringify(item.details, null, 2)}
+                            </pre>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* GHL Account */}
           <section>
@@ -795,7 +1368,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                 const checked = checklist[item.id] ?? false;
                 return (
                   <li key={item.id}>
-                    <button
+                    <button type="button"
                       onClick={() => toggle(item.id)}
                       disabled={isPending}
                       className="flex items-center gap-3 w-full text-left cursor-pointer group py-1.5"
@@ -1054,7 +1627,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
                       </td>
 
                       <td className="px-4 py-3">
-                        <button
+                        <button type="button"
                           onClick={(e) => { e.stopPropagation(); setSelected(account); }}
                           className="px-3 py-1.5 text-[12px] font-semibold rounded-md border border-slate-200 text-slate-600 hover:border-[#1E2C46] hover:text-[#1E2C46] transition-colors"
                         >

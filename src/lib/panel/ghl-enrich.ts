@@ -1,4 +1,5 @@
 import { getAgencyAccessToken, getLocationAccessToken } from "@/lib/ghl/oauth";
+import { isPanelLabMode, labGhlLocation, labGhlSubAccount } from "@/lib/lab/panel-lab";
 
 const GHL_BASE = "https://services.leadconnectorhq.com";
 const GHL_VERSION = "2021-07-28";
@@ -287,6 +288,11 @@ export async function enrichLocations(
   locationIds: string[],
   emailMap: Map<string, string> = new Map()
 ): Promise<Map<string, GHLLocationData>> {
+  if (isPanelLabMode()) {
+    const lab = labGhlLocation();
+    return new Map(locationIds.map((id) => [id, { ...lab, locationId: id }]));
+  }
+
   if (!locationIds.length) return new Map();
 
   const [agencyToken, patronProToken] = await Promise.all([
@@ -315,6 +321,10 @@ export interface GHLSubAccount {
 }
 
 export async function getAllGHLLocations(): Promise<GHLSubAccount[]> {
+  if (isPanelLabMode()) {
+    return [labGhlSubAccount()];
+  }
+
   try {
     const token = await getAgencyAccessToken();
     const res = await fetch(
