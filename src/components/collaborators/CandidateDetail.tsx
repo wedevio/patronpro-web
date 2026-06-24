@@ -1,4 +1,11 @@
-import type { ActionabilityAnswerProjection, CollaboratorProjection, ContactBookProjection, ContactRouteProjection } from "@/lib/collaborators/types";
+import type {
+  ActionabilityAnswerProjection,
+  CandidateTaskProjection,
+  ClearanceRunProjection,
+  CollaboratorProjection,
+  ContactBookProjection,
+  ContactRouteProjection,
+} from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
 import { GhlContactButton } from "./GhlContactButton";
 import { MediaEvidenceGallery } from "./MediaEvidenceGallery";
@@ -340,7 +347,7 @@ function actionabilityCardValue(answer: ActionabilityAnswerProjection) {
   return answer.value ?? answer.evidenceSummary ?? answer.status ?? null;
 }
 
-function DuncanActionabilityCards({ answers }: { answers: ActionabilityAnswerProjection[] }) {
+function CollaborationCompatibilityCards({ answers }: { answers: ActionabilityAnswerProjection[] }) {
   if (!answers.length) return null;
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -362,6 +369,49 @@ function DuncanActionabilityCards({ answers }: { answers: ActionabilityAnswerPro
                 </a>
               ))}
             </div>
+          ) : null}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function NextOutreachObjective({ tasks }: { tasks: CandidateTaskProjection[] }) {
+  const task = tasks.find((item) => item.status !== "done" && item.status !== "deferred") ?? tasks[0];
+  if (!task) return null;
+  return (
+    <article className="mt-4 rounded-2xl border border-[#dfe5ee] bg-[#fffaf2] p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a5b17]">Next Outreach Objective</p>
+        <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#8a5b17]">
+          {[task.priority, task.status].filter(Boolean).join(" / ")}
+        </span>
+      </div>
+      <h3 className="mt-3 text-lg font-semibold text-[#182235]">{task.label}</h3>
+      {task.summary ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
+      {task.blockerReason ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#8a5b17]">Blocker: {task.blockerReason}</p> : null}
+    </article>
+  );
+}
+
+function ClearanceSummary({ clearanceRuns }: { clearanceRuns: ClearanceRunProjection[] }) {
+  if (!clearanceRuns.length) return null;
+  return (
+    <div className="mt-4 grid gap-3 md:grid-cols-2">
+      {clearanceRuns.slice(0, 4).map((run) => (
+        <article key={run.id} className="rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{run.platform ?? "clearance"}</p>
+            {run.status ? <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{run.status}</span> : null}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#42506a]">
+            {formatNumber(run.itemsScanned) ?? "0"} items reviewed; {formatNumber(run.keywordHits) ?? "0"} keyword hits; {formatNumber(run.confirmedFindings) ?? "0"} confirmed conflicts.
+          </p>
+          {run.notes.length ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#526078]">{run.notes[0]}</p> : null}
+          {run.sourceUrl ? (
+            <a className="mt-3 block break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={run.sourceUrl} target="_blank" rel="noreferrer">
+              {run.sourceUrl}
+            </a>
           ) : null}
         </article>
       ))}
@@ -443,8 +493,10 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Metric label="Reviewed media" value={candidate.media.length || null} />
       </div>
 
-      <Section title="Duncan actionability answers" value={candidate.actionabilityAnswers}>
-        <DuncanActionabilityCards answers={candidate.actionabilityAnswers} />
+      <Section title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.tasks, candidate.clearanceRuns]}>
+        <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
+        <NextOutreachObjective tasks={candidate.tasks} />
+        <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
       </Section>
 
       <Section title="Recommendation" value={candidate.recommendation}>

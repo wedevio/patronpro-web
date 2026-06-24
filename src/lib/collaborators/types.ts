@@ -144,6 +144,36 @@ export type ActionabilityAnswerProjection = {
   sourceUrls: string[];
 };
 
+export type CandidateTaskProjection = {
+  id: string;
+  type?: string | null;
+  label: string;
+  summary?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  blockerReason?: string | null;
+  followUpAt?: string | null;
+  completedAt?: string | null;
+  crmSyncEligible: boolean;
+};
+
+export type ClearanceRunProjection = {
+  id: string;
+  platform?: string | null;
+  sourceUrl?: string | null;
+  status?: string | null;
+  blockedReason?: string | null;
+  reviewedAt?: string | null;
+  itemsScanned?: number | null;
+  transcriptCount?: number | null;
+  keywordHits?: number | null;
+  confirmedFindings?: number | null;
+  confidence?: number | null;
+  findings: string[];
+  notes: string[];
+  blockers: string[];
+};
+
 export type CollaboratorProjection = {
   id: string;
   lane: CollaboratorLane;
@@ -175,6 +205,8 @@ export type CollaboratorProjection = {
   contactBook: ContactBookProjection[];
   externalCollaborators: ExternalCollaboratorProjection[];
   actionabilityAnswers: ActionabilityAnswerProjection[];
+  tasks: CandidateTaskProjection[];
+  clearanceRuns: ClearanceRunProjection[];
   missingFields: string[];
   nextAction?: string | null;
 };

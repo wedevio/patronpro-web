@@ -94,6 +94,16 @@ SELECT
     FROM patronpro_collab.candidate_actionability_summary cas
     WHERE cas.candidate_id = c.candidate_id
   ), '{}'::jsonb) AS actionability_answers,
+  COALESCE((
+    SELECT cas.public_tasks
+    FROM patronpro_collab.candidate_actionability_summary cas
+    WHERE cas.candidate_id = c.candidate_id
+  ), '[]'::jsonb) AS public_tasks,
+  COALESCE((
+    SELECT cas.clearance_runs
+    FROM patronpro_collab.candidate_actionability_summary cas
+    WHERE cas.candidate_id = c.candidate_id
+  ), '[]'::jsonb) AS clearance_runs,
   COALESCE(a.missing_fields, ARRAY[]::text[]) AS missing_fields,
   a.suggested_next_action
 FROM patronpro_collab.candidates c

@@ -1,6 +1,8 @@
 import type {
   CollaboratorLane,
   CollaboratorProjection,
+  CandidateTaskProjection,
+  ClearanceRunProjection,
   ContactBookProjection,
   ContactProjection,
   ContactRouteProjection,
@@ -43,6 +45,8 @@ export type RawCandidateRow = {
   contact_book: ContactBookRow[] | null;
   external_collaborators: ExternalCollaboratorRow[] | null;
   actionability_answers: Record<string, ActionabilityAnswerRow> | null;
+  public_tasks: CandidateTaskRow[] | null;
+  clearance_runs: ClearanceRunRow[] | null;
   missing_fields: string[] | null;
   suggested_next_action: string | null;
 };
@@ -195,6 +199,37 @@ type ActionabilityAnswerRow = {
   evidence_summary?: string | null;
   source_urls?: string[] | null;
   display_order?: number | string | null;
+};
+
+type CandidateTaskRow = {
+  task_id?: string | null;
+  task_type?: string | null;
+  label?: string | null;
+  summary?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  blocker_reason?: string | null;
+  follow_up_at?: string | null;
+  completed_at?: string | null;
+  crm_sync_eligible?: boolean | null;
+};
+
+type ClearanceRunRow = {
+  clearance_run_id?: string | null;
+  platform?: string | null;
+  source_url?: string | null;
+  run_completed_at?: string | null;
+  items_scanned?: number | string | null;
+  subtitle_or_transcript_count?: number | string | null;
+  keyword_hit_count?: number | string | null;
+  confirmed_finding_count?: number | string | null;
+  clearance_status?: string | null;
+  blocked_reason?: string | null;
+  reviewed_at?: string | null;
+  evidence_confidence_score?: number | string | null;
+  confirmed_findings?: string[] | null;
+  false_positive_notes?: string[] | null;
+  blockers?: string[] | null;
 };
 
 function numberOrNull(value: number | string | null | undefined) {
@@ -466,6 +501,45 @@ function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswer
     }));
 }
 
+function projectCandidateTask(row: CandidateTaskRow): CandidateTaskProjection | null {
+  const id = cleanString(row.task_id);
+  const label = cleanString(row.label);
+  if (!id || !label) return null;
+  return {
+    id,
+    type: cleanString(row.task_type),
+    label,
+    summary: cleanString(row.summary),
+    status: cleanString(row.status),
+    priority: cleanString(row.priority),
+    blockerReason: cleanString(row.blocker_reason),
+    followUpAt: cleanString(row.follow_up_at),
+    completedAt: cleanString(row.completed_at),
+    crmSyncEligible: Boolean(row.crm_sync_eligible),
+  };
+}
+
+function projectClearanceRun(row: ClearanceRunRow): ClearanceRunProjection | null {
+  const id = cleanString(row.clearance_run_id);
+  if (!id) return null;
+  return {
+    id,
+    platform: cleanString(row.platform),
+    sourceUrl: cleanString(row.source_url),
+    status: cleanString(row.clearance_status),
+    blockedReason: cleanString(row.blocked_reason),
+    reviewedAt: cleanString(row.reviewed_at ?? row.run_completed_at),
+    itemsScanned: numberOrNull(row.items_scanned),
+    transcriptCount: numberOrNull(row.subtitle_or_transcript_count),
+    keywordHits: numberOrNull(row.keyword_hit_count),
+    confirmedFindings: numberOrNull(row.confirmed_finding_count),
+    confidence: numberOrNull(row.evidence_confidence_score),
+    findings: cleanList(row.confirmed_findings),
+    notes: cleanList(row.false_positive_notes),
+    blockers: cleanList(row.blockers),
+  };
+}
+
 function humanizeQuestionKey(key: string) {
   return key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -618,6 +692,8 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     contactBook: (row.contact_book ?? []).map(projectContactBook).filter(Boolean) as ContactBookProjection[],
     externalCollaborators: (row.external_collaborators ?? []).map(projectExternalCollaborator).filter(Boolean) as ExternalCollaboratorProjection[],
     actionabilityAnswers: projectActionabilityAnswers(row.actionability_answers),
+    tasks: (row.public_tasks ?? []).map(projectCandidateTask).filter(Boolean) as CandidateTaskProjection[],
+    clearanceRuns: (row.clearance_runs ?? []).map(projectClearanceRun).filter(Boolean) as ClearanceRunProjection[],
     missingFields: cleanList(row.missing_fields),
     nextAction: cleanString(row.suggested_next_action),
   };
