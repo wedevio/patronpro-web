@@ -72,7 +72,12 @@ function routeUrl(route: ContactRouteRow | undefined | null) {
   if (!route) return undefined;
   if (!["website", "contact_form", "public_profile", "third_party_profile"].includes(route.type ?? "")) return undefined;
   const url = readString(route.url) ?? readString(route.value);
-  return url?.startsWith("http") ? url : undefined;
+  return webUrl(url);
+}
+
+function webUrl(value: string | null | undefined) {
+  if (!value) return undefined;
+  return /^https?:\/\//i.test(value) ? value : undefined;
 }
 
 function selectRoute(routes: ContactRouteRow[], routeId?: string | null) {
@@ -212,7 +217,7 @@ export async function POST(request: Request): Promise<Response> {
     const selectedPhone = routePhone(selectedRoute);
     const email = selectedEmail ?? routes.map(routeEmail).find(Boolean);
     const phone = selectedPhone ?? routes.map(routePhone).find(Boolean);
-    const website = routeUrl(selectedRoute) ?? contact.primary_public_url ?? undefined;
+    const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
     const canApply = Boolean(email || phone || allowWithoutDirectRoute);
     const minimumContactDataStatus = !locationId
       ? "missing_location_id"
