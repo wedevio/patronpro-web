@@ -362,7 +362,11 @@ website_detail AS (
         AND coalesce(crawl_status, '') NOT IN (
           'no_official_website_found',
           'no_official_website_found_social_only',
-          'no_owned_website_found'
+          'no_owned_website_found',
+          'rendered_website_crawl_failed_dns',
+          'failed_dns_or_navigation',
+          'website_unavailable_dns_failed',
+          'owned_website_unavailable_dns_failed'
         )
     ) AS owned_website_count,
     count(*) FILTER (
