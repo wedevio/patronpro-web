@@ -366,6 +366,8 @@ website_detail AS (
           'not_run_no_verified_website',
           'directory_profile_only',
           'directory_listing_only',
+          'localsearch_listing_only',
+          'local_search_listing_only',
           'rendered_website_crawl_failed_dns',
           'failed_dns_or_navigation',
           'website_unavailable_dns_failed',
@@ -395,6 +397,8 @@ social_detail AS (
     candidate_id,
     count(*) FILTER (
       WHERE coalesce(status, '') <> ''
+        AND coalesce(status, '') NOT LIKE 'superseded%'
+        AND coalesce(status, '') NOT LIKE 'duplicate%'
         AND coalesce(status, '') NOT LIKE '%wrong%'
         AND coalesce(status, '') NOT LIKE '%disputed%'
         AND coalesce(status, '') NOT LIKE '%unverified%'
@@ -406,6 +410,8 @@ social_detail AS (
     ) AS verified_social_count,
     count(*) FILTER (
       WHERE coalesce(status, '') <> ''
+        AND coalesce(status, '') NOT LIKE 'superseded%'
+        AND coalesce(status, '') NOT LIKE 'duplicate%'
         AND coalesce(status, '') NOT LIKE '%wrong%'
         AND coalesce(status, '') NOT LIKE '%disputed%'
         AND coalesce(status, '') NOT LIKE '%unverified%'
