@@ -38,7 +38,39 @@ SELECT
     WHERE w.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS websites,
   COALESCE((
-    SELECT jsonb_agg(to_jsonb(m) || to_jsonb(ma) ORDER BY m.selected_rank NULLS LAST, m.slot NULLS LAST, m.media_item_id)
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'media_item_id', m.media_item_id,
+        'platform', m.platform,
+        'canonical_url', m.canonical_url,
+        'slot', m.slot,
+        'selected_rank', m.selected_rank,
+        'selection_bucket', m.selection_bucket,
+        'selection_reason', m.selection_reason,
+        'views_count', m.views_count,
+        'likes_count', m.likes_count,
+        'comments_count', m.comments_count,
+        'shares_count', m.shares_count,
+        'saves_count', m.saves_count,
+        'visible_metrics', m.visible_metrics,
+        'source_type', m.source_type,
+        'verification_status', m.verification_status,
+        'analysis_status', ma.analysis_status,
+        'score_0_100', ma.score_0_100,
+        'language', ma.language,
+        'hook', ma.hook,
+        'seminar_potential', ma.seminar_potential,
+        'visual_summary', ma.visual_summary,
+        'audio_summary', ma.audio_summary,
+        'cta', ma.cta,
+        'risk_summary', ma.risk_summary,
+        'production_quality', ma.production_quality,
+        'transcript_status', ma.transcript_status,
+        'contact_sheet_path', ma.contact_sheet_path,
+        'representative_screenshot_path', ma.representative_screenshot_path
+      )
+      ORDER BY m.selected_rank NULLS LAST, m.slot NULLS LAST, m.media_item_id
+    )
     FROM patronpro_collab.media_items m
     LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = m.media_item_id
     WHERE m.candidate_id = c.candidate_id
