@@ -89,7 +89,15 @@ media_detail AS (
         FROM patronpro_collab.media_analyses ma
         WHERE ma.media_item_id = mi.media_item_id
           AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
-          AND coalesce(ma.transcript_status, '') NOT IN ('', 'unknown', 'missing_or_visual_only', 'audio_summary_present_unverified')
+          AND coalesce(ma.transcript_status, '') NOT IN (
+            '',
+            'none',
+            'unknown',
+            'no_transcript',
+            'visual_only',
+            'missing_or_visual_only',
+            'audio_summary_present_unverified'
+          )
       )
     ) AS transcript_verified_media_count
   FROM patronpro_collab.media_items mi
