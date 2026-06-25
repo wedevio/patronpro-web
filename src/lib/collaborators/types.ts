@@ -186,6 +186,7 @@ export type ClearanceRunProjection = {
   findings: string[];
   notes: string[];
   blockers: string[];
+  rawPublicPayload?: Record<string, unknown> | null;
 };
 
 export type CollaboratorProjection = {

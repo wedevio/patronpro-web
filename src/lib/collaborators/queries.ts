@@ -196,9 +196,34 @@ SELECT
     WHERE cas.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS public_tasks,
   COALESCE((
-    SELECT cas.clearance_runs
-    FROM actionability_summary cas
-    WHERE cas.candidate_id = c.candidate_id
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'clearance_run_id', run.clearance_run_id,
+        'platform', run.platform,
+        'source_url', run.source_url,
+        'run_completed_at', run.run_completed_at,
+        'items_scanned', run.items_scanned,
+        'subtitle_or_transcript_count', run.subtitle_or_transcript_count,
+        'keyword_hit_count', run.keyword_hit_count,
+        'confirmed_finding_count', run.confirmed_finding_count,
+        'clearance_status', run.clearance_status,
+        'blocked_reason', run.blocked_reason,
+        'reviewed_at', run.reviewed_at,
+        'evidence_confidence_score', run.evidence_confidence_score,
+        'confirmed_findings', run.confirmed_findings,
+        'false_positive_notes', run.false_positive_notes,
+        'blockers', run.blockers,
+        'raw_public_payload', run.raw_public_payload
+      )
+      ORDER BY run.run_completed_at DESC NULLS LAST
+    )
+    FROM (
+      SELECT *
+      FROM patronpro_collab.candidate_clearance_runs ccr
+      WHERE ccr.candidate_id = c.candidate_id
+      ORDER BY ccr.run_completed_at DESC NULLS LAST
+      LIMIT 8
+    ) run
   ), '[]'::jsonb) AS clearance_runs,
   COALESCE(a.missing_fields, ARRAY[]::text[]) AS missing_fields,
   a.suggested_next_action

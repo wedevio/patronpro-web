@@ -1,6 +1,5 @@
 import type {
   ActionabilityAnswerProjection,
-  CandidateTaskProjection,
   ClearanceRunProjection,
   CollaboratorProjection,
   ContactBookProjection,
@@ -13,13 +12,33 @@ import { CommercialClearanceButton } from "./CommercialClearanceButton";
 import { GhlContactButton } from "./GhlContactButton";
 import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
-function Section({ title, children, value }: { title: string; children: React.ReactNode; value: unknown }) {
+function Section({ id, title, children, value }: { id?: string; title: string; children: React.ReactNode; value: unknown }) {
   if (!hasMeaningfulContent(value)) return null;
   return (
-    <section className="rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
+    <section id={id} className="scroll-mt-24 rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
       <h2 className="text-lg font-semibold text-[#182235]">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
+  );
+}
+
+function SectionNav({ items }: { items: Array<{ id: string; title: string; value: unknown }> }) {
+  const visibleItems = items.filter((item) => hasMeaningfulContent(item.value));
+  if (visibleItems.length < 2) return null;
+  return (
+    <nav className="sticky top-3 z-10 rounded-2xl border border-[#dfe5ee] bg-white/95 p-3 shadow-sm backdrop-blur">
+      <div className="flex gap-2 overflow-x-auto">
+        {visibleItems.map((item) => (
+          <a
+            key={item.id}
+            href={`#${item.id}`}
+            className="whitespace-nowrap rounded-xl bg-[#f5f7fb] px-3 py-2 text-sm font-semibold text-[#42506a] hover:bg-[#e8eef7] hover:text-[#182235]"
+          >
+            {item.title}
+          </a>
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -473,11 +492,14 @@ function actionabilityCardValue(answer: ActionabilityAnswerProjection) {
   return answer.value ?? answer.evidenceSummary ?? answer.status ?? null;
 }
 
+const HIDDEN_TOP_ACTIONABILITY_KEYS = new Set(["recommended_outreach_path", "missing_next_step"]);
+
 function CollaborationCompatibilityCards({ answers }: { answers: ActionabilityAnswerProjection[] }) {
-  if (!answers.length) return null;
+  const visibleAnswers = answers.filter((answer) => !HIDDEN_TOP_ACTIONABILITY_KEYS.has(answer.key));
+  if (!visibleAnswers.length) return null;
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {answers.map((answer) => (
+      {visibleAnswers.map((answer) => (
         <article key={answer.key} className="rounded-2xl border border-[#dfe5ee] bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{answer.shortLabel ?? answer.label}</p>
@@ -502,21 +524,68 @@ function CollaborationCompatibilityCards({ answers }: { answers: ActionabilityAn
   );
 }
 
-function NextOutreachObjective({ tasks }: { tasks: CandidateTaskProjection[] }) {
-  const task = tasks.find((item) => item.status !== "done" && item.status !== "deferred") ?? tasks[0];
-  if (!task) return null;
+function cleanTextList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => safeText(item)).filter(Boolean) as string[];
+}
+
+function commercialProfileFromRuns(clearanceRuns: ClearanceRunProjection[]) {
+  for (const run of clearanceRuns) {
+    const payload = run.rawPublicPayload;
+    const profile = payload?.commercial_profile;
+    if (profile && typeof profile === "object" && !Array.isArray(profile)) {
+      const candidate = profile as Record<string, unknown>;
+      if (candidate.schema_version === "commercial_profile_v1") {
+        return candidate;
+      }
+    }
+  }
+  return null;
+}
+
+function CommercialSignalsOffers({ clearanceRuns }: { clearanceRuns: ClearanceRunProjection[] }) {
+  const profile = commercialProfileFromRuns(clearanceRuns);
+  if (!profile) return null;
+  const services = cleanTextList(profile.services_offered);
+  const brandSignals = cleanTextList(profile.brand_deal_or_product_signals);
+  const techMentions = cleanTextList(profile.crm_or_tech_mentions);
+  const seminarSignals = cleanTextList(profile.seminar_or_class_signals);
+  const tone = cleanTextList(profile.tone_style);
+  const summary = safeText(profile.summary);
+  const languageMix = safeText(profile.language_mix);
+  const confidence = safeText(profile.confidence);
   return (
     <article className="mt-4 rounded-2xl border border-[#dfe5ee] bg-[#fffaf2] p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a5b17]">Next Outreach Objective</p>
-        <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#8a5b17]">
-          {[task.priority, task.status].filter(Boolean).join(" / ")}
-        </span>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a5b17]">Commercial Signals & Offers</p>
+        {[languageMix, confidence].filter(Boolean).length ? (
+          <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#8a5b17]">
+            {[languageMix, confidence].filter(Boolean).join(" / ")}
+          </span>
+        ) : null}
       </div>
-      <h3 className="mt-3 text-lg font-semibold text-[#182235]">{task.label}</h3>
-      {task.summary ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
-      {task.blockerReason ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#8a5b17]">Blocker: {task.blockerReason}</p> : null}
+      {summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{summary}</p> : null}
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {services.length ? <MiniSignalList title="Services / offers" items={services} /> : null}
+        {seminarSignals.length ? <MiniSignalList title="Seminars / classes" items={seminarSignals} /> : null}
+        {techMentions.length ? <MiniSignalList title="CRM / tech mentions" items={techMentions} /> : null}
+        {brandSignals.length ? <MiniSignalList title="Brand / product signals" items={brandSignals} /> : null}
+        {tone.length ? <MiniSignalList title="Tone / style" items={tone} /> : null}
+      </div>
     </article>
+  );
+}
+
+function MiniSignalList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-xl bg-white p-3">
+      <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a5b17]">{title}</h3>
+      <ul className="mt-2 grid gap-1 text-xs leading-5 text-[#42506a]">
+        {items.slice(0, 4).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -598,6 +667,19 @@ function ExternalCollaborators({ candidate }: { candidate: CollaboratorProjectio
 }
 
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
+  const internalContactsValue = [candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts];
+  const externalCollaboratorsValue = [candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)];
+  const sectionNavItems = [
+    { id: "collaboration-compatibility", title: "Compatibility", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
+    { id: "internal-contacts", title: "Contacts", value: internalContactsValue },
+    { id: "recommendation", title: "Recommendation", value: candidate.recommendation },
+    { id: "opportunities", title: "Opportunities", value: [candidate.opportunities, candidate.shortcomings, candidate.risks] },
+    { id: "social-profiles", title: "Social", value: candidate.socialProfiles },
+    { id: "website-analysis", title: "Website", value: candidate.websites },
+    { id: "external-collaborators", title: "Collaborators", value: externalCollaboratorsValue },
+    { id: "reviewed-media", title: "Media", value: candidate.media },
+    { id: "evidence-gaps", title: "Gaps", value: candidate.missingFields },
+  ];
   return (
     <div className="space-y-5">
       <header className="rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
@@ -619,18 +701,24 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Metric label="Reviewed media" value={candidate.media.length || null} />
       </div>
 
-      <Section title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.tasks, candidate.clearanceRuns, candidate.socialProfiles]}>
+      <SectionNav items={sectionNavItems} />
+
+      <Section id="collaboration-compatibility" title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
-        <NextOutreachObjective tasks={candidate.tasks} />
+        <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
         <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
         <CommercialClearanceButton candidateId={candidate.id} profiles={candidate.socialProfiles} />
       </Section>
 
-      <Section title="Recommendation" value={candidate.recommendation}>
+      <Section id="internal-contacts" title="Internal contacts / public routes" value={internalContactsValue}>
+        <ContactBook candidate={candidate} />
+      </Section>
+
+      <Section id="recommendation" title="Recommendation" value={candidate.recommendation}>
         <p className="text-base leading-7 text-[#42506a]">{candidate.recommendation}</p>
       </Section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div id="opportunities" className="scroll-mt-24 grid gap-5 lg:grid-cols-2">
         <Section title="Opportunities" value={candidate.opportunities}>
           {bullets(candidate.opportunities)}
         </Section>
@@ -639,7 +727,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         </Section>
       </div>
 
-      <Section title="Verified social profiles" value={candidate.socialProfiles}>
+      <Section id="social-profiles" title="Verified social profiles" value={candidate.socialProfiles}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-xs uppercase tracking-[0.14em] text-[#68758d]">
@@ -675,23 +763,19 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         </div>
       </Section>
 
-      <Section title="Website analysis" value={candidate.websites}>
+      <Section id="website-analysis" title="Website analysis" value={candidate.websites}>
         <WebsiteAnalysis websites={candidate.websites} />
       </Section>
 
-      <Section title="Internal contacts / public routes" value={[candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts]}>
-        <ContactBook candidate={candidate} />
-      </Section>
-
-      <Section title="External collaborators" value={[candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)]}>
+      <Section id="external-collaborators" title="External collaborators" value={externalCollaboratorsValue}>
         <ExternalCollaborators candidate={candidate} />
       </Section>
 
-      <Section title="Reviewed media evidence" value={candidate.media}>
+      <Section id="reviewed-media" title="Reviewed media evidence" value={candidate.media}>
         <MediaEvidenceGallery media={candidate.media} />
       </Section>
 
-      <Section title="Evidence gaps" value={candidate.missingFields}>
+      <Section id="evidence-gaps" title="Evidence gaps" value={candidate.missingFields}>
         <p className="text-sm text-[#526078]">Next action: {candidate.nextAction ?? "review"}</p>
         <div className="mt-3">{bullets(candidate.missingFields)}</div>
       </Section>

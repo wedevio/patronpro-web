@@ -80,7 +80,7 @@ const REQUIRED_QUESTION_KEYS = [
   "sells_or_recommends_crm",
   "decision_makers",
   "reliable_contact_routes",
-  "recommended_outreach_path",
+  "commercial_signals_and_offers",
   "collaboration_angle",
 ];
 

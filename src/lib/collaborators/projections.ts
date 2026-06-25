@@ -255,6 +255,7 @@ type ClearanceRunRow = {
   confirmed_findings?: string[] | null;
   false_positive_notes?: string[] | null;
   blockers?: string[] | null;
+  raw_public_payload?: Record<string, unknown> | null;
 };
 
 function numberOrNull(value: number | string | null | undefined) {
@@ -681,6 +682,7 @@ function projectClearanceRun(row: ClearanceRunRow): ClearanceRunProjection | nul
     findings: cleanList(row.confirmed_findings),
     notes: cleanList(row.false_positive_notes),
     blockers: cleanList(row.blockers),
+    rawPublicPayload: row.raw_public_payload && typeof row.raw_public_payload === "object" ? row.raw_public_payload : null,
   };
 }
 
