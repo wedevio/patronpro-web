@@ -640,7 +640,7 @@ function addAction(actions: ActionItem[], code: string, label: string, severity:
 }
 
 function expectedMediaCount(row: AuditRow) {
-  if (row.shortlist_status === "reject" || row.shortlist_status === "out_of_scope") return 0;
+  if (isRejectedOrBlockedCandidate(row) || row.shortlist_status === "out_of_scope") return 0;
   if (row.source_lane === "communities") return 0;
   return 8;
 }
@@ -653,7 +653,16 @@ function isAcceptedNonStrictMissingField(row: AuditRow, field: string) {
   const websiteAnalyzed = readNumber(row.website_analyzed_count);
   const websiteScreenshots = readNumber(row.website_screenshot_count);
 
+  if (field === "primary_url") return rejectedOrBlocked || mediaUnavailable;
+  if (field === "contact_intelligence") return rejectedOrBlocked || mediaUnavailable;
   if (field === "decision_maker") return isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"));
+  if (field === "verified_person_contact_route") {
+    return (
+      rejectedOrBlocked ||
+      mediaUnavailable ||
+      isClosedNegativeAnswerStatus(answerStatus(row, "reliable_contact_routes"))
+    );
+  }
   if (field === "reviewed_media" || field === "comment_evidence") return mediaUnavailable || expectedMediaCount(row) === 0;
   if (field === "reach_metric" || field === "reach_metric_capture_date") return metricRequiredSocials === 0 || rejectedOrBlocked || mediaUnavailable;
   if (field === "verified_social_profile_url") return rejectedOrBlocked || mediaUnavailable;
@@ -829,7 +838,12 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     addAction(actions, "find_decision_maker", "Find owner/decision-maker", "P0", "No decision-maker relationship is registered.");
   }
 
-  if (verifiedRoutes === 0) {
+  if (
+    verifiedRoutes === 0 &&
+    !isRejectedOrBlockedCandidate(row) &&
+    !hasMediaUnavailableReceipt(row) &&
+    !isClosedNegativeAnswerStatus(answerStatus(row, "reliable_contact_routes"))
+  ) {
     addAction(actions, "verify_contact_route", "Verify contact route", "P0", "No verified contact route is registered.");
   }
 
