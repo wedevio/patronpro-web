@@ -9,6 +9,7 @@ import type {
   WebsiteProjection,
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+import { CommercialClearanceButton } from "./CommercialClearanceButton";
 import { GhlContactButton } from "./GhlContactButton";
 import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
@@ -618,10 +619,11 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Metric label="Reviewed media" value={candidate.media.length || null} />
       </div>
 
-      <Section title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.tasks, candidate.clearanceRuns]}>
+      <Section title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.tasks, candidate.clearanceRuns, candidate.socialProfiles]}>
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
         <NextOutreachObjective tasks={candidate.tasks} />
         <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
+        <CommercialClearanceButton candidateId={candidate.id} profiles={candidate.socialProfiles} />
       </Section>
 
       <Section title="Recommendation" value={candidate.recommendation}>
