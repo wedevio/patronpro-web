@@ -6,7 +6,6 @@ import { isPanelLabMode } from "@/lib/lab/panel-lab";
 export const dynamic = "force-dynamic";
 
 const CONTENT_TYPES: Record<string, string> = {
-  ".avif": "image/avif",
   ".webp": "image/webp",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",

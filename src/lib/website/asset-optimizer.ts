@@ -20,7 +20,7 @@ export type WebsiteAssetStatus =
 
 export interface WebsiteAssetDerivative {
   width: number;
-  format: "avif" | "webp" | "jpg" | "png";
+  format: "webp" | "jpg" | "png";
   url: string;
   sizeBytes: number;
 }
@@ -82,7 +82,7 @@ export function shouldSkipSmallAsset(input: {
   width?: number;
   height?: number;
 }): boolean {
-  const acceptableFormat = input.format === "webp" || input.format === "avif";
+  const acceptableFormat = input.format === "webp";
   const smallEnough = input.sizeBytes > 0 && input.sizeBytes < ASSET_SKIP_THRESHOLD_BYTES;
   const reasonableDimensions = !input.width || input.width <= 1440;
   const reasonableHeight = !input.height || input.height <= 1440;
@@ -182,7 +182,7 @@ function sortedDerivatives(item: WebsiteAssetManifestItem): WebsiteAssetDerivati
   return [...item.derivatives].filter((derivative) => derivative.url).sort((a, b) => a.width - b.width);
 }
 
-function srcsetFor(item: WebsiteAssetManifestItem, format: "avif" | "webp" | "jpg"): string {
+function srcsetFor(item: WebsiteAssetManifestItem, format: "webp" | "jpg"): string {
   return sortedDerivatives(item)
     .filter((derivative) => derivative.format === format)
     .map((derivative) => `${derivative.url} ${derivative.width}w`)
@@ -240,7 +240,6 @@ export function optimizedAssetCustomValueMappings(
       const fallback = preferredWebsiteUrl(item);
       mappings.push(
         [prefix, fallback],
-        [`${prefix}_avif_srcset`, srcsetFor(item, "avif")],
         [`${prefix}_webp_srcset`, srcsetFor(item, "webp")],
         [`${prefix}_jpeg_srcset`, srcsetFor(item, "jpg")],
         [`${prefix}_jpeg_fallback`, fallback],

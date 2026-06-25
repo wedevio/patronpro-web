@@ -1,7 +1,7 @@
 import sharp from "sharp";
 
 export type WebsiteImageSubject = "hero" | "about" | "contact";
-export type WebsiteImageFormat = "avif" | "webp" | "jpg";
+export type WebsiteImageFormat = "webp" | "jpg";
 
 export interface WebsiteImageVariant {
   width: number;
@@ -46,7 +46,6 @@ const SOCIAL_PREVIEW_WIDTH = 1200;
 const SOCIAL_PREVIEW_HEIGHT = 630;
 
 const FORMAT_META: Record<WebsiteImageFormat, { ext: string; contentType: string }> = {
-  avif: { ext: "avif", contentType: "image/avif" },
   webp: { ext: "webp", contentType: "image/webp" },
   jpg: { ext: "jpg", contentType: "image/jpeg" },
 };
@@ -104,13 +103,7 @@ async function convertVariant(
       withoutEnlargement: true,
     });
 
-  if (format === "avif") {
-    pipeline = pipeline.avif({
-      quality: 50,
-      effort: 6,
-      chromaSubsampling: "4:2:0",
-    });
-  } else if (format === "webp") {
+  if (format === "webp") {
     pipeline = pipeline.webp({
       quality: 70,
       effort: 5,
@@ -176,7 +169,6 @@ export function buildVariantSet(
     subject,
     variants: sorted,
     srcsets: {
-      avif: srcset("avif"),
       webp: srcset("webp"),
       jpg: srcset("jpg"),
     },
@@ -191,7 +183,6 @@ export function websiteImageCustomValueMappings(
   const prefix = `website_${set.subject}_image`;
   return [
     [prefix, set.legacyUrl],
-    [`${prefix}_avif_srcset`, set.srcsets.avif],
     [`${prefix}_webp_srcset`, set.srcsets.webp],
     [`${prefix}_jpeg_srcset`, set.srcsets.jpg],
     [`${prefix}_jpeg_fallback`, set.jpegFallbackUrl],

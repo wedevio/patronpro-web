@@ -194,19 +194,16 @@ export async function POST(request: Request): Promise<Response> {
       };
       const responsiveResults = {
         hero: generatedBySubject.hero ? {
-          avifSrcset: generatedBySubject.hero.srcsets.avif,
           webpSrcset: generatedBySubject.hero.srcsets.webp,
           jpegSrcset: generatedBySubject.hero.srcsets.jpg,
           jpegFallback: generatedBySubject.hero.jpegFallbackUrl,
         } : null,
         about: generatedBySubject.about ? {
-          avifSrcset: generatedBySubject.about.srcsets.avif,
           webpSrcset: generatedBySubject.about.srcsets.webp,
           jpegSrcset: generatedBySubject.about.srcsets.jpg,
           jpegFallback: generatedBySubject.about.jpegFallbackUrl,
         } : null,
         contact: generatedBySubject.contact ? {
-          avifSrcset: generatedBySubject.contact.srcsets.avif,
           webpSrcset: generatedBySubject.contact.srcsets.webp,
           jpegSrcset: generatedBySubject.contact.srcsets.jpg,
           jpegFallback: generatedBySubject.contact.jpegFallbackUrl,
@@ -344,19 +341,16 @@ export async function POST(request: Request): Promise<Response> {
     };
     const responsiveResults = {
       hero: generatedBySubject.hero ? {
-        avifSrcset: generatedBySubject.hero.srcsets.avif,
         webpSrcset: generatedBySubject.hero.srcsets.webp,
         jpegSrcset: generatedBySubject.hero.srcsets.jpg,
         jpegFallback: generatedBySubject.hero.jpegFallbackUrl,
       } : null,
       about: generatedBySubject.about ? {
-        avifSrcset: generatedBySubject.about.srcsets.avif,
         webpSrcset: generatedBySubject.about.srcsets.webp,
         jpegSrcset: generatedBySubject.about.srcsets.jpg,
         jpegFallback: generatedBySubject.about.jpegFallbackUrl,
       } : null,
       contact: generatedBySubject.contact ? {
-        avifSrcset: generatedBySubject.contact.srcsets.avif,
         webpSrcset: generatedBySubject.contact.srcsets.webp,
         jpegSrcset: generatedBySubject.contact.srcsets.jpg,
         jpegFallback: generatedBySubject.contact.jpegFallbackUrl,

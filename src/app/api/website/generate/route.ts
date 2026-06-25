@@ -59,15 +59,12 @@ Custom values disponibles:
 - {{custom_values.website_social_image}}
 
 Imágenes responsive disponibles:
-- {{custom_values.website_hero_image_avif_srcset}}
 - {{custom_values.website_hero_image_webp_srcset}}
 - {{custom_values.website_hero_image_jpeg_srcset}}
 - {{custom_values.website_hero_image_jpeg_fallback}}
-- {{custom_values.website_about_image_avif_srcset}}
 - {{custom_values.website_about_image_webp_srcset}}
 - {{custom_values.website_about_image_jpeg_srcset}}
 - {{custom_values.website_about_image_jpeg_fallback}}
-- {{custom_values.website_contact_image_avif_srcset}}
 - {{custom_values.website_contact_image_webp_srcset}}
 - {{custom_values.website_contact_image_jpeg_srcset}}
 - {{custom_values.website_contact_image_jpeg_fallback}}
@@ -162,14 +159,12 @@ Elige iconos apropiados al sector. Para construcción: hard-hat, hammer, wrench,
 
 IMÁGENES — usa SIEMPRE <picture>, nunca PNG directo como background-image.
 Orden obligatorio de formatos:
-1. AVIF primero
-2. WebP segundo
-3. JPEG comprimido como fallback final
+1. WebP primero
+2. JPEG comprimido como fallback final
 
 Hero/LCP — debe ser eager y high priority:
 
 <picture class="responsive-bg hero-bg" aria-hidden="true">
-  <source type="image/avif" srcset="{{custom_values.website_hero_image_avif_srcset}}" sizes="100vw">
   <source type="image/webp" srcset="{{custom_values.website_hero_image_webp_srcset}}" sizes="100vw">
   <img src="{{custom_values.website_hero_image_jpeg_fallback}}" srcset="{{custom_values.website_hero_image_jpeg_srcset}}" sizes="100vw" width="1440" height="960" alt="" loading="eager" fetchpriority="high" decoding="async">
 </picture>
@@ -177,7 +172,6 @@ Hero/LCP — debe ser eager y high priority:
 Imágenes below-fold — siempre lazy:
 
 <picture class="responsive-bg" aria-hidden="true">
-  <source type="image/avif" srcset="{{custom_values.website_about_image_avif_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
   <source type="image/webp" srcset="{{custom_values.website_about_image_webp_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw">
   <img src="{{custom_values.website_about_image_jpeg_fallback}}" srcset="{{custom_values.website_about_image_jpeg_srcset}}" sizes="(max-width: 1024px) 100vw, 50vw" width="960" height="640" alt="" loading="lazy" decoding="async">
 </picture>
