@@ -470,6 +470,23 @@ social_detail AS (
     count(*) FILTER (WHERE coalesce(status, '') IN ('disputed', 'wrong_profile', 'unverified')) AS disputed_social_count
   FROM patronpro_collab.social_profiles
   GROUP BY candidate_id
+),
+actionability_summary AS (
+  SELECT *
+  FROM (
+    SELECT
+      candidate_actionability_summary.*,
+      row_number() OVER (
+        PARTITION BY candidate_id
+        ORDER BY
+          CASE WHEN shortlist_status = 'recommend' THEN 0 WHEN shortlist_status = 'watchlist' THEN 1 WHEN shortlist_status = 'needs_review' THEN 2 ELSE 3 END,
+          coalesce(answered_question_count, 0) DESC,
+          coalesce(collaboration_fit_score, 0) DESC,
+          coalesce(evidence_confidence_score, 0) DESC
+      ) AS actionability_row_rank
+    FROM patronpro_collab.candidate_actionability_summary
+  ) ranked_actionability
+  WHERE actionability_row_rank = 1
 )
 SELECT
   b.candidate_id,
@@ -530,7 +547,7 @@ LEFT JOIN media_profile_mismatches mpm ON mpm.candidate_id = b.candidate_id
 LEFT JOIN comment_detail cd ON cd.candidate_id = b.candidate_id
 LEFT JOIN website_detail wd ON wd.candidate_id = b.candidate_id
 LEFT JOIN social_detail sd ON sd.candidate_id = b.candidate_id
-LEFT JOIN patronpro_collab.candidate_actionability_summary cas ON cas.candidate_id = b.candidate_id
+LEFT JOIN actionability_summary cas ON cas.candidate_id = b.candidate_id
 ORDER BY b.source_lane, coalesce(b.collaboration_fit_score, 0) DESC, b.candidate_id
 `;
 
