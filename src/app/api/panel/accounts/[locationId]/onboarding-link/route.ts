@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePpSession } from "@/lib/auth/require-session";
 import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
+import { getStoredOnboardingLink, onboardingLinkIsActive, saveOnboardingLink } from "@/lib/panel/store";
 import { buildOnboardingLink } from "@/lib/onboarding/invite";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,17 @@ export async function POST(
     const { locationId } = await params;
     if (!locationId) {
       return NextResponse.json({ error: "Falta locationId" }, { status: 400 });
+    }
+
+    const stored = await getStoredOnboardingLink(locationId);
+    if (stored && onboardingLinkIsActive(stored.expiresAt)) {
+      return NextResponse.json({
+        success: true,
+        status: "existing",
+        link: stored.link,
+        expiresAt: stored.expiresAt,
+        generatedAt: stored.generatedAt,
+      });
     }
 
     const locations = await getAllGHLLocations();
@@ -48,10 +60,14 @@ export async function POST(
       firstName: payload.firstName,
     });
 
+    await saveOnboardingLink(locationId, result.onboardingLink, result.expiresAt);
+
     return NextResponse.json({
       success: true,
+      status: "generated",
       link: result.onboardingLink,
       expiresAt: result.expiresAt,
+      generatedAt: new Date().toISOString(),
     });
   } catch (err) {
     console.error("[POST /api/panel/accounts/[locationId]/onboarding-link]", err);

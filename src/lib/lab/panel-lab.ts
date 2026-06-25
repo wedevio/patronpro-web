@@ -30,6 +30,7 @@ export async function signLabPanelSession(email: string): Promise<string> {
 }
 
 export function labSubmission(): PanelSubmission {
+  const onboardingLinkExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   return {
     locationId: LAB_LOCATION_ID,
     contactId: "lab-contact-001",
@@ -79,6 +80,9 @@ export function labSubmission(): PanelSubmission {
     teamSize: "3-10",
     preferredPlatformLanguage: "es",
     customerCommunicationLanguage: "es",
+    onboardingLink: `https://getpatronpro-panel.automatic.picturelle.com/onboarding?locationId=lab-location-001&contactId=lab-contact-001&ppContactId=lab-pp-contact-001&expiresAt=${encodeURIComponent(onboardingLinkExpiresAt)}&sig=lab-signature`,
+    onboardingLinkExpiresAt,
+    onboardingLinkGeneratedAt: new Date("2026-06-24T00:00:00Z").toISOString(),
   };
 }
 

@@ -58,12 +58,72 @@ export interface PanelSubmission {
   teamSize?:               string;
   preferredPlatformLanguage?: string;
   customerCommunicationLanguage?: string;
+  onboardingLink?: string;
+  onboardingLinkExpiresAt?: string;
+  onboardingLinkGeneratedAt?: string;
+}
+
+export interface OnboardingLinkMetadata {
+  link: string;
+  expiresAt: string;
+  generatedAt: string | null;
 }
 
 export function defaultChecklist(): Record<ChecklistItemId, boolean> {
   return Object.fromEntries(
     CHECKLIST_ITEMS.map((item) => [item.id, false])
   ) as Record<ChecklistItemId, boolean>;
+}
+
+export function onboardingLinkIsActive(expiresAt?: string | null, now = Date.now()): boolean {
+  const timestamp = Date.parse(expiresAt ?? "");
+  return !Number.isNaN(timestamp) && timestamp > now;
+}
+
+export async function getStoredOnboardingLink(locationId: string): Promise<OnboardingLinkMetadata | null> {
+  if (isPanelLabMode()) {
+    const submission = labSubmission();
+    if (submission.locationId !== locationId || !submission.onboardingLink || !submission.onboardingLinkExpiresAt) return null;
+    return {
+      link: submission.onboardingLink,
+      expiresAt: submission.onboardingLinkExpiresAt,
+      generatedAt: submission.onboardingLinkGeneratedAt ?? null,
+    };
+  }
+
+  const db = getAdminClient();
+  const { data, error } = await db
+    .from("accounts")
+    .select("onboarding_link_url, onboarding_link_expires_at, onboarding_link_generated_at")
+    .eq("location_id", locationId)
+    .single();
+
+  if (error || !data?.onboarding_link_url || !data.onboarding_link_expires_at) return null;
+
+  return {
+    link: data.onboarding_link_url as string,
+    expiresAt: data.onboarding_link_expires_at as string,
+    generatedAt: (data.onboarding_link_generated_at as string | null) ?? null,
+  };
+}
+
+export async function saveOnboardingLink(locationId: string, link: string, expiresAt: string): Promise<void> {
+  if (isPanelLabMode()) return;
+
+  const db = getAdminClient();
+  const now = new Date().toISOString();
+  const { error } = await db.from("accounts").upsert(
+    {
+      location_id: locationId,
+      onboarding_at: now,
+      onboarding_link_url: link,
+      onboarding_link_expires_at: expiresAt,
+      onboarding_link_generated_at: now,
+    },
+    { onConflict: "location_id" }
+  );
+
+  if (error) throw new Error(`saveOnboardingLink failed: ${error.message}`);
 }
 
 /** Upsert account + submission + default checklist in Supabase. Returns accountId. */
@@ -167,6 +227,9 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       contact_id,
       onboarding_at,
       approved_at,
+      onboarding_link_url,
+      onboarding_link_expires_at,
+      onboarding_link_generated_at,
       account_submissions ( * ),
       account_checklist ( item_id, checked )
     `)
@@ -226,6 +289,9 @@ export async function getAllSubmissions(): Promise<PanelSubmission[]> {
       teamSize:           (sub.team_size as string) ?? undefined,
       preferredPlatformLanguage: (sub.preferred_platform_language as string) ?? undefined,
       customerCommunicationLanguage: (sub.customer_communication_language as string) ?? undefined,
+      onboardingLink:      (acc.onboarding_link_url as string) ?? undefined,
+      onboardingLinkExpiresAt: (acc.onboarding_link_expires_at as string) ?? undefined,
+      onboardingLinkGeneratedAt: (acc.onboarding_link_generated_at as string) ?? undefined,
     };
   });
 }

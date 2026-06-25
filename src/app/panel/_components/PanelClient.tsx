@@ -46,6 +46,7 @@ export interface EnrichedAccount {
 
 type SetupMode = "inspect" | "apply" | "verify" | "reset";
 type SetupStatus = "pass" | "updated" | "warning" | "blocked" | "failed" | "skipped" | "needs_browser";
+type ManualOnboardingLink = { link: string; expiresAt: string; generatedAt?: string | null };
 interface SetupStepResult {
   id: string;
   label: string;
@@ -168,6 +169,20 @@ function setupModeLabel(mode: SetupMode): string {
 }
 
 const LIVERPOOL_DIGITAL_LOCATION_ID = "4cPIvLND9hFAIzWQ1ZbL";
+
+function onboardingLinkFromSubmission(submission: PanelSubmission | null): ManualOnboardingLink | null {
+  if (!submission?.onboardingLink || !submission.onboardingLinkExpiresAt) return null;
+  return {
+    link: submission.onboardingLink,
+    expiresAt: submission.onboardingLinkExpiresAt,
+    generatedAt: submission.onboardingLinkGeneratedAt,
+  };
+}
+
+function onboardingLinkIsActive(link: ManualOnboardingLink | null): boolean {
+  const timestamp = Date.parse(link?.expiresAt ?? "");
+  return !Number.isNaN(timestamp) && timestamp > Date.now();
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -933,7 +948,9 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
   const [isPending, startTransition] = useTransition();
   const [approvedAt, setApprovedAt] = useState<string | null>(submission?.approvedAt ?? null);
   const [approving, setApproving] = useState(false);
-  const [manualOnboardingLink, setManualOnboardingLink] = useState<string | null>(null);
+  const [manualOnboardingLink, setManualOnboardingLink] = useState<ManualOnboardingLink | null>(
+    onboardingLinkFromSubmission(submission)
+  );
   const [manualLinkCopied, setManualLinkCopied] = useState(false);
   const [manualLinkLoading, setManualLinkLoading] = useState(false);
   const [manualLinkError, setManualLinkError] = useState<string | null>(null);
@@ -945,6 +962,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
   const done = countDone(checklist);
   const pct  = progressPct(checklist);
   const canResetTestAccount = account.locationId === LIVERPOOL_DIGITAL_LOCATION_ID;
+  const hasActiveManualLink = onboardingLinkIsActive(manualOnboardingLink);
 
   async function toggle(itemId: ChecklistItemId) {
     const newVal = !checklist[itemId];
@@ -1000,27 +1018,36 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
           businessName: submission?.businessName ?? ghl.name,
         }),
       });
-      const json = await res.json() as { link?: string; error?: string };
+      const json = await res.json() as { link?: string; expiresAt?: string; generatedAt?: string | null; error?: string };
 
-      if (!res.ok || !json.link) {
+      if (!res.ok || !json.link || !json.expiresAt) {
         throw new Error(json.error ?? "No se pudo generar el link de onboarding.");
       }
 
-      setManualOnboardingLink(json.link);
-
-      try {
-        await navigator.clipboard.writeText(json.link);
-        setManualLinkCopied(true);
-        setTimeout(() => setManualLinkCopied(false), 2000);
-      } catch {
-        setManualLinkCopied(false);
-      }
+      const nextLink = {
+        link: json.link,
+        expiresAt: json.expiresAt,
+        generatedAt: json.generatedAt,
+      };
+      setManualOnboardingLink(nextLink);
+      await copyManualOnboardingLink(nextLink);
     } catch (err) {
       setManualLinkError(
         err instanceof Error ? err.message : "No se pudo generar el link de onboarding."
       );
     } finally {
       setManualLinkLoading(false);
+    }
+  }
+
+  async function copyManualOnboardingLink(link = manualOnboardingLink) {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link.link);
+      setManualLinkCopied(true);
+      setTimeout(() => setManualLinkCopied(false), 2000);
+    } catch {
+      setManualLinkCopied(false);
     }
   }
 
@@ -1098,39 +1125,63 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
           <section>
             <h3 className="font-bold text-[13px] uppercase tracking-widest text-slate-400 mb-3">Onboarding manual</h3>
             <div className="space-y-3">
-              <button type="button"
-                onClick={generateManualOnboardingLink}
-                disabled={manualLinkLoading}
-                className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
-                style={{ backgroundColor: manualLinkCopied ? "#22c55e" : "#1E2C46" }}
-              >
-                {manualLinkLoading
-                  ? <><Loader2 size={14} className="animate-spin" />Generando link...</>
-                  : manualLinkCopied
-                    ? <><Check size={14} />Link copiado</>
-                    : <><Copy size={14} />Generar y copiar link</>}
-              </button>
+              <div className="flex items-center justify-between gap-2 text-[12px] bg-slate-50 rounded-[10px] px-3 py-2">
+                <span className="text-slate-500">Link del formulario</span>
+                {hasActiveManualLink
+                  ? <Badge color="green">Activo</Badge>
+                  : manualOnboardingLink
+                    ? <Badge color="red">Expirado</Badge>
+                    : <Badge color="gray">Sin link</Badge>}
+              </div>
 
-              <p className="text-[12px] text-slate-500">
-                Útil cuando falla el envío automático. Genera un link firmado nuevo y lo deja listo para copiar o abrir.
-              </p>
+              {manualOnboardingLink && (
+                <p className="text-[12px] text-slate-500">
+                  Expira: <span className="font-semibold text-slate-700">{formatDateTime(manualOnboardingLink.expiresAt)}</span>
+                </p>
+              )}
 
               {manualLinkError && (
                 <p className="text-[12px] text-red-500 bg-red-50 rounded px-3 py-2">{manualLinkError}</p>
               )}
 
-              {manualOnboardingLink && (
+              {hasActiveManualLink && manualOnboardingLink ? (
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 space-y-2">
+                  <div className="flex items-center gap-2 rounded-md bg-white border border-slate-200 px-2 py-2">
+                    <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-500">
+                      {manualOnboardingLink.link}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => copyManualOnboardingLink()}
+                      className="shrink-0 rounded p-1.5 text-slate-500 hover:text-[#1E2C46] hover:bg-slate-100"
+                      aria-label="Copiar link de onboarding"
+                      title="Copiar link"
+                    >
+                      {manualLinkCopied ? <Check size={15} /> : <Copy size={15} />}
+                    </button>
+                  </div>
                   <a
-                    href={manualOnboardingLink}
+                    href={manualOnboardingLink.link}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center text-[12px] font-semibold text-[#1E2C46] hover:underline"
                   >
                     Abrir onboarding
                   </a>
-                  <p className="text-[11px] text-slate-500 break-all">{manualOnboardingLink}</p>
                 </div>
+              ) : (
+                <button type="button"
+                  onClick={generateManualOnboardingLink}
+                  disabled={manualLinkLoading}
+                  className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: manualLinkCopied ? "#22c55e" : "#1E2C46" }}
+                >
+                  {manualLinkLoading
+                    ? <><Loader2 size={14} className="animate-spin" />Generando link...</>
+                    : manualLinkCopied
+                      ? <><Check size={14} />Link copiado</>
+                      : <><Copy size={14} />Generar link</>}
+                </button>
               )}
             </div>
           </section>
@@ -1727,7 +1778,7 @@ export default function PanelClient({ accounts }: { accounts: EnrichedAccount[] 
         )}
       </div>
 
-      {selected && <SidePanel account={selected} onClose={() => setSelected(null)} onApprove={handleApprove} />}
+      {selected && <SidePanel key={selected.locationId} account={selected} onClose={() => setSelected(null)} onApprove={handleApprove} />}
     </div>
   );
 }
