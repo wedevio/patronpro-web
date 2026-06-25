@@ -21,6 +21,7 @@ type AuditRow = {
   captured_reach_metric_count: number | string | null;
   total_accounted_reach: number | string | null;
   verified_social_count: number | string | null;
+  metric_required_social_count: number | string | null;
   disputed_social_count: number | string | null;
   reviewed_media_count: number | string | null;
   transcript_verified_media_count: number | string | null;
@@ -253,6 +254,25 @@ social_detail AS (
           OR coalesce(status, '') LIKE '%public%'
         )
     ) AS verified_social_count,
+    count(*) FILTER (
+      WHERE coalesce(status, '') <> ''
+        AND coalesce(status, '') NOT LIKE '%wrong%'
+        AND coalesce(status, '') NOT LIKE '%disputed%'
+        AND coalesce(status, '') NOT LIKE '%unverified%'
+        AND coalesce(status, '') NOT LIKE '%metric_unavailable%'
+        AND coalesce(raw_public_payload->>'reach_metric_status', '') NOT IN (
+          'not_publicly_exposed',
+          'not_exposed',
+          'metric_not_public',
+          'blocked_after_public_search',
+          'not_applicable'
+        )
+        AND (
+          coalesce(status, '') LIKE 'active%'
+          OR coalesce(status, '') LIKE '%verified%'
+          OR coalesce(status, '') LIKE '%public%'
+        )
+    ) AS metric_required_social_count,
     count(*) FILTER (WHERE coalesce(status, '') IN ('disputed', 'wrong_profile', 'unverified')) AS disputed_social_count
   FROM patronpro_collab.social_profiles
   GROUP BY candidate_id
@@ -273,6 +293,7 @@ SELECT
   b.captured_reach_metric_count,
   b.total_accounted_reach,
   coalesce(sd.verified_social_count, 0)::integer AS verified_social_count,
+  coalesce(sd.metric_required_social_count, 0)::integer AS metric_required_social_count,
   coalesce(sd.disputed_social_count, 0)::integer AS disputed_social_count,
   coalesce(md.reviewed_media_count, 0)::integer AS reviewed_media_count,
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
@@ -384,7 +405,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const commentEvidence = readNumber(row.comment_evidence_count);
   const socialUrls = readNumber(row.social_url_count);
   const capturedReach = readNumber(row.captured_reach_metric_count);
-  const verifiedSocials = readNumber(row.verified_social_count);
+  const metricRequiredSocials = readNumber(row.metric_required_social_count);
   const websites = readNumber(row.website_count);
   const websiteAnalyzed = readNumber(row.website_analyzed_count);
   const websiteScreenshots = readNumber(row.website_screenshot_count);
@@ -401,13 +422,13 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     addAction(actions, "find_social_profiles", "Find verified social profiles", "P0", "No verified public social URL is registered.");
   }
 
-  if (verifiedSocials > 0 && capturedReach < verifiedSocials) {
+  if (metricRequiredSocials > 0 && capturedReach < metricRequiredSocials) {
     addAction(
       actions,
       "capture_missing_social_metrics",
       "Capture follower/subscriber metrics",
       "P1",
-      `${capturedReach}/${verifiedSocials} verified/public social profiles have dated reach metrics.`
+      `${capturedReach}/${metricRequiredSocials} metric-required verified/public social profiles have dated reach metrics.`
     );
   }
 
@@ -570,6 +591,7 @@ export async function GET(request: Request): Promise<Response> {
             capturedReachMetrics: readNumber(row.captured_reach_metric_count),
             totalAccountedReach: readNumber(row.total_accounted_reach),
             verifiedSocialProfiles: readNumber(row.verified_social_count),
+            metricRequiredSocialProfiles: readNumber(row.metric_required_social_count),
             disputedSocialProfiles: readNumber(row.disputed_social_count),
             reviewedMedia: readNumber(row.reviewed_media_count),
             transcriptVerifiedMedia: readNumber(row.transcript_verified_media_count),
