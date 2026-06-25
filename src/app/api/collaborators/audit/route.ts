@@ -548,6 +548,12 @@ function isClosedNegativeAnswerStatus(status: string | null) {
   return Boolean(status && ["not_found", "not_applicable", "blocked", "verified_false"].includes(status));
 }
 
+function isRejectedOrBlockedCandidate(row: AuditRow) {
+  return [row.shortlist_status, row.candidate_status, row.opportunity_tier]
+    .map((value) => String(value ?? "").toLowerCase())
+    .some((value) => value === "reject" || value === "rejected" || value === "blocked");
+}
+
 function hasMediaUnavailableReceipt(row: AuditRow) {
   const tasks = readArray(row.public_tasks);
   const clearanceRuns = readArray(row.clearance_runs);
@@ -614,7 +620,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     addAction(actions, "score_candidate", "Score and classify candidate", "P1", "No stable shortlist status is present.");
   }
 
-  if (socialUrls === 0) {
+  if (socialUrls === 0 && !isRejectedOrBlockedCandidate(row) && !hasMediaUnavailableReceipt(row)) {
     addAction(actions, "find_social_profiles", "Find verified social profiles", "P0", "No verified public social URL is registered.");
   }
 
