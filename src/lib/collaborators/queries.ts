@@ -5,6 +5,41 @@ import { projectCandidate, projectSummary, type RawCandidateRow } from "./projec
 import type { CollaboratorLane, CollaboratorProjection, DashboardSummary } from "./types";
 
 const candidateSelect = `
+WITH actionability_summary AS (
+  SELECT *
+  FROM (
+    SELECT
+      cas.*,
+      row_number() OVER (
+        PARTITION BY candidate_id
+        ORDER BY
+          CASE WHEN shortlist_status = 'recommend' THEN 0 WHEN shortlist_status = 'watchlist' THEN 1 WHEN shortlist_status = 'needs_review' THEN 2 ELSE 3 END,
+          coalesce(collaboration_fit_score, 0) DESC,
+          coalesce(evidence_confidence_score, 0) DESC,
+          answered_question_count DESC
+      ) AS actionability_row_rank
+    FROM patronpro_collab.candidate_actionability_summary cas
+  ) ranked_actionability
+  WHERE actionability_row_rank = 1
+),
+audit_summary AS (
+  SELECT *
+  FROM (
+    SELECT
+      a.*,
+      row_number() OVER (
+        PARTITION BY candidate_id
+        ORDER BY
+          CASE WHEN shortlist_status = 'recommend' THEN 0 WHEN shortlist_status = 'watchlist' THEN 1 WHEN shortlist_status = 'needs_review' THEN 2 ELSE 3 END,
+          coalesce(collaboration_fit_score, 0) DESC,
+          coalesce(evidence_confidence_score, 0) DESC,
+          coalesce(reach_metric_count, 0) DESC,
+          coalesce(reviewed_media_count, 0) DESC
+      ) AS audit_row_rank
+    FROM patronpro_collab.collaborator_missing_field_audit a
+  ) ranked_audit
+  WHERE audit_row_rank = 1
+)
 SELECT
   c.candidate_id,
   c.candidate_type,
@@ -149,7 +184,7 @@ SELECT
     JOIN patronpro_collab.research_questions rq ON rq.goal_set_id = gs.goal_set_id
     LEFT JOIN LATERAL (
       SELECT cas.answers -> rq.question_key AS payload
-      FROM patronpro_collab.candidate_actionability_summary cas
+      FROM actionability_summary cas
       WHERE cas.candidate_id = c.candidate_id
     ) answer ON true
     WHERE gs.project_key = 'patron-pro-collab-prospect-research'
@@ -157,12 +192,12 @@ SELECT
   ), '{}'::jsonb) AS actionability_answers,
   COALESCE((
     SELECT cas.public_tasks
-    FROM patronpro_collab.candidate_actionability_summary cas
+    FROM actionability_summary cas
     WHERE cas.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS public_tasks,
   COALESCE((
     SELECT cas.clearance_runs
-    FROM patronpro_collab.candidate_actionability_summary cas
+    FROM actionability_summary cas
     WHERE cas.candidate_id = c.candidate_id
   ), '[]'::jsonb) AS clearance_runs,
   COALESCE(a.missing_fields, ARRAY[]::text[]) AS missing_fields,
@@ -175,7 +210,7 @@ LEFT JOIN LATERAL (
   ORDER BY sc.reviewed_at DESC NULLS LAST, sc.created_at DESC
   LIMIT 1
 ) s ON true
-LEFT JOIN patronpro_collab.collaborator_missing_field_audit a ON a.candidate_id = c.candidate_id
+LEFT JOIN audit_summary a ON a.candidate_id = c.candidate_id
 `;
 
 const orderBy = `
