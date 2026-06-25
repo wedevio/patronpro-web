@@ -26,6 +26,8 @@ type AuditRow = {
   transcript_verified_media_count: number | string | null;
   media_domain_conflict_count: number | string | null;
   media_domain_conflict_examples: string[] | null;
+  media_profile_mismatch_count: number | string | null;
+  media_profile_mismatch_examples: string[] | null;
   comment_evidence_count: number | string | null;
   website_count: number | string | null;
   website_screenshot_count: number | string | null;
@@ -173,6 +175,39 @@ media_domain_conflicts AS (
     AND other.candidate_id IS NOT NULL
   GROUP BY med.candidate_id
 ),
+media_profile_candidates AS (
+  SELECT
+    mi.candidate_id,
+    mi.media_item_id,
+    mi.platform,
+    mi.canonical_url,
+    CASE
+      WHEN mi.platform = 'tiktok' AND lower(mi.canonical_url) ~ '^https?://(www[.])?tiktok[.]com/@[^/?]+'
+        THEN regexp_replace(lower(mi.canonical_url), '^https?://(www[.])?tiktok[.]com/(@[^/?]+).*$', '\\2')
+      ELSE NULL
+    END AS source_profile
+  FROM patronpro_collab.media_items mi
+  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+),
+media_profile_mismatches AS (
+  SELECT
+    mpc.candidate_id,
+    count(DISTINCT mpc.media_item_id)::integer AS media_profile_mismatch_count,
+    array_agg(DISTINCT mpc.source_profile ORDER BY mpc.source_profile) AS media_profile_mismatch_examples
+  FROM media_profile_candidates mpc
+  WHERE coalesce(mpc.source_profile, '') <> ''
+    AND NOT EXISTS (
+      SELECT 1
+      FROM patronpro_collab.social_profiles sp
+      WHERE sp.candidate_id = mpc.candidate_id
+        AND sp.platform LIKE '%tiktok%'
+        AND (
+          lower(coalesce(sp.handle, '')) = mpc.source_profile
+          OR lower(coalesce(sp.canonical_url, '')) LIKE '%' || mpc.source_profile || '%'
+        )
+    )
+  GROUP BY mpc.candidate_id
+),
 comment_detail AS (
   SELECT
     mi.candidate_id,
@@ -233,6 +268,8 @@ SELECT
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
   coalesce(mdc.media_domain_conflict_count, 0)::integer AS media_domain_conflict_count,
   coalesce(mdc.media_domain_conflict_examples, ARRAY[]::text[]) AS media_domain_conflict_examples,
+  coalesce(mpm.media_profile_mismatch_count, 0)::integer AS media_profile_mismatch_count,
+  coalesce(mpm.media_profile_mismatch_examples, ARRAY[]::text[]) AS media_profile_mismatch_examples,
   coalesce(cd.comment_evidence_count, b.comment_evidence_count, 0)::integer AS comment_evidence_count,
   b.website_count,
   coalesce(wd.website_screenshot_count, 0)::integer AS website_screenshot_count,
@@ -254,6 +291,7 @@ SELECT
 FROM base b
 LEFT JOIN media_detail md ON md.candidate_id = b.candidate_id
 LEFT JOIN media_domain_conflicts mdc ON mdc.candidate_id = b.candidate_id
+LEFT JOIN media_profile_mismatches mpm ON mpm.candidate_id = b.candidate_id
 LEFT JOIN comment_detail cd ON cd.candidate_id = b.candidate_id
 LEFT JOIN website_detail wd ON wd.candidate_id = b.candidate_id
 LEFT JOIN social_detail sd ON sd.candidate_id = b.candidate_id
@@ -332,6 +370,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const reviewedMedia = readNumber(row.reviewed_media_count);
   const transcriptMedia = readNumber(row.transcript_verified_media_count);
   const mediaDomainConflicts = readNumber(row.media_domain_conflict_count);
+  const mediaProfileMismatches = readNumber(row.media_profile_mismatch_count);
   const commentEvidence = readNumber(row.comment_evidence_count);
   const socialUrls = readNumber(row.social_url_count);
   const capturedReach = readNumber(row.captured_reach_metric_count);
@@ -392,6 +431,20 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       "Review possible media ownership mismatch",
       "P0",
       `${mediaDomainConflicts} reviewed media items reference another registered candidate domain${examples ? ` (${examples})` : ""}.`
+    );
+  }
+
+  if (mediaProfileMismatches > 0) {
+    const examples = readArray(row.media_profile_mismatch_examples)
+      .map((item) => String(item))
+      .slice(0, 3)
+      .join(", ");
+    addAction(
+      actions,
+      "review_media_profile_mismatch",
+      "Review possible media profile mismatch",
+      "P0",
+      `${mediaProfileMismatches} reviewed media items use a social profile not registered for this candidate${examples ? ` (${examples})` : ""}.`
     );
   }
 
@@ -495,6 +548,7 @@ export async function GET(request: Request): Promise<Response> {
             reviewedMedia: readNumber(row.reviewed_media_count),
             transcriptVerifiedMedia: readNumber(row.transcript_verified_media_count),
             mediaDomainConflicts: readNumber(row.media_domain_conflict_count),
+            mediaProfileMismatches: readNumber(row.media_profile_mismatch_count),
             commentEvidence: readNumber(row.comment_evidence_count),
             websites: readNumber(row.website_count),
             websiteAnalyzed: readNumber(row.website_analyzed_count),
