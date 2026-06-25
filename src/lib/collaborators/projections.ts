@@ -273,6 +273,15 @@ function cleanString(value: unknown) {
   return trimmed;
 }
 
+function cleanEvidencePath(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "pending" || trimmed === "n/a") return null;
+  if (/cookie|token|signed_url|api[_-]?key|secret/i.test(trimmed)) return null;
+  const normalized = normalizeEvidencePath(trimmed);
+  return normalized?.startsWith("media/") ? normalized : null;
+}
+
 function cleanList(values: unknown): string[] {
   if (!Array.isArray(values)) return [];
   return values
@@ -362,7 +371,7 @@ function projectWebsite(row: WebsiteRow): WebsiteProjection | null {
 }
 
 function resolveEvidenceImage(sourcePath: string | null): EvidenceImageProjection | null {
-  const normalizedPath = normalizeEvidencePath(sourcePath);
+  const normalizedPath = cleanEvidencePath(sourcePath);
   if (!normalizedPath) return null;
   const derivative = mediaDerivatives[normalizedPath];
   const thumb = derivative?.variants?.thumb;
@@ -387,7 +396,7 @@ function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): Websi
   for (const item of manifest) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     for (const [key, value] of Object.entries(item)) {
-      const path = cleanString(value);
+      const path = cleanEvidencePath(value);
       if (!path) continue;
       const image = resolveEvidenceImage(path);
       if (!image) continue;
@@ -403,8 +412,8 @@ function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): Websi
 }
 
 function projectMedia(row: MediaRow): MediaEvidenceProjection {
-  const contactSheetPath = cleanString(row.contact_sheet_path);
-  const representativeScreenshotPath = cleanString(row.representative_screenshot_path);
+  const contactSheetPath = cleanEvidencePath(row.contact_sheet_path);
+  const representativeScreenshotPath = cleanEvidencePath(row.representative_screenshot_path);
   return {
     id: row.media_item_id,
     platform: cleanString(row.platform),
