@@ -7,10 +7,8 @@ import { uploadMediaFromBuffer } from "@/lib/ghl/media";
 import { upsertCustomValue } from "@/lib/ghl/custom-values";
 import {
   buildVariantSet,
-  createWebsiteSocialPreviewImage,
   createWebsiteImageVariants,
   websiteImageCustomValueMappings,
-  type WebsiteSocialPreviewImage,
   type WebsiteImageSubject,
   type WebsiteImageVariantSet,
 } from "@/lib/website/image-variants";
@@ -62,19 +60,6 @@ function isNonNull<T>(value: T | null): value is T {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-async function fetchOptionalImageBuffer(url: string | undefined): Promise<Buffer | null> {
-  if (!url) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("image/")) return null;
-    return Buffer.from(await res.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
 
 async function uploadToWebsiteAssets(
   db: ReturnType<typeof getAdminClient>,
@@ -190,7 +175,7 @@ export async function POST(request: Request): Promise<Response> {
         hero: generatedBySubject.hero?.legacyUrl ?? website.hero_image_url,
         about: generatedBySubject.about?.legacyUrl ?? website.about_image_url,
         contact: generatedBySubject.contact?.legacyUrl ?? website.contact_image_url,
-        social: null,
+        social: generatedBySubject.hero?.jpegFallbackUrl ?? generatedBySubject.hero?.legacyUrl ?? null,
       };
       const responsiveResults = {
         hero: generatedBySubject.hero ? {
@@ -308,36 +293,11 @@ export async function POST(request: Request): Promise<Response> {
       generated.filter(isNonNull).map((asset) => [asset.subject, asset]),
     ) as Partial<Record<WebsiteImageSubject, GeneratedImageSet>>;
 
-    let socialAsset: WebsiteSocialPreviewImage | null = null;
-    if (generatedBySubject.hero) {
-      const logoBuffer = await fetchOptionalImageBuffer(body.logoSquareUrl ?? body.logoUrl);
-      const socialSource =
-        generatedBySubject.hero.variants.find((variant) => variant.format === "jpg" && variant.width === 1440)?.buffer ??
-        generatedBySubject.hero.variants.find((variant) => variant.format === "jpg")?.buffer ??
-        generatedBySubject.hero.variants[0].buffer;
-      const socialPreview = await createWebsiteSocialPreviewImage(socialSource, {
-        businessName,
-        services: body.services,
-        city: body.city,
-        state: body.state,
-        primaryColor: body.primaryColor,
-        accentColor: body.secondaryColor,
-        logoBuffer,
-      });
-      const publicUrl = await uploadToWebsiteAssets(db, locationId, socialPreview);
-      if (publicUrl) {
-        socialAsset = {
-          ...socialPreview,
-          publicUrl,
-        };
-      }
-    }
-
     const results = {
       hero: generatedBySubject.hero?.legacyUrl ?? (typeof website?.hero_image_url === "string" ? website.hero_image_url : null),
       about: generatedBySubject.about?.legacyUrl ?? (typeof website?.about_image_url === "string" ? website.about_image_url : null),
       contact: generatedBySubject.contact?.legacyUrl ?? (typeof website?.contact_image_url === "string" ? website.contact_image_url : null),
-      social: socialAsset?.publicUrl ?? null,
+      social: generatedBySubject.hero?.jpegFallbackUrl ?? generatedBySubject.hero?.legacyUrl ?? null,
     };
     const responsiveResults = {
       hero: generatedBySubject.hero ? {
@@ -440,27 +400,6 @@ export async function POST(request: Request): Promise<Response> {
             syncAssetSetToGhl(generatedBySubject.about ?? null),
             syncAssetSetToGhl(generatedBySubject.contact ?? null),
           ]);
-
-          if (socialAsset) {
-            const socialGhlUrl = await uploadMediaFromBuffer(
-              locationId,
-              socialAsset.buffer,
-              socialAsset.filename,
-              socialAsset.contentType,
-              token,
-            );
-            if (socialGhlUrl) {
-              socialAsset = {
-                ...socialAsset,
-                ghlUrl: socialGhlUrl,
-              };
-              syncResults.push(
-                await upsertCustomValue(locationId, "website_social_image", socialGhlUrl, token, existing)
-              );
-            } else {
-              syncResults.push(false);
-            }
-          }
 
           const ghlSyncOk = syncResults.every(Boolean);
           ghlSyncStatus = ghlSyncOk ? "synced" : "failed";

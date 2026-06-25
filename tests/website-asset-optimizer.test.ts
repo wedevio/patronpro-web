@@ -80,5 +80,6 @@ describe("website asset optimizer", () => {
     expect(mappings).toContainEqual(["website_hero_image_webp_srcset", "https://cdn/hero-640.webp 640w, https://cdn/hero-960.webp 960w"]);
     expect(mappings.some(([key]) => key.includes("avif"))).toBe(false);
     expect(mappings).toContainEqual(["website_hero_image_jpeg_fallback", "https://cdn/hero-960.jpg"]);
+    expect(mappings).toContainEqual(["website_social_image", "https://cdn/hero-960.jpg"]);
   });
 });

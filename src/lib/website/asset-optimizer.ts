@@ -244,6 +244,9 @@ export function optimizedAssetCustomValueMappings(
         [`${prefix}_jpeg_srcset`, srcsetFor(item, "jpg")],
         [`${prefix}_jpeg_fallback`, fallback],
       );
+      if (item.assetKey === "hero") {
+        mappings.push(["website_social_image", fallback]);
+      }
     }
   }
 
