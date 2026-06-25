@@ -3723,6 +3723,44 @@
       }
     }
   },
+  "media/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet.jpg": {
+    "kind": "contact_sheet",
+    "sourceHeight": 1280,
+    "sourceWidth": 1080,
+    "variants": {
+      "detail": {
+        "byteSize": 136236,
+        "height": 1280,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet-d26fd32701e6/detail.webp",
+        "width": 1080
+      },
+      "thumb": {
+        "byteSize": 47224,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet-d26fd32701e6/thumb.webp",
+        "width": 608
+      }
+    }
+  },
+  "media/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01.jpg": {
+    "kind": "frame_or_photo",
+    "sourceHeight": 640,
+    "sourceWidth": 360,
+    "variants": {
+      "detail": {
+        "byteSize": 36240,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01-000f888e8b64/detail.webp",
+        "width": 360
+      },
+      "thumb": {
+        "byteSize": 31988,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0001-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01-000f888e8b64/thumb.webp",
+        "width": 360
+      }
+    }
+  },
   "media/schools/sch-0001-blue-collar-licensing/derived/m3-media-analysis/20260618-sch0001-instagram-repair-m3/evidence/contact-sheets/sch-0001-01-instagram-938f4ffd70.contact-sheet.jpg": {
     "kind": "contact_sheet",
     "sourceHeight": 1280,
@@ -4632,6 +4670,44 @@
         "height": 720,
         "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0002-cslp-schools-contractors-license-state-preparation/derived/website-deep-crawl/20260618-cslp-website-deep-crawl-v2/screenshots/06-cslpschools-com-seminars-69c0839a81d0/thumb.webp",
         "width": 225
+      }
+    }
+  },
+  "media/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet.jpg": {
+    "kind": "contact_sheet",
+    "sourceHeight": 1280,
+    "sourceWidth": 1080,
+    "variants": {
+      "detail": {
+        "byteSize": 136236,
+        "height": 1280,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet-d26fd32701e6/detail.webp",
+        "width": 1080
+      },
+      "thumb": {
+        "byteSize": 47224,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/contact-sheets/facebook-reel-1302728251353024.contact-sheet-d26fd32701e6/thumb.webp",
+        "width": 608
+      }
+    }
+  },
+  "media/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01.jpg": {
+    "kind": "frame_or_photo",
+    "sourceHeight": 640,
+    "sourceWidth": 360,
+    "variants": {
+      "detail": {
+        "byteSize": 36240,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01-000f888e8b64/detail.webp",
+        "width": 360
+      },
+      "thumb": {
+        "byteSize": 31988,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0003-blue-collar-licensing/derived/facebook-reel-repair/20260625-bluecollar-fb-reel-1302728251353024/evidence/frames/facebook-reel-1302728251353024/frame-01-000f888e8b64/thumb.webp",
+        "width": 360
       }
     }
   },
