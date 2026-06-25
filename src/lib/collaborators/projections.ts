@@ -273,6 +273,58 @@ function cleanString(value: unknown) {
   return trimmed;
 }
 
+function formatCount(value: unknown) {
+  if (typeof value === "number") return Number.isFinite(value) ? new Intl.NumberFormat("en-US").format(value) : null;
+  if (typeof value !== "string") return null;
+  const compact = value.replace(/,/g, "").trim();
+  if (!/^\d+(\.\d+)?$/.test(compact)) return null;
+  const number = Number(compact);
+  return Number.isFinite(number) ? new Intl.NumberFormat("en-US").format(number) : null;
+}
+
+function metricPiece(value: unknown, label: string) {
+  const text = cleanString(value);
+  if (!text) return null;
+  if (/[a-z]/i.test(text)) return text;
+  const count = formatCount(text);
+  return count ? `${count} ${label}` : null;
+}
+
+function formatVisibleMetric(value: unknown) {
+  const text = cleanString(value);
+  if (!text) return null;
+  if (!text.startsWith("{")) return text;
+
+  try {
+    const payload = JSON.parse(text) as Record<string, unknown>;
+    const explicit = cleanString(payload.visible_metric);
+    if (explicit) return explicit;
+
+    const pieces = [
+      metricPiece(payload.followers, "followers"),
+      metricPiece(payload.subscribers, "subscribers"),
+      metricPiece(payload.likes, "likes"),
+      metricPiece(payload.talking_about, "talking about this"),
+      metricPiece(payload.videos_count, "videos"),
+      metricPiece(payload.posts_count, "posts"),
+    ].filter(Boolean);
+
+    return pieces.join(" + ") || "profile metadata captured";
+  } catch {
+    return text;
+  }
+}
+
+function cleanDashboardText(value: unknown) {
+  const text = cleanString(value);
+  if (!text) return null;
+  const withoutJsonPayloads = text
+    .replace(/\s*\(\{[^()]*\}\)/g, "")
+    .replace(/\s*\(\s*\)/g, "")
+    .trim();
+  return cleanString(withoutJsonPayloads);
+}
+
 function cleanEvidencePath(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -341,7 +393,7 @@ function projectSocial(row: SocialProfileRow): SocialProfileProjection | null {
     url,
     handle: cleanString(row.handle),
     status: cleanString(row.status),
-    visibleMetric: cleanString(row.visible_metric_text),
+    visibleMetric: formatVisibleMetric(row.visible_metric_text),
     verificationStatus: cleanString(row.verification_status),
     followers: numberOrNull(row.followers_count),
     subscribers: numberOrNull(row.subscribers_count),
@@ -572,9 +624,9 @@ function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswer
       shortLabel: cleanString(answer.short_label),
       group: cleanString(answer.dashboard_card_group),
       status: cleanString(answer.answer_status),
-      value: cleanString(answer.answer_value) ?? answerJsonFallback(answer.answer_json),
+      value: cleanDashboardText(answer.answer_value) ?? answerJsonFallback(answer.answer_json),
       confidence: cleanString(answer.confidence),
-      evidenceSummary: cleanString(answer.evidence_summary),
+      evidenceSummary: cleanDashboardText(answer.evidence_summary),
       sourceUrls: cleanUrlList(answer.source_urls),
       displayOrder: numberOrNull(answer.display_order) ?? 999,
     }))

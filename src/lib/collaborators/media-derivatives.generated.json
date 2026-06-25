@@ -11532,6 +11532,25 @@
       }
     }
   },
+  "media/schools/sch-0021-contractors-license-exam-center-inc/derived/website-deep-crawl/20260625-bestcontractorschool/screenshots/01-bestcontractorschool-com.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 4463,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 181060,
+        "height": 3200,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0021-contractors-license-exam-center-inc/derived/website-deep-crawl/20260625-bestcontractorschool/screenshots/01-bestcontractorschool-com-36980ab1e6cf/detail.webp",
+        "width": 1032
+      },
+      "thumb": {
+        "byteSize": 13230,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0021-contractors-license-exam-center-inc/derived/website-deep-crawl/20260625-bestcontractorschool/screenshots/01-bestcontractorschool-com-36980ab1e6cf/thumb.webp",
+        "width": 232
+      }
+    }
+  },
   "media/schools/sch-0022-digital-constructive/derived/m3-media-analysis/20260619-sch0022-youtube-repair-m3/evidence/contact-sheets/youtube-1E1vcNfvLuI.contact-sheet.jpg": {
     "kind": "contact_sheet",
     "sourceHeight": 450,
