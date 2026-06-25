@@ -376,6 +376,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const commentEvidence = readNumber(row.comment_evidence_count);
   const socialUrls = readNumber(row.social_url_count);
   const capturedReach = readNumber(row.captured_reach_metric_count);
+  const verifiedSocials = readNumber(row.verified_social_count);
   const websites = readNumber(row.website_count);
   const websiteAnalyzed = readNumber(row.website_analyzed_count);
   const websiteScreenshots = readNumber(row.website_screenshot_count);
@@ -392,13 +393,13 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     addAction(actions, "find_social_profiles", "Find verified social profiles", "P0", "No verified public social URL is registered.");
   }
 
-  if (socialUrls > 0 && capturedReach < socialUrls) {
+  if (verifiedSocials > 0 && capturedReach < verifiedSocials) {
     addAction(
       actions,
       "capture_missing_social_metrics",
       "Capture follower/subscriber metrics",
       "P1",
-      `${capturedReach}/${socialUrls} social profiles have dated reach metrics.`
+      `${capturedReach}/${verifiedSocials} verified/public social profiles have dated reach metrics.`
     );
   }
 
