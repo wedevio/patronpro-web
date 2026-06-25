@@ -54,8 +54,8 @@ export function labSubmission(): PanelSubmission {
     secondaryColor: "#f69309",
     complementaryColor: "#ffffff",
     letUsChooseColors: false,
-    logoUrl: "",
-    logoSquareUrl: "",
+    logoUrl: "/lab-assets/original-logo/liverpool-digital-logo-original.svg",
+    logoSquareUrl: "/lab-assets/original-logo/liverpool-digital-logo-original.svg",
     hoursOfOperation: {
       monday: { open: true, from: "08:00", to: "17:00" },
       tuesday: { open: true, from: "08:00", to: "17:00" },

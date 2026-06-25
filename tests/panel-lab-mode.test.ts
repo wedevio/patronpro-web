@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isPanelLabMode } from "../src/lib/lab/panel-lab";
+import { isPanelLabMode, labSubmission } from "../src/lib/lab/panel-lab";
 
 function withLabEnv<T>(value: string | undefined, fn: () => T): T {
   const original = process.env.PATRONPRO_PANEL_LAB;
@@ -30,5 +30,11 @@ describe("isPanelLabMode", () => {
     withLabEnv("true", () => {
       expect(isPanelLabMode()).toBe(true);
     });
+  });
+
+  test("lab account includes an original logo for optimization status checks", () => {
+    const submission = labSubmission();
+    expect(submission.logoUrl).toContain("/lab-assets/original-logo/");
+    expect(submission.logoSquareUrl).toBe(submission.logoUrl);
   });
 });
