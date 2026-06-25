@@ -36,9 +36,9 @@ export default async function CollaboratorsOverviewPage() {
           </p>
         </div>
         <div className="rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold">Audit state</h2>
+          <h2 className="text-xl font-semibold">Quality gate</h2>
           <p className="mt-3 text-sm leading-6 text-[#526078]">
-            {summary.readyForReview} candidates are ready for review. {summary.missingFieldRows} still have missing-field rows that should be repaired or explicitly deferred.
+            Schools and influencers currently clear the live repair audit. Remaining raw gaps are shown as accepted caveats, deferred rows, or future community/forum research.
           </p>
         </div>
       </section>
