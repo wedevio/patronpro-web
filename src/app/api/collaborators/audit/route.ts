@@ -64,6 +64,8 @@ const REQUIRED_QUESTION_KEYS = [
   "collaboration_angle",
 ];
 
+const MIN_SCHOOL_WEBSITE_SCREENSHOTS = 4;
+
 const BASE_QUERY = `
 WITH base AS (
   SELECT *
@@ -467,6 +469,14 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       }
       if (websiteScreenshots === 0) {
         addAction(actions, "capture_website_screenshots", "Capture website screenshots", "P0", "Website exists but screenshot manifest is empty.");
+      } else if (websiteScreenshots < MIN_SCHOOL_WEBSITE_SCREENSHOTS) {
+        addAction(
+          actions,
+          "expand_website_screenshot_depth",
+          "Expand website screenshot coverage",
+          "P1",
+          `${websiteScreenshots}/${MIN_SCHOOL_WEBSITE_SCREENSHOTS} minimum website screenshots are present. Capture a lazy-loaded full-page pass plus key subpages when publicly reachable.`
+        );
       }
     }
   }
