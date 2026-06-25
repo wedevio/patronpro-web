@@ -102,7 +102,7 @@ media_detail AS (
       )
     ) AS transcript_verified_media_count
   FROM patronpro_collab.media_items mi
-  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+  WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
   GROUP BY mi.candidate_id
 ),
 candidate_domain_sources AS (
@@ -141,7 +141,7 @@ media_text AS (
     )) AS searchable_text
   FROM patronpro_collab.media_items mi
   LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
-  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+  WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
 ),
 media_external_domains AS (
   SELECT
@@ -198,7 +198,7 @@ media_profile_candidates AS (
       ELSE NULL
     END AS source_profile
   FROM patronpro_collab.media_items mi
-  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+  WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
 ),
 media_profile_mismatches AS (
   SELECT
@@ -225,7 +225,7 @@ comment_detail AS (
     count(DISTINCT c.comment_evidence_id)::integer AS comment_evidence_count
   FROM patronpro_collab.media_items mi
   JOIN patronpro_collab.comments c ON c.media_item_id = mi.media_item_id
-  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+  WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
   GROUP BY mi.candidate_id
 ),
 website_detail AS (
@@ -236,7 +236,16 @@ website_detail AS (
          OR summary IS NOT NULL
          OR website_quality_score IS NOT NULL
     ) AS website_analyzed_count,
-    coalesce(sum(jsonb_array_length(screenshot_manifest)), 0)::integer AS website_screenshot_count
+    coalesce(sum(
+      CASE
+        WHEN jsonb_typeof(screenshot_manifest) = 'array'
+          THEN jsonb_array_length(screenshot_manifest)
+        WHEN jsonb_typeof(screenshot_manifest) = 'object'
+          AND jsonb_typeof(screenshot_manifest->'screenshots') = 'array'
+          THEN jsonb_array_length(screenshot_manifest->'screenshots')
+        ELSE 0
+      END
+    ), 0)::integer AS website_screenshot_count
   FROM patronpro_collab.websites
   GROUP BY candidate_id
 ),
