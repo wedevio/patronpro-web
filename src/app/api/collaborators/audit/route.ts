@@ -186,7 +186,18 @@ media_asset_paths AS (
 website_screenshot_paths AS (
   SELECT candidate_id, array_agg(DISTINCT path ORDER BY path) AS website_screenshot_paths
   FROM (
-    SELECT w.candidate_id, entry.value AS path
+    SELECT
+      w.candidate_id,
+      CASE
+        WHEN jsonb_typeof(screenshot_item.item) = 'string' THEN screenshot_item.item #>> '{}'
+        WHEN jsonb_typeof(screenshot_item.item) = 'object' THEN coalesce(
+          screenshot_item.item ->> 'path',
+          screenshot_item.item ->> 'screenshot_path',
+          screenshot_item.item ->> 'url',
+          screenshot_item.item ->> 'src'
+        )
+        ELSE NULL
+      END AS path
     FROM patronpro_collab.websites w
     CROSS JOIN LATERAL jsonb_array_elements(
       CASE
@@ -194,8 +205,17 @@ website_screenshot_paths AS (
         ELSE '[]'::jsonb
       END
     ) AS screenshot_item(item)
-    CROSS JOIN LATERAL jsonb_each_text(screenshot_item.item) AS entry(key, value)
-    WHERE coalesce(entry.value, '') <> ''
+    WHERE CASE
+      WHEN jsonb_typeof(screenshot_item.item) = 'string' THEN coalesce(screenshot_item.item #>> '{}', '') <> ''
+      WHEN jsonb_typeof(screenshot_item.item) = 'object' THEN coalesce(
+        screenshot_item.item ->> 'path',
+        screenshot_item.item ->> 'screenshot_path',
+        screenshot_item.item ->> 'url',
+        screenshot_item.item ->> 'src',
+        ''
+      ) <> ''
+      ELSE FALSE
+    END
 
     UNION ALL
 
