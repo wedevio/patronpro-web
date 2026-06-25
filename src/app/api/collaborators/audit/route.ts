@@ -38,6 +38,7 @@ type AuditRow = {
   media_profile_mismatch_examples: string[] | null;
   comment_evidence_count: number | string | null;
   website_count: number | string | null;
+  owned_website_count: number | string | null;
   website_screenshot_count: number | string | null;
   website_analyzed_count: number | string | null;
   contact_intelligence_count: number | string | null;
@@ -357,6 +358,14 @@ website_detail AS (
   SELECT
     candidate_id,
     count(*) FILTER (
+      WHERE coalesce(crawl_status, '') NOT LIKE '%social_only%'
+        AND coalesce(crawl_status, '') NOT IN (
+          'no_official_website_found',
+          'no_official_website_found_social_only',
+          'no_owned_website_found'
+        )
+    ) AS owned_website_count,
+    count(*) FILTER (
       WHERE coalesce(crawl_status, '') IN ('ok', 'analyzed', 'captured', 'complete')
          OR summary IS NOT NULL
          OR website_quality_score IS NOT NULL
@@ -443,6 +452,7 @@ SELECT
   coalesce(mpm.media_profile_mismatch_examples, ARRAY[]::text[]) AS media_profile_mismatch_examples,
   coalesce(cd.comment_evidence_count, 0)::integer AS comment_evidence_count,
   b.website_count,
+  coalesce(wd.owned_website_count, 0)::integer AS owned_website_count,
   cardinality(coalesce(wsp.website_screenshot_paths, ARRAY[]::text[]))::integer AS website_screenshot_count,
   coalesce(wd.website_analyzed_count, 0)::integer AS website_analyzed_count,
   b.contact_intelligence_count,
@@ -585,6 +595,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const capturedReach = readNumber(row.captured_reach_metric_count);
   const metricRequiredSocials = readNumber(row.metric_required_social_count);
   const websites = readNumber(row.website_count);
+  const ownedWebsites = readNumber(row.owned_website_count);
   const websiteAnalyzed = readNumber(row.website_analyzed_count);
   const websiteScreenshots = readNumber(row.website_screenshot_count);
   const decisionMakers = readNumber(row.decision_maker_count);
@@ -695,7 +706,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   if (row.source_lane === "schools") {
     if (websites === 0) {
       addAction(actions, "run_deep_website_review", "Run website review", "P0", "No website crawl/review row is registered.");
-    } else {
+    } else if (ownedWebsites > 0) {
       if (websiteAnalyzed === 0) {
         addAction(actions, "complete_website_analysis", "Complete website analysis", "P0", "Website exists but no analysis summary/quality score is present.");
       }
@@ -818,6 +829,7 @@ export async function GET(request: Request): Promise<Response> {
             mediaProfileMismatches: readNumber(row.media_profile_mismatch_count),
             commentEvidence: readNumber(row.comment_evidence_count),
             websites: readNumber(row.website_count),
+            ownedWebsites: readNumber(row.owned_website_count),
             websiteAnalyzed: readNumber(row.website_analyzed_count),
             websiteScreenshots: readNumber(row.website_screenshot_count),
             contactIntelligence: readNumber(row.contact_intelligence_count),
