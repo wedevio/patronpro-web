@@ -86,10 +86,28 @@ const REQUIRED_QUESTION_KEYS = [
 const MIN_SCHOOL_WEBSITE_SCREENSHOTS = 4;
 
 const BASE_QUERY = `
-WITH base AS (
+WITH raw_base AS (
   SELECT *
   FROM patronpro_collab.collaborator_missing_field_audit
   WHERE ($1::text IS NULL OR source_lane = $1::text)
+),
+base AS (
+  SELECT *
+  FROM (
+    SELECT
+      raw_base.*,
+      row_number() OVER (
+        PARTITION BY candidate_id
+        ORDER BY
+          CASE WHEN shortlist_status = 'recommend' THEN 0 WHEN shortlist_status = 'watchlist' THEN 1 WHEN shortlist_status = 'needs_review' THEN 2 ELSE 3 END,
+          coalesce(collaboration_fit_score, 0) DESC,
+          coalesce(evidence_confidence_score, 0) DESC,
+          coalesce(reach_metric_count, 0) DESC,
+          coalesce(reviewed_media_count, 0) DESC
+      ) AS audit_row_rank
+    FROM raw_base
+  ) ranked_base
+  WHERE audit_row_rank = 1
 ),
 media_detail AS (
   SELECT
