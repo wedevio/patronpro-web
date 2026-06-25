@@ -24,6 +24,8 @@ type AuditRow = {
   disputed_social_count: number | string | null;
   reviewed_media_count: number | string | null;
   transcript_verified_media_count: number | string | null;
+  media_domain_conflict_count: number | string | null;
+  media_domain_conflict_examples: string[] | null;
   comment_evidence_count: number | string | null;
   website_count: number | string | null;
   website_screenshot_count: number | string | null;
@@ -89,6 +91,54 @@ media_detail AS (
   FROM patronpro_collab.media_items mi
   GROUP BY mi.candidate_id
 ),
+candidate_domains AS (
+  SELECT
+    candidate_id,
+    regexp_replace(lower(coalesce(primary_url, '')), '^https?://(www\\.)?([^/]+).*$', '\\2') AS host
+  FROM patronpro_collab.candidates
+  WHERE coalesce(primary_url, '') <> ''
+),
+media_text AS (
+  SELECT
+    mi.candidate_id,
+    mi.media_item_id,
+    lower(concat_ws(
+      ' ',
+      mi.canonical_url,
+      ma.hook,
+      ma.seminar_potential,
+      ma.visual_summary,
+      ma.audio_summary,
+      ma.cta,
+      ma.risk_summary,
+      ma.raw_public_payload::text
+    )) AS searchable_text
+  FROM patronpro_collab.media_items mi
+  LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
+),
+media_domain_conflicts AS (
+  SELECT
+    mt.candidate_id,
+    count(DISTINCT mt.media_item_id)::integer AS media_domain_conflict_count,
+    array_agg(DISTINCT other.candidate_id || ':' || other.host ORDER BY other.candidate_id || ':' || other.host) AS media_domain_conflict_examples
+  FROM media_text mt
+  LEFT JOIN candidate_domains own ON own.candidate_id = mt.candidate_id
+  JOIN candidate_domains other
+    ON other.candidate_id <> mt.candidate_id
+   AND other.host <> ''
+   AND other.host NOT IN (
+     'facebook.com',
+     'instagram.com',
+     'linkedin.com',
+     'tiktok.com',
+     'x.com',
+     'youtube.com',
+     'youtu.be'
+   )
+   AND position(other.host IN mt.searchable_text) > 0
+   AND (own.host IS NULL OR own.host = '' OR other.host <> own.host)
+  GROUP BY mt.candidate_id
+),
 website_detail AS (
   SELECT
     candidate_id,
@@ -138,6 +188,8 @@ SELECT
   coalesce(sd.disputed_social_count, 0)::integer AS disputed_social_count,
   coalesce(md.reviewed_media_count, b.reviewed_media_count, 0)::integer AS reviewed_media_count,
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
+  coalesce(mdc.media_domain_conflict_count, 0)::integer AS media_domain_conflict_count,
+  coalesce(mdc.media_domain_conflict_examples, ARRAY[]::text[]) AS media_domain_conflict_examples,
   b.comment_evidence_count,
   b.website_count,
   coalesce(wd.website_screenshot_count, 0)::integer AS website_screenshot_count,
@@ -158,6 +210,7 @@ SELECT
   b.suggested_next_action
 FROM base b
 LEFT JOIN media_detail md ON md.candidate_id = b.candidate_id
+LEFT JOIN media_domain_conflicts mdc ON mdc.candidate_id = b.candidate_id
 LEFT JOIN website_detail wd ON wd.candidate_id = b.candidate_id
 LEFT JOIN social_detail sd ON sd.candidate_id = b.candidate_id
 LEFT JOIN patronpro_collab.candidate_actionability_summary cas ON cas.candidate_id = b.candidate_id
@@ -234,6 +287,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const requiredMedia = expectedMediaCount(row);
   const reviewedMedia = readNumber(row.reviewed_media_count);
   const transcriptMedia = readNumber(row.transcript_verified_media_count);
+  const mediaDomainConflicts = readNumber(row.media_domain_conflict_count);
   const commentEvidence = readNumber(row.comment_evidence_count);
   const socialUrls = readNumber(row.social_url_count);
   const capturedReach = readNumber(row.captured_reach_metric_count);
@@ -280,6 +334,20 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       "Verify reviewed media with transcripts",
       "P0",
       `${transcriptMedia}/${reviewedMedia} reviewed media items are transcript-backed or explicit no-speech.`
+    );
+  }
+
+  if (mediaDomainConflicts > 0) {
+    const examples = readArray(row.media_domain_conflict_examples)
+      .map((item) => String(item))
+      .slice(0, 3)
+      .join(", ");
+    addAction(
+      actions,
+      "review_media_ownership_conflict",
+      "Review possible media ownership mismatch",
+      "P0",
+      `${mediaDomainConflicts} reviewed media items reference another registered candidate domain${examples ? ` (${examples})` : ""}.`
     );
   }
 
@@ -382,6 +450,7 @@ export async function GET(request: Request): Promise<Response> {
             disputedSocialProfiles: readNumber(row.disputed_social_count),
             reviewedMedia: readNumber(row.reviewed_media_count),
             transcriptVerifiedMedia: readNumber(row.transcript_verified_media_count),
+            mediaDomainConflicts: readNumber(row.media_domain_conflict_count),
             commentEvidence: readNumber(row.comment_evidence_count),
             websites: readNumber(row.website_count),
             websiteAnalyzed: readNumber(row.website_analyzed_count),
