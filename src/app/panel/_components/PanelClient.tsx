@@ -335,6 +335,12 @@ function optimizableAssetsAreOptimized(data: WebsiteData, submission: PanelSubmi
   return total > 0 && unoptimizedAssetCount(data, submission) === 0;
 }
 
+function websiteAssetsAndHtmlAreUpdated(data: WebsiteData, submission: PanelSubmission | null): boolean {
+  if (!optimizableAssetsAreOptimized(data, submission)) return false;
+  if (!data.html || !htmlHasImageReferences(data)) return true;
+  return htmlUsesOptimizedImages(data);
+}
+
 function htmlHasImageReferences(data: WebsiteData): boolean {
   const html = data.html ?? "";
   if (!html) return false;
@@ -534,7 +540,7 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   }
 
   async function optimizeAssets() {
-    if (!submission || !accountId || (data && optimizableAssetsAreOptimized(data, submission))) return;
+    if (!submission || !accountId || (data && websiteAssetsAndHtmlAreUpdated(data, submission))) return;
     setOptimizingAssets(true);
     setImageFlashing(true);
 
@@ -639,11 +645,12 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
   const imageStatus = imageStatusDisplay(data);
   const logoStatus = logoStatusDisplay(data, submission);
   const htmlStatus = htmlStatusDisplay(data);
-  const optimized = optimizableAssetsAreOptimized(data, submission);
+  const optimized = websiteAssetsAndHtmlAreUpdated(data, submission);
   const unoptimizedCount = unoptimizedAssetCount(data, submission);
   const optimizeDisabled =
     optimizingAssets ||
     data.asset_optimization_status === "running" ||
+    !hasHtml ||
     optimizableAssetCount(data, submission) === 0 ||
     optimized;
 
@@ -735,23 +742,27 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
         </button>
       )}
 
-      {/* Copy HTML button */}
-      {data.status === "ready" && data.html && (
+      {/* HTML mode button */}
+      {submission && accountId && data.status !== "generating" && (
         <button
           type="button"
-          onClick={copyHtml}
-          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all"
-          style={{ backgroundColor: copied ? "#22c55e" : "#1E2C46" }}
+          onClick={() => regenerate(hasHtml ? "regenerate" : undefined)}
+          disabled={regenerating || data.asset_optimization_status === "running"}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold transition-all disabled:opacity-50"
+          style={hasHtml
+            ? { border: "1px solid #e5e7eb", color: "#5f6f88", backgroundColor: "#fff" }
+            : { color: "#fff", backgroundColor: "#1E2C46" }
+          }
         >
-          {copied
-            ? <><Check size={15} />HTML copiado</>
-            : <><Copy size={15} />Copiar HTML para GHL</>
+          {regenerating
+            ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
+            : <><RefreshCw size={14} />{hasHtml ? "Regenerar HTML desde cero" : "Generar HTML"}</>
           }
         </button>
       )}
 
       {/* Generate images button */}
-      {data.status === "ready" && submission && accountId && data.images_status !== "generating" && (
+      {hasHtml && data.status === "ready" && submission && accountId && data.images_status !== "generating" && (
         <button
           type="button"
           onClick={() => generateImages()}
@@ -775,7 +786,7 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
       )}
 
       {/* Optimize images button */}
-      {submission && accountId && data.images_status !== "generating" && (
+      {hasHtml && submission && accountId && data.images_status !== "generating" && (
         <button
           type="button"
           onClick={optimizeAssets}
@@ -787,57 +798,27 @@ function WebsiteSection({ locationId, submission }: { locationId: string; submis
           }
         >
           {optimizingAssets || data.asset_optimization_status === "running"
-            ? <><Loader2 size={14} className="animate-spin" />Optimizando imágenes...</>
+            ? <><Loader2 size={14} className="animate-spin" />Optimizando y actualizando HTML...</>
             : optimized
-              ? <><Check size={14} />Imágenes y logo optimizados</>
-            : <><Sparkles size={14} />{unoptimizedCount ? `Optimizar ${unoptimizedCount} ${unoptimizedCount === 1 ? "recurso" : "recursos"} pendiente${unoptimizedCount === 1 ? "" : "s"}` : "Optimizar imágenes"}</>
+              ? <><Check size={14} />Imágenes, logo y HTML actualizados</>
+            : <><Sparkles size={14} />{unoptimizedCount ? `Optimizar ${unoptimizedCount} ${unoptimizedCount === 1 ? "recurso" : "recursos"} y actualizar HTML` : "Aplicar imágenes optimizadas al HTML"}</>
           }
         </button>
       )}
 
-      {/* HTML mode buttons */}
-      {submission && accountId && data.status !== "generating" && (
-        hasHtml ? (
-          <div className="grid grid-cols-1 gap-2">
-            <button
-              type="button"
-              onClick={() => regenerate("refresh")}
-              disabled={regenerating}
-              className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold border transition-colors disabled:opacity-50"
-              style={{ borderColor: "#1E2C46", color: "#1E2C46" }}
-            >
-              {regenerating
-                ? <><Loader2 size={14} className="animate-spin" />Actualizando...</>
-                : <><RefreshCw size={14} />Actualizar HTML con imágenes</>
-              }
-            </button>
-            <button
-              type="button"
-              onClick={() => regenerate("regenerate")}
-              disabled={regenerating}
-              className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-medium border transition-colors disabled:opacity-50"
-              style={{ borderColor: "#e5e7eb", color: "#5f6f88" }}
-            >
-              {regenerating
-                ? <><Loader2 size={14} className="animate-spin" />Iniciando regeneración...</>
-                : <><RefreshCw size={14} />Regenerar desde cero</>
-              }
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => regenerate()}
-            disabled={regenerating}
-            className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
-            style={{ backgroundColor: "#1E2C46" }}
-          >
-            {regenerating
-              ? <><Loader2 size={14} className="animate-spin" />Iniciando generación...</>
-              : <><RefreshCw size={14} />Generar HTML</>
-            }
-          </button>
-        )
+      {/* Copy HTML button */}
+      {data.status === "ready" && data.html && (
+        <button
+          type="button"
+          onClick={copyHtml}
+          className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all"
+          style={{ backgroundColor: copied ? "#22c55e" : "#1E2C46" }}
+        >
+          {copied
+            ? <><Check size={15} />HTML copiado</>
+            : <><Copy size={15} />Copiar HTML para GHL</>
+          }
+        </button>
       )}
 
       {/* HTML preview hint */}
