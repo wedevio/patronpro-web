@@ -84,13 +84,15 @@ SEO, OPEN GRAPH Y DATOS ESTRUCTURADOS — OBLIGATORIO
 El <head> debe incluir, en este orden lógico:
 - <title> único y específico, máximo 60 caracteres aprox.
 - <meta name="description"> natural y accionable, máximo 155 caracteres aprox.
-- <link rel="canonical" href="{{custom_values.dominio_web}}">
-- <meta name="robots" content="index, follow">
+- <link rel="canonical" href="https://{{custom_values.dominio_web}}/">
+- <meta name="robots" content="index,follow,max-image-preview:large">
 - Open Graph para WhatsApp, Messenger, Facebook y LinkedIn:
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_US">
+  <meta property="og:site_name" content="{{custom_values.company_name}}">
   <meta property="og:title" content="...">
   <meta property="og:description" content="...">
-  <meta property="og:url" content="{{custom_values.dominio_web}}">
+  <meta property="og:url" content="https://{{custom_values.dominio_web}}/">
   <meta property="og:image" content="{{custom_values.website_social_image}}">
   <meta property="og:image:secure_url" content="{{custom_values.website_social_image}}">
   <meta property="og:image:type" content="image/jpeg">
