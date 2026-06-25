@@ -71,6 +71,7 @@ type MediaDerivativeRecord = {
 };
 
 const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
+const MEDIA_ROOT_MARKER = "patron-pro-prospect-media-audit/";
 
 const REQUIRED_QUESTION_KEYS = [
   "good_fit_for_patronpro",
@@ -471,8 +472,23 @@ function readStringArray(value: unknown) {
   return readArray(value).map((item) => String(item)).filter(Boolean);
 }
 
+function normalizeEvidencePath(sourcePath: string) {
+  let path = sourcePath.trim().replaceAll("\\", "/");
+  if (!path) return "";
+  if (path.startsWith("/media/")) path = path.slice(1);
+  if (path.startsWith("media/")) return path;
+  if (path.includes(MEDIA_ROOT_MARKER)) {
+    const tail = path.split(MEDIA_ROOT_MARKER, 2)[1]?.replace(/^\/+/, "");
+    if (tail?.startsWith("schools/") || tail?.startsWith("influencers/") || tail?.startsWith("communities/") || tail?.startsWith("_optimized/")) {
+      return `media/${tail}`;
+    }
+  }
+  if (path.includes("/media/")) return `media/${path.split("/media/", 2)[1]?.replace(/^\/+/, "")}`;
+  return path;
+}
+
 function hasDerivativePair(path: string) {
-  const derivative = mediaDerivatives[path];
+  const derivative = mediaDerivatives[normalizeEvidencePath(path)];
   return Boolean(derivative?.variants?.thumb?.url && derivative?.variants?.detail?.url);
 }
 

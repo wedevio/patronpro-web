@@ -119,6 +119,23 @@ type MediaDerivativeRecord = {
 };
 
 const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
+const MEDIA_ROOT_MARKER = "patron-pro-prospect-media-audit/";
+
+function normalizeEvidencePath(sourcePath: string | null): string | null {
+  if (!sourcePath) return null;
+  let path = sourcePath.trim().replaceAll("\\", "/");
+  if (!path) return null;
+  if (path.startsWith("/media/")) path = path.slice(1);
+  if (path.startsWith("media/")) return path;
+  if (path.includes(MEDIA_ROOT_MARKER)) {
+    const tail = path.split(MEDIA_ROOT_MARKER, 2)[1]?.replace(/^\/+/, "");
+    if (tail?.startsWith("schools/") || tail?.startsWith("influencers/") || tail?.startsWith("communities/") || tail?.startsWith("_optimized/")) {
+      return `media/${tail}`;
+    }
+  }
+  if (path.includes("/media/")) return `media/${path.split("/media/", 2)[1]?.replace(/^\/+/, "")}`;
+  return path;
+}
 
 type ContactRow = {
   status?: string | null;
@@ -345,8 +362,9 @@ function projectWebsite(row: WebsiteRow): WebsiteProjection | null {
 }
 
 function resolveEvidenceImage(sourcePath: string | null): EvidenceImageProjection | null {
-  if (!sourcePath) return null;
-  const derivative = mediaDerivatives[sourcePath];
+  const normalizedPath = normalizeEvidencePath(sourcePath);
+  if (!normalizedPath) return null;
+  const derivative = mediaDerivatives[normalizedPath];
   const thumb = derivative?.variants?.thumb;
   const detail = derivative?.variants?.detail;
   if (!thumb?.url || !detail?.url) return null;
