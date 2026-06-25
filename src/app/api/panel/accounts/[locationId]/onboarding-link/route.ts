@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requirePpSession } from "@/lib/auth/require-session";
 import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
-import { getStoredOnboardingLink, onboardingLinkIsActive, saveOnboardingLink } from "@/lib/panel/store";
+import { getStoredOnboardingLink, saveOnboardingLink, shouldReuseOnboardingLink } from "@/lib/panel/store";
 import { buildOnboardingLink } from "@/lib/onboarding/invite";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +19,16 @@ export async function POST(
       return NextResponse.json({ error: "Falta locationId" }, { status: 400 });
     }
 
+    const payload = await request.json().catch(() => ({})) as {
+      email?: string;
+      phone?: string;
+      businessName?: string;
+      firstName?: string;
+      force?: boolean;
+    };
+
     const stored = await getStoredOnboardingLink(locationId);
-    if (stored && onboardingLinkIsActive(stored.expiresAt)) {
+    if (stored && shouldReuseOnboardingLink(stored.expiresAt, payload.force === true)) {
       return NextResponse.json({
         success: true,
         status: "existing",
@@ -36,13 +44,6 @@ export async function POST(
     if (!location) {
       return NextResponse.json({ error: "No se encontró la cuenta en GHL" }, { status: 404 });
     }
-
-    const payload = await request.json().catch(() => ({})) as {
-      email?: string;
-      phone?: string;
-      businessName?: string;
-      firstName?: string;
-    };
 
     const email = (payload.email ?? location.email ?? "").toLowerCase().trim();
     if (!email) {

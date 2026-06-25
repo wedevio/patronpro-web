@@ -1004,7 +1004,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
     }
   }
 
-  async function generateManualOnboardingLink() {
+  async function generateManualOnboardingLink(force = false) {
     setManualLinkLoading(true);
     setManualLinkError(null);
 
@@ -1016,6 +1016,7 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
           email: submission?.email ?? ghl.email,
           phone: submission?.phone ?? ghl.phone,
           businessName: submission?.businessName ?? ghl.name,
+          force,
         }),
       });
       const json = await res.json() as { link?: string; expiresAt?: string; generatedAt?: string | null; error?: string };
@@ -1160,18 +1161,30 @@ function SidePanel({ account, onClose, onApprove }: { account: EnrichedAccount; 
                       {manualLinkCopied ? <Check size={15} /> : <Copy size={15} />}
                     </button>
                   </div>
-                  <a
-                    href={manualOnboardingLink.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center text-[12px] font-semibold text-[#1E2C46] hover:underline"
-                  >
-                    Abrir onboarding
-                  </a>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <a
+                      href={manualOnboardingLink.link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center text-[12px] font-semibold text-[#1E2C46] hover:underline"
+                    >
+                      Abrir onboarding
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => generateManualOnboardingLink(true)}
+                      disabled={manualLinkLoading}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[12px] font-semibold text-slate-600 hover:text-[#1E2C46] disabled:opacity-50"
+                    >
+                      {manualLinkLoading
+                        ? <><Loader2 size={12} className="animate-spin" />Rotando...</>
+                        : <><RefreshCw size={12} />Rotar link</>}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button type="button"
-                  onClick={generateManualOnboardingLink}
+                  onClick={() => generateManualOnboardingLink()}
                   disabled={manualLinkLoading}
                   className="flex items-center gap-2 w-full justify-center rounded-[10px] px-4 py-2.5 text-sm font-semibold text-white transition-all disabled:opacity-50"
                   style={{ backgroundColor: manualLinkCopied ? "#22c55e" : "#1E2C46" }}

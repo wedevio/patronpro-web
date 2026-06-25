@@ -80,6 +80,10 @@ export function onboardingLinkIsActive(expiresAt?: string | null, now = Date.now
   return !Number.isNaN(timestamp) && timestamp > now;
 }
 
+export function shouldReuseOnboardingLink(expiresAt?: string | null, forceRotate = false, now = Date.now()): boolean {
+  return !forceRotate && onboardingLinkIsActive(expiresAt, now);
+}
+
 export async function getStoredOnboardingLink(locationId: string): Promise<OnboardingLinkMetadata | null> {
   if (isPanelLabMode()) {
     const submission = labSubmission();

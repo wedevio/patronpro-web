@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { onboardingLinkIsActive } from "../src/lib/panel/store";
+import { onboardingLinkIsActive, shouldReuseOnboardingLink } from "../src/lib/panel/store";
 
 describe("onboardingLinkIsActive", () => {
   const now = Date.parse("2026-06-24T12:00:00Z");
@@ -15,5 +15,10 @@ describe("onboardingLinkIsActive", () => {
   test("rejects missing or invalid timestamps", () => {
     expect(onboardingLinkIsActive(undefined, now)).toBe(false);
     expect(onboardingLinkIsActive("not-a-date", now)).toBe(false);
+  });
+
+  test("does not reuse an active link when rotation is forced", () => {
+    expect(shouldReuseOnboardingLink("2026-06-25T12:00:00Z", false, now)).toBe(true);
+    expect(shouldReuseOnboardingLink("2026-06-25T12:00:00Z", true, now)).toBe(false);
   });
 });
