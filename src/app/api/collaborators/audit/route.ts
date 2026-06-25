@@ -89,6 +89,7 @@ media_detail AS (
       )
     ) AS transcript_verified_media_count
   FROM patronpro_collab.media_items mi
+  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
   GROUP BY mi.candidate_id
 ),
 candidate_domains AS (
@@ -116,6 +117,7 @@ media_text AS (
     )) AS searchable_text
   FROM patronpro_collab.media_items mi
   LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
+  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
 ),
 media_external_domains AS (
   SELECT
@@ -157,6 +159,15 @@ media_domain_conflicts AS (
     AND regexp_replace(med.host, '^.*[.]', '') NOT IN ('gif', 'jpg', 'jpeg', 'json', 'md', 'mp4', 'png', 'txt', 'vtt', 'webp')
     AND (own.host IS NULL OR own.host = '' OR med.host <> own.host)
   GROUP BY med.candidate_id
+),
+comment_detail AS (
+  SELECT
+    mi.candidate_id,
+    count(DISTINCT c.comment_evidence_id)::integer AS comment_evidence_count
+  FROM patronpro_collab.media_items mi
+  JOIN patronpro_collab.comments c ON c.media_item_id = mi.media_item_id
+  WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
+  GROUP BY mi.candidate_id
 ),
 website_detail AS (
   SELECT
@@ -209,7 +220,7 @@ SELECT
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
   coalesce(mdc.media_domain_conflict_count, 0)::integer AS media_domain_conflict_count,
   coalesce(mdc.media_domain_conflict_examples, ARRAY[]::text[]) AS media_domain_conflict_examples,
-  b.comment_evidence_count,
+  coalesce(cd.comment_evidence_count, b.comment_evidence_count, 0)::integer AS comment_evidence_count,
   b.website_count,
   coalesce(wd.website_screenshot_count, 0)::integer AS website_screenshot_count,
   coalesce(wd.website_analyzed_count, 0)::integer AS website_analyzed_count,
@@ -230,6 +241,7 @@ SELECT
 FROM base b
 LEFT JOIN media_detail md ON md.candidate_id = b.candidate_id
 LEFT JOIN media_domain_conflicts mdc ON mdc.candidate_id = b.candidate_id
+LEFT JOIN comment_detail cd ON cd.candidate_id = b.candidate_id
 LEFT JOIN website_detail wd ON wd.candidate_id = b.candidate_id
 LEFT JOIN social_detail sd ON sd.candidate_id = b.candidate_id
 LEFT JOIN patronpro_collab.candidate_actionability_summary cas ON cas.candidate_id = b.candidate_id
