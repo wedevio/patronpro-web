@@ -121,7 +121,7 @@ media_external_domains AS (
   SELECT
     mt.candidate_id,
     mt.media_item_id,
-    lower(domain_match[1]) AS host
+    regexp_replace(lower(domain_match[1]), '^www[.]', '') AS host
   FROM media_text mt
   CROSS JOIN LATERAL regexp_matches(
     mt.searchable_text,
@@ -154,6 +154,7 @@ media_domain_conflicts AS (
      'www.tiktok.com',
      'www.youtube.com'
    )
+    AND regexp_replace(med.host, '^.*[.]', '') NOT IN ('gif', 'jpg', 'jpeg', 'json', 'md', 'mp4', 'png', 'txt', 'vtt', 'webp')
     AND (own.host IS NULL OR own.host = '' OR med.host <> own.host)
   GROUP BY med.candidate_id
 ),
