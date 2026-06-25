@@ -520,6 +520,13 @@ function buildCaveats(row: AuditRow) {
   return caveats;
 }
 
+function severitySortValue(actionItems: ActionItem[]) {
+  if (actionItems.some((action) => action.severity === "P0")) return 0;
+  if (actionItems.some((action) => action.severity === "P1")) return 1;
+  if (actionItems.some((action) => action.severity === "P2")) return 2;
+  return 3;
+}
+
 export async function GET(request: Request): Promise<Response> {
   try {
     const url = new URL(request.url);
@@ -578,7 +585,12 @@ export async function GET(request: Request): Promise<Response> {
           actionItems,
         };
       })
-      .filter((row) => !onlyRepair || row.actionItems.length > 0);
+      .filter((row) => !onlyRepair || row.actionItems.length > 0)
+      .sort((a, b) => {
+        const severityDelta = severitySortValue(a.actionItems) - severitySortValue(b.actionItems);
+        if (severityDelta !== 0) return severityDelta;
+        return b.fitScore - a.fitScore || b.evidenceConfidence - a.evidenceConfidence || a.candidateId.localeCompare(b.candidateId);
+      });
 
     const repairCount = payloadRows.filter((row) => row.actionItems.length > 0).length;
 
