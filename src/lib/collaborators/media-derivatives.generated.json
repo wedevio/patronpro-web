@@ -8378,6 +8378,101 @@
       }
     }
   },
+  "media/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/01-rmoagency-home-full.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 6410,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 311580,
+        "height": 3200,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/01-rmoagency-home-full-fe5655e2c33d/detail.webp",
+        "width": 719
+      },
+      "thumb": {
+        "byteSize": 23614,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/01-rmoagency-home-full-fe5655e2c33d/thumb.webp",
+        "width": 162
+      }
+    }
+  },
+  "media/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/02-rmoagency-home-hero.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1050,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 178232,
+        "height": 1050,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/02-rmoagency-home-hero-371bcbdeb003/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 58382,
+        "height": 525,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/02-rmoagency-home-hero-371bcbdeb003/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/03-rmoagency-about-team.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1000,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 170316,
+        "height": 1000,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/03-rmoagency-about-team-4da5799bd0c9/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 51612,
+        "height": 500,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/03-rmoagency-about-team-4da5799bd0c9/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/04-rmoagency-process-services.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1850,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 235302,
+        "height": 1850,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/04-rmoagency-process-services-02da24779152/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 50036,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/04-rmoagency-process-services-02da24779152/thumb.webp",
+        "width": 560
+      }
+    }
+  },
+  "media/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/05-rmoagency-footer-contact-referral.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1360,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 139638,
+        "height": 1360,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/05-rmoagency-footer-contact-referral-65c18beeaf7e/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 43128,
+        "height": 680,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0014-rmo-agency/derived/website-deep-crawl/20260625-dashboard-selected-screenshots/05-rmoagency-footer-contact-referral-65c18beeaf7e/thumb.webp",
+        "width": 720
+      }
+    }
+  },
   "media/schools/sch-0015-cslb-experts/derived/m3-media-analysis/20260618-sch0015-m3-media/evidence/contact-sheets/sch-0015-02-facebook-8d93b23eb5.contact-sheet.jpg": {
     "kind": "contact_sheet",
     "sourceHeight": 720,
