@@ -703,12 +703,14 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const verifiedRoutes = readNumber(row.verified_person_contact_route_count);
   const requiredQuestions = readNumber(row.required_question_count);
   const answeredQuestions = meaningfulRequiredAnswerCount(row);
+  const rejectedOrBlocked = isRejectedOrBlockedCandidate(row);
+  const mediaUnavailable = hasMediaUnavailableReceipt(row);
 
   if (!row.shortlist_status || row.shortlist_status === "needs_review") {
     addAction(actions, "score_candidate", "Score and classify candidate", "P1", "No stable shortlist status is present.");
   }
 
-  if (socialUrls === 0 && !isRejectedOrBlockedCandidate(row) && !hasMediaUnavailableReceipt(row)) {
+  if (socialUrls === 0 && !rejectedOrBlocked && !mediaUnavailable) {
     addAction(actions, "find_social_profiles", "Find verified social profiles", "P0", "No verified public social URL is registered.");
   }
 
@@ -722,7 +724,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (requiredMedia > 0 && reviewedMedia < requiredMedia && !hasMediaUnavailableReceipt(row)) {
+  if (requiredMedia > 0 && reviewedMedia < requiredMedia && !mediaUnavailable) {
     addAction(
       actions,
       "source_review_media_to_8",
@@ -732,7 +734,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (reviewedMedia > 0 && transcriptMedia < reviewedMedia) {
+  if (reviewedMedia > 0 && transcriptMedia < reviewedMedia && !rejectedOrBlocked) {
     addAction(
       actions,
       "verify_media_transcripts",
@@ -752,7 +754,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (mediaOwnerUnverified > 0) {
+  if (mediaOwnerUnverified > 0 && !rejectedOrBlocked) {
     const examples = readArray(row.media_owner_unverified_examples)
       .map((item) => String(item))
       .slice(0, 3)
@@ -766,7 +768,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (mediaDomainConflicts > 0) {
+  if (mediaDomainConflicts > 0 && !rejectedOrBlocked) {
     const examples = readArray(row.media_domain_conflict_examples)
       .map((item) => String(item))
       .slice(0, 3)
@@ -780,7 +782,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (mediaProfileMismatches > 0) {
+  if (mediaProfileMismatches > 0 && !rejectedOrBlocked) {
     const examples = readArray(row.media_profile_mismatch_examples)
       .map((item) => String(item))
       .slice(0, 3)
@@ -840,8 +842,8 @@ function buildActionItems(row: AuditRow, strict: boolean) {
 
   if (
     verifiedRoutes === 0 &&
-    !isRejectedOrBlockedCandidate(row) &&
-    !hasMediaUnavailableReceipt(row) &&
+    !rejectedOrBlocked &&
+    !mediaUnavailable &&
     !isClosedNegativeAnswerStatus(answerStatus(row, "reliable_contact_routes"))
   ) {
     addAction(actions, "verify_contact_route", "Verify contact route", "P0", "No verified contact route is registered.");
