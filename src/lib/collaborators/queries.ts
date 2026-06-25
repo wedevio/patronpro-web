@@ -31,11 +31,13 @@ SELECT
     SELECT jsonb_agg(to_jsonb(sp) ORDER BY sp.platform, sp.canonical_url)
     FROM patronpro_collab.social_profiles sp
     WHERE sp.candidate_id = c.candidate_id
+      AND lower(coalesce(sp.status, '')) !~ '^(superseded|duplicate)'
   ), '[]'::jsonb) AS social_profiles,
   COALESCE((
     SELECT jsonb_agg(to_jsonb(w) ORDER BY w.url)
     FROM patronpro_collab.websites w
     WHERE w.candidate_id = c.candidate_id
+      AND lower(coalesce(w.crawl_status, '')) !~ '^(superseded|duplicate)'
   ), '[]'::jsonb) AS websites,
   COALESCE((
     SELECT jsonb_agg(
