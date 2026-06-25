@@ -36,6 +36,9 @@ type AuditRow = {
   verified_person_contact_route_count: number | string | null;
   required_question_count: number | string | null;
   answered_question_count: number | string | null;
+  answers: Record<string, { answer_status?: string | null }> | null;
+  public_tasks: Array<Record<string, unknown>> | null;
+  clearance_runs: Array<Record<string, unknown>> | null;
   actionability_status: string | null;
   missing_fields: string[] | null;
   suggested_next_action: string | null;
@@ -128,6 +131,9 @@ SELECT
   b.verified_person_contact_route_count,
   coalesce(cas.required_question_count, 0)::integer AS required_question_count,
   coalesce(cas.answered_question_count, 0)::integer AS answered_question_count,
+  cas.answers,
+  cas.public_tasks,
+  cas.clearance_runs,
   cas.actionability_status,
   b.missing_fields,
   b.suggested_next_action
@@ -146,6 +152,35 @@ function readNumber(value: unknown) {
 
 function readMissingFields(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)) : [];
+}
+
+function readArray(value: unknown) {
+  return Array.isArray(value) ? value : [];
+}
+
+function answerStatus(row: AuditRow, questionKey: string) {
+  const answer = row.answers?.[questionKey];
+  return typeof answer?.answer_status === "string" ? answer.answer_status : null;
+}
+
+function hasMediaUnavailableReceipt(row: AuditRow) {
+  const tasks = readArray(row.public_tasks);
+  const clearanceRuns = readArray(row.clearance_runs);
+  return (
+    tasks.some(
+      (task) =>
+        task.task_type === "media_refresh" &&
+        task.status === "blocked" &&
+        typeof task.blocker_reason === "string" &&
+        task.blocker_reason.toLowerCase().includes("no official owned public")
+    ) ||
+    clearanceRuns.some(
+      (run) =>
+        run.clearance_status === "blocked" &&
+        run.blocked_reason === "no_public_data" &&
+        typeof run.source_url === "string"
+    )
+  );
 }
 
 function addAction(actions: ActionItem[], code: string, label: string, severity: ActionItem["severity"], detail: string) {
@@ -201,7 +236,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (requiredMedia > 0 && reviewedMedia < requiredMedia) {
+  if (requiredMedia > 0 && reviewedMedia < requiredMedia && !hasMediaUnavailableReceipt(row)) {
     addAction(
       actions,
       "source_review_media_to_8",
@@ -244,7 +279,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     }
   }
 
-  if (decisionMakers === 0) {
+  if (decisionMakers === 0 && answerStatus(row, "decision_makers") !== "not_found") {
     addAction(actions, "find_decision_maker", "Find owner/decision-maker", "P0", "No decision-maker relationship is registered.");
   }
 
@@ -265,6 +300,24 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   return actions;
 }
 
+function buildCaveats(row: AuditRow) {
+  const caveats: string[] = [];
+  const requiredMedia = expectedMediaCount(row);
+  const reviewedMedia = readNumber(row.reviewed_media_count);
+
+  if (requiredMedia > 0 && reviewedMedia < requiredMedia && hasMediaUnavailableReceipt(row)) {
+    caveats.push(
+      `${reviewedMedia}/${requiredMedia} reviewed media items are present, but a no-public-owned-media blocker receipt exists. Treat as a marketing/reach weakness, not an unfinished download.`
+    );
+  }
+
+  if (readNumber(row.decision_maker_count) === 0 && answerStatus(row, "decision_makers") === "not_found") {
+    caveats.push("No named decision maker was verified after public-source review; use the official business contact route unless a human finds a named owner/director.");
+  }
+
+  return caveats;
+}
+
 export async function GET(request: Request): Promise<Response> {
   try {
     const url = new URL(request.url);
@@ -280,6 +333,7 @@ export async function GET(request: Request): Promise<Response> {
     const payloadRows = rows
       .map((row) => {
         const actionItems = buildActionItems(row, strict);
+        const caveats = buildCaveats(row);
         const reviewStatus = actionItems.length ? "needs_repair" : "ready_for_review";
         return {
           candidateId: row.candidate_id,
@@ -314,6 +368,7 @@ export async function GET(request: Request): Promise<Response> {
           },
           baseMissingFields: readMissingFields(row.missing_fields),
           suggestedNextAction: row.suggested_next_action,
+          caveats,
           actionItems,
         };
       })
