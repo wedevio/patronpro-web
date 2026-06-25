@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { EvidenceImageProjection, MediaEvidenceProjection } from "@/lib/collaborators/types";
 
 type GalleryImage = EvidenceImageProjection & {
@@ -84,11 +84,49 @@ function Lightbox({
   onChange: (index: number) => void;
 }) {
   const image = images[index];
-  const previous = () => onChange((index - 1 + images.length) % images.length);
-  const next = () => onChange((index + 1) % images.length);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const resetView = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    drag.current = null;
+  };
+  const previous = () => {
+    resetView();
+    onChange((index - 1 + images.length) % images.length);
+  };
+  const next = () => {
+    resetView();
+    onChange((index + 1) % images.length);
+  };
+  const changeZoom = (value: number) => {
+    const nextZoom = Math.max(1, Math.min(5, value));
+    if (nextZoom === 1) setPan({ x: 0, y: 0 });
+    setZoom(nextZoom);
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") previous();
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") next();
+      if (event.key === "+" || event.key === "=") changeZoom(zoom + 0.25);
+      if (event.key === "-") changeZoom(zoom - 0.25);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0b1220]/90 p-4 text-white" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-50 bg-[#0b1220]/90 p-4 text-white"
+      role="dialog"
+      aria-modal="true"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div className="mx-auto flex h-full max-w-7xl flex-col">
         <div className="flex items-start justify-between gap-4 pb-3">
           <div>
@@ -103,14 +141,46 @@ function Lightbox({
             Close
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-auto rounded-2xl bg-black/30 p-3">
+        <div
+          className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-black/30 p-3"
+          onWheel={(event) => {
+            if (zoom <= 1) return;
+            event.preventDefault();
+            setPan((current) => ({
+              x: current.x - (event.shiftKey ? event.deltaY : event.deltaX),
+              y: current.y - (event.shiftKey ? 0 : event.deltaY),
+            }));
+          }}
+        >
           <Image
             src={image.detailUrl}
             width={image.detailWidth ?? 1600}
             height={image.detailHeight ?? 1200}
             alt={`${image.label} for ${image.mediaTitle}`}
             unoptimized
-            className="mx-auto max-h-none max-w-none rounded-xl"
+            className={`mx-auto max-h-none max-w-none rounded-xl ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+            style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, transformOrigin: "center center" }}
+            onClick={(event) => {
+              event.stopPropagation();
+              changeZoom(zoom + (event.shiftKey || event.altKey ? -0.5 : 0.5));
+            }}
+            onPointerDown={(event) => {
+              if (zoom <= 1) return;
+              drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={(event) => {
+              if (!drag.current) return;
+              setPan({ x: drag.current.panX + event.clientX - drag.current.x, y: drag.current.panY + event.clientY - drag.current.y });
+            }}
+            onPointerUp={(event) => {
+              drag.current = null;
+              try {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+              } catch {
+                // Pointer capture may already be released by the browser.
+              }
+            }}
           />
         </div>
         {images.length > 1 ? (
@@ -126,6 +196,15 @@ function Lightbox({
             </button>
           </div>
         ) : null}
+        <div className="flex justify-end gap-2 pt-2 text-sm">
+          <button type="button" onClick={() => changeZoom(zoom - 0.25)} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
+            −
+          </button>
+          <span className="rounded-full border border-white/10 px-3 py-1 text-white/70">{zoom.toFixed(2)}x</span>
+          <button type="button" onClick={() => changeZoom(zoom + 0.25)} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
+            +
+          </button>
+        </div>
       </div>
     </div>
   );
