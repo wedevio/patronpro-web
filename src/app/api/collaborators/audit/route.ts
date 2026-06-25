@@ -51,6 +51,15 @@ type ActionItem = {
   detail: string;
 };
 
+const REQUIRED_QUESTION_KEYS = [
+  "good_fit_for_patronpro",
+  "sells_or_recommends_crm",
+  "decision_makers",
+  "reliable_contact_routes",
+  "recommended_outreach_path",
+  "collaboration_angle",
+];
+
 const BASE_QUERY = `
 WITH base AS (
   SELECT *
@@ -163,6 +172,14 @@ function answerStatus(row: AuditRow, questionKey: string) {
   return typeof answer?.answer_status === "string" ? answer.answer_status : null;
 }
 
+function isMeaningfulAnswerStatus(status: string | null) {
+  return Boolean(status && !["", "unknown", "missing_data", "pending", "needs_verification"].includes(status));
+}
+
+function meaningfulRequiredAnswerCount(row: AuditRow) {
+  return REQUIRED_QUESTION_KEYS.filter((key) => isMeaningfulAnswerStatus(answerStatus(row, key))).length;
+}
+
 function hasMediaUnavailableReceipt(row: AuditRow) {
   const tasks = readArray(row.public_tasks);
   const clearanceRuns = readArray(row.clearance_runs);
@@ -216,7 +233,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const decisionMakers = readNumber(row.decision_maker_count);
   const verifiedRoutes = readNumber(row.verified_person_contact_route_count);
   const requiredQuestions = readNumber(row.required_question_count);
-  const answeredQuestions = readNumber(row.answered_question_count);
+  const answeredQuestions = meaningfulRequiredAnswerCount(row);
 
   if (!row.shortlist_status || row.shortlist_status === "needs_review") {
     addAction(actions, "score_candidate", "Score and classify candidate", "P1", "No stable shortlist status is present.");
@@ -287,13 +304,13 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     addAction(actions, "verify_contact_route", "Verify contact route", "P0", "No verified contact route is registered.");
   }
 
-  if (requiredQuestions > 0 && answeredQuestions < requiredQuestions) {
+  if (requiredQuestions > 0 && answeredQuestions < REQUIRED_QUESTION_KEYS.length) {
     addAction(
       actions,
       "answer_research_questions",
       "Answer Duncan actionability questions",
       "P0",
-      `${answeredQuestions}/${requiredQuestions} active required research questions are answered.`
+      `${answeredQuestions}/${REQUIRED_QUESTION_KEYS.length} active required research questions are meaningfully answered.`
     );
   }
 
@@ -334,6 +351,7 @@ export async function GET(request: Request): Promise<Response> {
       .map((row) => {
         const actionItems = buildActionItems(row, strict);
         const caveats = buildCaveats(row);
+        const meaningfulAnswers = meaningfulRequiredAnswerCount(row);
         const reviewStatus = actionItems.length ? "needs_repair" : "ready_for_review";
         return {
           candidateId: row.candidate_id,
@@ -364,7 +382,8 @@ export async function GET(request: Request): Promise<Response> {
             contactRoutes: readNumber(row.person_contact_route_count),
             verifiedContactRoutes: readNumber(row.verified_person_contact_route_count),
             requiredQuestions: readNumber(row.required_question_count),
-            answeredQuestions: readNumber(row.answered_question_count),
+            answeredQuestions: meaningfulAnswers,
+            rawAnswerRows: readNumber(row.answered_question_count),
           },
           baseMissingFields: readMissingFields(row.missing_fields),
           suggestedNextAction: row.suggested_next_action,
