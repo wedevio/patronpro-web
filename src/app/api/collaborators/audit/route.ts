@@ -363,6 +363,7 @@ website_detail AS (
           'no_official_website_found',
           'no_official_website_found_social_only',
           'no_owned_website_found',
+          'directory_profile_only',
           'rendered_website_crawl_failed_dns',
           'failed_dns_or_navigation',
           'website_unavailable_dns_failed',
