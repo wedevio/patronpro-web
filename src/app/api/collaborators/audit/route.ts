@@ -429,6 +429,26 @@ social_detail AS (
           OR coalesce(status, '') LIKE '%public%'
         )
     ) AS metric_required_social_count,
+    count(*) FILTER (
+      WHERE coalesce(status, '') <> ''
+        AND coalesce(status, '') NOT LIKE 'superseded%'
+        AND coalesce(status, '') NOT LIKE 'duplicate%'
+        AND coalesce(status, '') NOT LIKE '%wrong%'
+        AND coalesce(status, '') NOT LIKE '%disputed%'
+        AND coalesce(status, '') NOT LIKE '%unverified%'
+        AND (
+          coalesce(status, '') LIKE 'active%'
+          OR coalesce(status, '') LIKE '%verified%'
+          OR coalesce(status, '') LIKE '%public%'
+        )
+        AND captured_at IS NOT NULL
+        AND (
+          followers_count IS NOT NULL
+          OR subscribers_count IS NOT NULL
+          OR likes_count IS NOT NULL
+          OR views_count IS NOT NULL
+        )
+    ) AS captured_reach_metric_count,
     count(*) FILTER (WHERE coalesce(status, '') IN ('disputed', 'wrong_profile', 'unverified')) AS disputed_social_count
   FROM patronpro_collab.social_profiles
   GROUP BY candidate_id
@@ -446,7 +466,7 @@ SELECT
   b.social_profile_count,
   b.social_url_count,
   b.reach_metric_count,
-  b.captured_reach_metric_count,
+  greatest(coalesce(b.captured_reach_metric_count, 0), coalesce(sd.captured_reach_metric_count, 0))::integer AS captured_reach_metric_count,
   b.total_accounted_reach,
   coalesce(sd.verified_social_count, 0)::integer AS verified_social_count,
   coalesce(sd.metric_required_social_count, 0)::integer AS metric_required_social_count,
