@@ -527,6 +527,10 @@ function meaningfulRequiredAnswerCount(row: AuditRow) {
   return REQUIRED_QUESTION_KEYS.filter((key) => isMeaningfulAnswerStatus(answerStatus(row, key))).length;
 }
 
+function isClosedNegativeAnswerStatus(status: string | null) {
+  return Boolean(status && ["not_found", "not_applicable", "blocked", "verified_false"].includes(status));
+}
+
 function hasMediaUnavailableReceipt(row: AuditRow) {
   const tasks = readArray(row.public_tasks);
   const clearanceRuns = readArray(row.clearance_runs);
@@ -718,7 +722,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     }
   }
 
-  if (decisionMakers === 0 && answerStatus(row, "decision_makers") !== "not_found") {
+  if (decisionMakers === 0 && !isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"))) {
     addAction(actions, "find_decision_maker", "Find owner/decision-maker", "P0", "No decision-maker relationship is registered.");
   }
 
@@ -750,8 +754,13 @@ function buildCaveats(row: AuditRow) {
     );
   }
 
-  if (readNumber(row.decision_maker_count) === 0 && answerStatus(row, "decision_makers") === "not_found") {
-    caveats.push("No named decision maker was verified after public-source review; use the official business contact route unless a human finds a named owner/director.");
+  const decisionMakerStatus = answerStatus(row, "decision_makers");
+  if (readNumber(row.decision_maker_count) === 0 && isClosedNegativeAnswerStatus(decisionMakerStatus)) {
+    caveats.push(
+      decisionMakerStatus === "not_applicable"
+        ? "No named school-style decision maker is applicable for this row; use the official business/vendor route unless the candidate is re-scoped for corporate partnership mapping."
+        : "No named decision maker was verified after public-source review; use the official business contact route unless a human finds a named owner/director."
+    );
   }
 
   return caveats;
