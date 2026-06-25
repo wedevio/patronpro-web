@@ -28,6 +28,7 @@ type AuditRow = {
   transcript_verified_media_count: number | string | null;
   media_asset_paths: string[] | null;
   website_screenshot_paths: string[] | null;
+  media_missing_visual_path_count: number | string | null;
   media_missing_derivative_count: number | string | null;
   website_missing_derivative_count: number | string | null;
   media_owner_unverified_count: number | string | null;
@@ -136,7 +137,17 @@ media_detail AS (
             'audio_summary_present_unverified'
           )
       )
-    ) AS transcript_verified_media_count
+    ) AS transcript_verified_media_count,
+    count(*) FILTER (
+      WHERE EXISTS (
+        SELECT 1
+        FROM patronpro_collab.media_analyses ma
+        WHERE ma.media_item_id = mi.media_item_id
+          AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
+          AND coalesce(ma.contact_sheet_path, '') = ''
+          AND coalesce(ma.representative_screenshot_path, '') = ''
+      )
+    ) AS media_missing_visual_path_count
   FROM patronpro_collab.media_items mi
   WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
   GROUP BY mi.candidate_id
@@ -510,6 +521,7 @@ SELECT
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
   coalesce(map.media_asset_paths, ARRAY[]::text[]) AS media_asset_paths,
   coalesce(wsp.website_screenshot_paths, ARRAY[]::text[]) AS website_screenshot_paths,
+  coalesce(md.media_missing_visual_path_count, 0)::integer AS media_missing_visual_path_count,
   0::integer AS media_missing_derivative_count,
   0::integer AS website_missing_derivative_count,
   coalesce(mop.media_owner_unverified_count, 0)::integer AS media_owner_unverified_count,
@@ -686,6 +698,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const requiredMedia = expectedMediaCount(row);
   const reviewedMedia = readNumber(row.reviewed_media_count);
   const transcriptMedia = readNumber(row.transcript_verified_media_count);
+  const mediaMissingVisualPaths = readNumber(row.media_missing_visual_path_count);
   const mediaMissingDerivatives = countMissingDerivatives(row.media_asset_paths);
   const websiteMissingDerivatives = countMissingDerivatives(row.website_screenshot_paths);
   const mediaOwnerUnverified = readNumber(row.media_owner_unverified_count);
@@ -741,6 +754,16 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       "Verify reviewed media with transcripts",
       "P0",
       `${transcriptMedia}/${reviewedMedia} reviewed media items are transcript-backed or explicit no-speech.`
+    );
+  }
+
+  if (mediaMissingVisualPaths > 0) {
+    addAction(
+      actions,
+      "capture_media_visual_paths",
+      "Attach media evidence images",
+      "P0",
+      `${mediaMissingVisualPaths} reviewed media items have no contact sheet or representative image path.`
     );
   }
 
@@ -930,6 +953,7 @@ export async function GET(request: Request): Promise<Response> {
             disputedSocialProfiles: readNumber(row.disputed_social_count),
             reviewedMedia: readNumber(row.reviewed_media_count),
             transcriptVerifiedMedia: readNumber(row.transcript_verified_media_count),
+            mediaMissingVisualPaths: readNumber(row.media_missing_visual_path_count),
             mediaMissingDerivatives: countMissingDerivatives(row.media_asset_paths),
             websiteMissingDerivatives: countMissingDerivatives(row.website_screenshot_paths),
             mediaOwnerUnverified: readNumber(row.media_owner_unverified_count),
