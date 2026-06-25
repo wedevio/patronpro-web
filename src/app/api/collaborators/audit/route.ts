@@ -92,12 +92,23 @@ media_detail AS (
   WHERE coalesce(mi.source_type, '') <> 'misattributed_media'
   GROUP BY mi.candidate_id
 ),
-candidate_domains AS (
-  SELECT
-    candidate_id,
-    regexp_replace(lower(coalesce(primary_url, '')), '^https?://(www\\.)?([^/]+).*$', '\\2') AS host
+candidate_domain_sources AS (
+  SELECT candidate_id, primary_url AS url
   FROM patronpro_collab.candidates
   WHERE coalesce(primary_url, '') <> ''
+
+  UNION ALL
+
+  SELECT candidate_id, url
+  FROM patronpro_collab.websites
+  WHERE coalesce(url, '') <> ''
+),
+candidate_domains AS (
+  SELECT DISTINCT
+    candidate_id,
+    regexp_replace(lower(coalesce(url, '')), '^https?://(www\\.)?([^/]+).*$', '\\2') AS host
+  FROM candidate_domain_sources
+  WHERE coalesce(url, '') <> ''
 ),
 media_text AS (
   SELECT
@@ -157,7 +168,9 @@ media_domain_conflicts AS (
      'www.youtube.com'
    )
     AND regexp_replace(med.host, '^.*[.]', '') NOT IN ('gif', 'jpg', 'jpeg', 'json', 'md', 'mp4', 'png', 'txt', 'vtt', 'webp')
+    AND regexp_replace(med.host, '^.*[.]', '') NOT IN ('m3-upload', 'mp')
     AND (own.host IS NULL OR own.host = '' OR med.host <> own.host)
+    AND other.candidate_id IS NOT NULL
   GROUP BY med.candidate_id
 ),
 comment_detail AS (
