@@ -394,6 +394,19 @@ function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): Websi
   if (!Array.isArray(manifest)) return [];
   const screenshots: WebsiteScreenshotProjection[] = [];
   for (const item of manifest) {
+    if (typeof item === "string") {
+      const path = cleanEvidencePath(item);
+      if (!path) continue;
+      const image = resolveEvidenceImage(path);
+      if (!image) continue;
+      screenshots.push({
+        id: `${websiteUrl}-screenshot-${screenshots.length}`,
+        label: `Screenshot ${screenshots.length + 1}`,
+        path,
+        image,
+      });
+      continue;
+    }
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     for (const [key, value] of Object.entries(item)) {
       const path = cleanEvidencePath(value);
