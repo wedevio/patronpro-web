@@ -104,7 +104,17 @@ website_detail AS (
 social_detail AS (
   SELECT
     candidate_id,
-    count(*) FILTER (WHERE coalesce(status, '') IN ('active', 'verified', 'active_verified')) AS verified_social_count,
+    count(*) FILTER (
+      WHERE coalesce(status, '') <> ''
+        AND coalesce(status, '') NOT LIKE '%wrong%'
+        AND coalesce(status, '') NOT LIKE '%disputed%'
+        AND coalesce(status, '') NOT LIKE '%unverified%'
+        AND (
+          coalesce(status, '') LIKE 'active%'
+          OR coalesce(status, '') LIKE '%verified%'
+          OR coalesce(status, '') LIKE '%public%'
+        )
+    ) AS verified_social_count,
     count(*) FILTER (WHERE coalesce(status, '') IN ('disputed', 'wrong_profile', 'unverified')) AS disputed_social_count
   FROM patronpro_collab.social_profiles
   GROUP BY candidate_id
