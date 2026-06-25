@@ -102,6 +102,7 @@ media_text AS (
   SELECT
     mi.candidate_id,
     mi.media_item_id,
+    coalesce(ma.raw_public_payload->>'owner_match_status', '') = 'confirmed' AS owner_confirmed,
     lower(concat_ws(
       ' ',
       mi.canonical_url,
@@ -116,28 +117,45 @@ media_text AS (
   FROM patronpro_collab.media_items mi
   LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
 ),
-media_domain_conflicts AS (
+media_external_domains AS (
   SELECT
     mt.candidate_id,
-    count(DISTINCT mt.media_item_id)::integer AS media_domain_conflict_count,
-    array_agg(DISTINCT other.candidate_id || ':' || other.host ORDER BY other.candidate_id || ':' || other.host) AS media_domain_conflict_examples
+    mt.media_item_id,
+    lower(domain_match[1]) AS host
   FROM media_text mt
-  LEFT JOIN candidate_domains own ON own.candidate_id = mt.candidate_id
-  JOIN candidate_domains other
-    ON other.candidate_id <> mt.candidate_id
-   AND other.host <> ''
-   AND other.host NOT IN (
+  CROSS JOIN LATERAL regexp_matches(
+    mt.searchable_text,
+    '[a-z0-9][a-z0-9-]*[.][a-z0-9][a-z0-9.-]*[.][a-z]{2,}|[a-z0-9][a-z0-9-]*[.][a-z]{2,}',
+    'g'
+  ) AS match(domain_match)
+  WHERE NOT mt.owner_confirmed
+),
+media_domain_conflicts AS (
+  SELECT
+    med.candidate_id,
+    count(DISTINCT med.media_item_id)::integer AS media_domain_conflict_count,
+    array_agg(DISTINCT coalesce(other.candidate_id || ':', '') || med.host ORDER BY coalesce(other.candidate_id || ':', '') || med.host) AS media_domain_conflict_examples
+  FROM media_external_domains med
+  LEFT JOIN candidate_domains own ON own.candidate_id = med.candidate_id
+  LEFT JOIN candidate_domains other ON other.candidate_id <> med.candidate_id AND other.host = med.host
+  WHERE med.host <> ''
+    AND med.host NOT IN (
      'facebook.com',
      'instagram.com',
      'linkedin.com',
+     'm.facebook.com',
      'tiktok.com',
      'x.com',
      'youtube.com',
-     'youtu.be'
+     'youtu.be',
+     'www.facebook.com',
+     'www.instagram.com',
+     'www.linkedin.com',
+     'www.tiktok.com',
+     'www.youtube.com'
    )
-   AND position(other.host IN mt.searchable_text) > 0
-   AND (own.host IS NULL OR own.host = '' OR other.host <> own.host)
-  GROUP BY mt.candidate_id
+    AND (own.host IS NULL OR own.host = '' OR med.host <> own.host)
+  GROUP BY med.candidate_id
 ),
 website_detail AS (
   SELECT
