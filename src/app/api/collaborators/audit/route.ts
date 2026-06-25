@@ -646,7 +646,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       actions,
       "generate_media_image_derivatives",
       "Generate optimized media evidence images",
-      "P1",
+      "P0",
       `${mediaMissingDerivatives} media contact-sheet/frame images are missing optimized thumbnail/detail WebP derivatives.`
     );
   }
@@ -726,7 +726,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
           actions,
           "generate_website_image_derivatives",
           "Generate optimized website screenshots",
-          "P1",
+          "P0",
           `${websiteMissingDerivatives} website screenshots are missing optimized thumbnail/detail WebP derivatives.`
         );
       }
