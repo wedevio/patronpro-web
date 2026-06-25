@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { queryRows } from "@/lib/collaborators/db";
+import mediaDerivativeManifest from "@/lib/collaborators/media-derivatives.generated.json";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,6 +26,12 @@ type AuditRow = {
   disputed_social_count: number | string | null;
   reviewed_media_count: number | string | null;
   transcript_verified_media_count: number | string | null;
+  media_asset_paths: string[] | null;
+  website_screenshot_paths: string[] | null;
+  media_missing_derivative_count: number | string | null;
+  website_missing_derivative_count: number | string | null;
+  media_owner_unverified_count: number | string | null;
+  media_owner_unverified_examples: string[] | null;
   media_domain_conflict_count: number | string | null;
   media_domain_conflict_examples: string[] | null;
   media_profile_mismatch_count: number | string | null;
@@ -55,6 +62,15 @@ type ActionItem = {
   severity: "P0" | "P1" | "P2";
   detail: string;
 };
+
+type MediaDerivativeRecord = {
+  variants?: {
+    thumb?: { url?: string | null };
+    detail?: { url?: string | null };
+  };
+};
+
+const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
 
 const REQUIRED_QUESTION_KEYS = [
   "good_fit_for_patronpro",
@@ -104,6 +120,96 @@ media_detail AS (
   FROM patronpro_collab.media_items mi
   WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
   GROUP BY mi.candidate_id
+),
+media_owner_provenance AS (
+  SELECT
+    mi.candidate_id,
+    count(DISTINCT mi.media_item_id)::integer AS media_owner_unverified_count,
+    array_agg(DISTINCT concat_ws(' ', mi.media_item_id, mi.platform, mi.canonical_url) ORDER BY concat_ws(' ', mi.media_item_id, mi.platform, mi.canonical_url)) AS media_owner_unverified_examples
+  FROM patronpro_collab.media_items mi
+  JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
+  JOIN patronpro_collab.candidates c ON c.candidate_id = mi.candidate_id
+  CROSS JOIN LATERAL (
+    SELECT lower(coalesce(
+      c.raw_public_payload #>> '{base,workspace_dir}',
+      c.raw_public_payload ->> 'workspace_dir',
+      ''
+    )) AS candidate_workspace_slug
+  ) candidate_workspace
+  CROSS JOIN LATERAL (
+    SELECT lower(coalesce(
+      substring(coalesce(ma.contact_sheet_path, '') from 'media/(?:schools|influencers|communities)/([^/]+)'),
+      substring(coalesce(ma.representative_screenshot_path, '') from 'media/(?:schools|influencers|communities)/([^/]+)'),
+      substring(coalesce(ma.raw_public_payload->>'downloaded_video_path', '') from 'media/(?:schools|influencers|communities)/([^/]+)'),
+      ''
+    )) AS evidence_workspace_slug
+  ) evidence_workspace
+  WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
+    AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
+    AND (
+      coalesce(ma.raw_public_payload->>'owner_match_status', mi.raw_public_payload->>'owner_match_status', '') IN (
+        'mismatch',
+        'not_owner',
+        'wrong_candidate',
+        'disputed'
+      )
+      OR (
+        evidence_workspace.evidence_workspace_slug <> ''
+        AND candidate_workspace.candidate_workspace_slug <> ''
+        AND evidence_workspace.evidence_workspace_slug <> candidate_workspace.candidate_workspace_slug
+      )
+    )
+  GROUP BY mi.candidate_id
+),
+media_asset_paths AS (
+  SELECT candidate_id, array_agg(DISTINCT path ORDER BY path) AS media_asset_paths
+  FROM (
+    SELECT mi.candidate_id, ma.contact_sheet_path AS path
+    FROM patronpro_collab.media_items mi
+    JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
+    WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
+      AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
+      AND coalesce(ma.contact_sheet_path, '') <> ''
+
+    UNION ALL
+
+    SELECT mi.candidate_id, ma.representative_screenshot_path AS path
+    FROM patronpro_collab.media_items mi
+    JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = mi.media_item_id
+    WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
+      AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
+      AND coalesce(ma.representative_screenshot_path, '') <> ''
+  ) paths
+  GROUP BY candidate_id
+),
+website_screenshot_paths AS (
+  SELECT candidate_id, array_agg(DISTINCT path ORDER BY path) AS website_screenshot_paths
+  FROM (
+    SELECT w.candidate_id, entry.value AS path
+    FROM patronpro_collab.websites w
+    CROSS JOIN LATERAL jsonb_array_elements(
+      CASE
+        WHEN jsonb_typeof(w.screenshot_manifest) = 'array' THEN w.screenshot_manifest
+        ELSE '[]'::jsonb
+      END
+    ) AS screenshot_item(item)
+    CROSS JOIN LATERAL jsonb_each_text(screenshot_item.item) AS entry(key, value)
+    WHERE coalesce(entry.value, '') <> ''
+
+    UNION ALL
+
+    SELECT w.candidate_id, entry.value AS path
+    FROM patronpro_collab.websites w
+    CROSS JOIN LATERAL jsonb_each_text(
+      CASE
+        WHEN jsonb_typeof(w.screenshot_manifest) = 'object' THEN w.screenshot_manifest
+        ELSE '{}'::jsonb
+      END
+    ) AS entry(key, value)
+    WHERE coalesce(entry.value, '') <> ''
+  ) paths
+  WHERE path ~* '[.](png|jpg|jpeg|webp)$'
+  GROUP BY candidate_id
 ),
 candidate_domain_sources AS (
   SELECT candidate_id, primary_url AS url
@@ -306,6 +412,12 @@ SELECT
   coalesce(sd.disputed_social_count, 0)::integer AS disputed_social_count,
   coalesce(md.reviewed_media_count, 0)::integer AS reviewed_media_count,
   coalesce(md.transcript_verified_media_count, 0)::integer AS transcript_verified_media_count,
+  coalesce(map.media_asset_paths, ARRAY[]::text[]) AS media_asset_paths,
+  coalesce(wsp.website_screenshot_paths, ARRAY[]::text[]) AS website_screenshot_paths,
+  0::integer AS media_missing_derivative_count,
+  0::integer AS website_missing_derivative_count,
+  coalesce(mop.media_owner_unverified_count, 0)::integer AS media_owner_unverified_count,
+  coalesce(mop.media_owner_unverified_examples, ARRAY[]::text[]) AS media_owner_unverified_examples,
   coalesce(mdc.media_domain_conflict_count, 0)::integer AS media_domain_conflict_count,
   coalesce(mdc.media_domain_conflict_examples, ARRAY[]::text[]) AS media_domain_conflict_examples,
   coalesce(mpm.media_profile_mismatch_count, 0)::integer AS media_profile_mismatch_count,
@@ -330,6 +442,9 @@ SELECT
   b.suggested_next_action
 FROM base b
 LEFT JOIN media_detail md ON md.candidate_id = b.candidate_id
+LEFT JOIN media_asset_paths map ON map.candidate_id = b.candidate_id
+LEFT JOIN website_screenshot_paths wsp ON wsp.candidate_id = b.candidate_id
+LEFT JOIN media_owner_provenance mop ON mop.candidate_id = b.candidate_id
 LEFT JOIN media_domain_conflicts mdc ON mdc.candidate_id = b.candidate_id
 LEFT JOIN media_profile_mismatches mpm ON mpm.candidate_id = b.candidate_id
 LEFT JOIN comment_detail cd ON cd.candidate_id = b.candidate_id
@@ -350,6 +465,19 @@ function readMissingFields(value: unknown) {
 
 function readArray(value: unknown) {
   return Array.isArray(value) ? value : [];
+}
+
+function readStringArray(value: unknown) {
+  return readArray(value).map((item) => String(item)).filter(Boolean);
+}
+
+function hasDerivativePair(path: string) {
+  const derivative = mediaDerivatives[path];
+  return Boolean(derivative?.variants?.thumb?.url && derivative?.variants?.detail?.url);
+}
+
+function countMissingDerivatives(paths: unknown) {
+  return readStringArray(paths).filter((path) => !hasDerivativePair(path)).length;
 }
 
 function answerStatus(row: AuditRow, questionKey: string) {
@@ -409,6 +537,9 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const requiredMedia = expectedMediaCount(row);
   const reviewedMedia = readNumber(row.reviewed_media_count);
   const transcriptMedia = readNumber(row.transcript_verified_media_count);
+  const mediaMissingDerivatives = countMissingDerivatives(row.media_asset_paths);
+  const websiteMissingDerivatives = countMissingDerivatives(row.website_screenshot_paths);
+  const mediaOwnerUnverified = readNumber(row.media_owner_unverified_count);
   const mediaDomainConflicts = readNumber(row.media_domain_conflict_count);
   const mediaProfileMismatches = readNumber(row.media_profile_mismatch_count);
   const commentEvidence = readNumber(row.comment_evidence_count);
@@ -458,6 +589,30 @@ function buildActionItems(row: AuditRow, strict: boolean) {
       "Verify reviewed media with transcripts",
       "P0",
       `${transcriptMedia}/${reviewedMedia} reviewed media items are transcript-backed or explicit no-speech.`
+    );
+  }
+
+  if (mediaMissingDerivatives > 0) {
+    addAction(
+      actions,
+      "generate_media_image_derivatives",
+      "Generate optimized media evidence images",
+      "P1",
+      `${mediaMissingDerivatives} media contact-sheet/frame images are missing optimized thumbnail/detail WebP derivatives.`
+    );
+  }
+
+  if (mediaOwnerUnverified > 0) {
+    const examples = readArray(row.media_owner_unverified_examples)
+      .map((item) => String(item))
+      .slice(0, 3)
+      .join(", ");
+    addAction(
+      actions,
+      "verify_media_ownership",
+      "Verify reviewed media belongs to this candidate",
+      "P0",
+      `${mediaOwnerUnverified} reviewed media items lack owner-confirmed provenance${examples ? ` (${examples})` : ""}.`
     );
   }
 
@@ -515,6 +670,15 @@ function buildActionItems(row: AuditRow, strict: boolean) {
           "Expand website screenshot coverage",
           "P1",
           `${websiteScreenshots}/${MIN_SCHOOL_WEBSITE_SCREENSHOTS} minimum website screenshots are present. Capture a lazy-loaded full-page pass plus key subpages when publicly reachable.`
+        );
+      }
+      if (websiteMissingDerivatives > 0) {
+        addAction(
+          actions,
+          "generate_website_image_derivatives",
+          "Generate optimized website screenshots",
+          "P1",
+          `${websiteMissingDerivatives} website screenshots are missing optimized thumbnail/detail WebP derivatives.`
         );
       }
     }
@@ -604,6 +768,9 @@ export async function GET(request: Request): Promise<Response> {
             disputedSocialProfiles: readNumber(row.disputed_social_count),
             reviewedMedia: readNumber(row.reviewed_media_count),
             transcriptVerifiedMedia: readNumber(row.transcript_verified_media_count),
+            mediaMissingDerivatives: countMissingDerivatives(row.media_asset_paths),
+            websiteMissingDerivatives: countMissingDerivatives(row.website_screenshot_paths),
+            mediaOwnerUnverified: readNumber(row.media_owner_unverified_count),
             mediaDomainConflicts: readNumber(row.media_domain_conflict_count),
             mediaProfileMismatches: readNumber(row.media_profile_mismatch_count),
             commentEvidence: readNumber(row.comment_evidence_count),
