@@ -590,12 +590,30 @@ function expectedMediaCount(row: AuditRow) {
   return 8;
 }
 
+function isAcceptedNonStrictMissingField(row: AuditRow, field: string) {
+  const rejectedOrBlocked = isRejectedOrBlockedCandidate(row);
+  const mediaUnavailable = hasMediaUnavailableReceipt(row);
+  const metricRequiredSocials = readNumber(row.metric_required_social_count);
+  const ownedWebsites = readNumber(row.owned_website_count);
+  const websiteAnalyzed = readNumber(row.website_analyzed_count);
+  const websiteScreenshots = readNumber(row.website_screenshot_count);
+
+  if (field === "decision_maker") return isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"));
+  if (field === "reviewed_media" || field === "comment_evidence") return mediaUnavailable || expectedMediaCount(row) === 0;
+  if (field === "reach_metric" || field === "reach_metric_capture_date") return metricRequiredSocials === 0 || rejectedOrBlocked || mediaUnavailable;
+  if (field === "verified_social_profile_url") return rejectedOrBlocked || mediaUnavailable;
+  if (field === "website_analyzed") return ownedWebsites === 0 || websiteAnalyzed > 0 || rejectedOrBlocked;
+  if (field === "website_screenshot_manifest") return ownedWebsites === 0 || websiteScreenshots > 0 || rejectedOrBlocked;
+  return false;
+}
+
 function buildActionItems(row: AuditRow, strict: boolean) {
   const actions: ActionItem[] = [];
   const missingFields = readMissingFields(row.missing_fields);
 
   if (!strict) {
     for (const field of missingFields) {
+      if (isAcceptedNonStrictMissingField(row, field)) continue;
       addAction(actions, `missing_${field}`, `Fill ${field.replace(/_/g, " ")}`, "P1", "Base audit field is missing.");
     }
     return actions;
