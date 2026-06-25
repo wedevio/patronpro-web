@@ -425,7 +425,7 @@ SELECT
   coalesce(mpm.media_profile_mismatch_examples, ARRAY[]::text[]) AS media_profile_mismatch_examples,
   coalesce(cd.comment_evidence_count, 0)::integer AS comment_evidence_count,
   b.website_count,
-  coalesce(wd.website_screenshot_count, 0)::integer AS website_screenshot_count,
+  cardinality(coalesce(wsp.website_screenshot_paths, ARRAY[]::text[]))::integer AS website_screenshot_count,
   coalesce(wd.website_analyzed_count, 0)::integer AS website_analyzed_count,
   b.contact_intelligence_count,
   b.person_relationship_count,

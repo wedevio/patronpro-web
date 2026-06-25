@@ -42,6 +42,7 @@ SELECT
     FROM patronpro_collab.media_items m
     LEFT JOIN patronpro_collab.media_analyses ma ON ma.media_item_id = m.media_item_id
     WHERE m.candidate_id = c.candidate_id
+      AND coalesce(m.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
   ), '[]'::jsonb) AS media_items,
   COALESCE((
     SELECT jsonb_agg(to_jsonb(ci) ORDER BY ci.captured_at DESC NULLS LAST)
