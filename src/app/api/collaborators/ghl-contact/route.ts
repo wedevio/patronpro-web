@@ -64,6 +64,11 @@ type GhlCustomFieldValue = {
   field_value: string;
 };
 
+type SocialTouchpoint = {
+  url?: string;
+  handle?: string;
+};
+
 class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -143,7 +148,29 @@ function platformFromUrl(value: string | null | undefined) {
   if (host.includes("linkedin.com")) return "linkedin";
   if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
   if (host.includes("x.com") || host.includes("twitter.com")) return "x";
+  if (host.includes("tumblr.com")) return "tumblr";
+  if (host.includes("pinterest.com")) return "pinterest";
   return null;
+}
+
+function canonicalPlatform(value: string | null | undefined) {
+  const platform = normalizeLabel(value);
+  if (["twitter"].includes(platform)) return "x";
+  if (["linked in"].includes(platform)) return "linkedin";
+  return platform || null;
+}
+
+function handleFromUrl(value: string | null | undefined) {
+  const url = webUrl(value);
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const first = parsed.pathname.split("/").filter(Boolean)[0];
+    if (!first || ["channel", "company", "in", "people", "share"].includes(first.toLowerCase())) return null;
+    return first.startsWith("@") ? first : `@${first}`;
+  } catch {
+    return null;
+  }
 }
 
 function collectSocialTouchpoints({
@@ -153,16 +180,23 @@ function collectSocialTouchpoints({
   routes: ContactRouteRow[];
   socialProfiles: SocialProfileRow[];
 }) {
-  const byPlatform = new Map<string, string>();
+  const byPlatform = new Map<string, SocialTouchpoint>();
   for (const profile of socialProfiles) {
-    const platform = normalizeLabel(profile.platform);
+    const platform = canonicalPlatform(profile.platform) ?? platformFromUrl(profile.canonical_url);
     const url = webUrl(readString(profile.canonical_url));
-    if (platform && url && !byPlatform.has(platform)) byPlatform.set(platform, url);
+    const handle = readString(profile.handle) ?? handleFromUrl(url);
+    if (platform && (url || handle)) {
+      const current = byPlatform.get(platform) ?? {};
+      byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handle ?? undefined });
+    }
   }
   for (const route of routes) {
     const url = webUrl(readString(route.url) ?? readString(route.value));
     const platform = platformFromUrl(url);
-    if (platform && url && !byPlatform.has(platform)) byPlatform.set(platform, url);
+    if (platform && url) {
+      const current = byPlatform.get(platform) ?? {};
+      byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handleFromUrl(url) ?? undefined });
+    }
   }
   return Object.fromEntries(byPlatform.entries());
 }
@@ -246,7 +280,7 @@ async function buildGhlCustomFields({
   token: string;
   locationId: string;
   language: string;
-  socialTouchpoints: Record<string, string>;
+  socialTouchpoints: Record<string, SocialTouchpoint>;
 }) {
   const { fields, warning } = await loadContactCustomFields(token, locationId);
   const warnings = warning ? [warning] : [];
@@ -259,28 +293,55 @@ async function buildGhlCustomFields({
     warnings.push("GHL Language custom field was not found; contact sync may fail if the location requires it.");
   }
 
-  const platformFieldNames: Record<string, string[]> = {
-    facebook: ["Collaborator Facebook URL", "Facebook URL", "Facebook", "contact.facebook"],
-    instagram: ["Collaborator Instagram URL", "Instagram URL", "Instagram", "contact.instagram"],
-    tiktok: ["Collaborator TikTok URL", "TikTok URL", "TikTok", "contact.tiktok"],
-    linkedin: ["Collaborator LinkedIn URL", "LinkedIn URL", "LinkedIn", "contact.linkedin"],
-    youtube: ["Collaborator YouTube URL", "YouTube URL", "YouTube", "contact.youtube"],
-    x: ["Collaborator X URL", "X URL", "Twitter URL", "Twitter", "contact.x"],
+  const platformFieldNames: Record<string, { url: string[]; handle: string[] }> = {
+    facebook: {
+      url: ["Facebook Profile URL", "Collaborator Facebook URL", "Facebook URL", "contact.facebook_profile_url", "contact.contactfacebook_profile_url"],
+      handle: ["Facebook Handle", "contact.facebook_handle", "contact.contactfacebook_handle"],
+    },
+    instagram: {
+      url: ["Instagram Profile URL", "Collaborator Instagram URL", "Instagram URL", "contact.instagram_profile_url", "contact.contactinstagram_profile_url"],
+      handle: ["Instagram Handle", "contact.instagram_handle", "contact.contactinstagram_handle"],
+    },
+    tiktok: {
+      url: ["TikTok Profile URL", "Collaborator TikTok URL", "TikTok URL", "contact.tiktok_profile_url"],
+      handle: ["TikTok Handle", "contact.tiktok_handle"],
+    },
+    youtube: {
+      url: ["YouTube Profile URL", "Collaborator YouTube URL", "YouTube URL", "contact.youtube_profile_url"],
+      handle: ["YouTube Handle", "contact.youtube_handle"],
+    },
+    linkedin: {
+      url: ["LinkedIn Profile URL", "Collaborator LinkedIn URL", "LinkedIn URL", "contact.linkedin_profile_url"],
+      handle: ["LinkedIn Handle", "contact.linkedin_handle"],
+    },
+    x: {
+      url: ["X Profile URL", "Twitter Profile URL", "Collaborator X URL", "X URL", "contact.x_profile_url"],
+      handle: ["X Handle", "Twitter Handle", "contact.x_handle"],
+    },
+    tumblr: {
+      url: ["Tumblr Profile URL", "contact.tumblr_profile_url"],
+      handle: ["Tumblr Handle", "contact.tumblr_handle"],
+    },
+    pinterest: {
+      url: ["Pinterest Profile URL", "contact.pinterest_profile_url"],
+      handle: ["Pinterest Handle", "contact.pinterest_handle"],
+    },
   };
 
-  for (const [platform, url] of Object.entries(socialTouchpoints)) {
-    const field = findCustomField(fields, platformFieldNames[platform] ?? [platform]);
-    const value = makeCustomFieldValue(field, url);
-    if (value) customFields.push(value);
+  const missingSocialFields: string[] = [];
+  for (const [platform, touchpoint] of Object.entries(socialTouchpoints)) {
+    const names = platformFieldNames[platform];
+    if (!names) continue;
+    const urlValue = makeCustomFieldValue(findCustomField(fields, names.url), touchpoint.url);
+    const handleValue = makeCustomFieldValue(findCustomField(fields, names.handle), touchpoint.handle);
+    if (urlValue) customFields.push(urlValue);
+    if (handleValue) customFields.push(handleValue);
+    if (touchpoint.url && !urlValue) missingSocialFields.push(`${platform} url`);
+    if (touchpoint.handle && !handleValue) missingSocialFields.push(`${platform} handle`);
   }
 
-  const missingSocialFields = Object.keys(socialTouchpoints)
-    .filter((platform) => !customFields.some((field) => {
-      const matched = findCustomField(fields, platformFieldNames[platform] ?? [platform]);
-      return matched && (field.id === matched.id || field.key === (matched.fieldKey ?? matched.key));
-    }));
   if (missingSocialFields.length) {
-    warnings.push(`No GHL custom fields matched ${missingSocialFields.join(", ")}; those social URLs were saved in the research note.`);
+    warnings.push(`No GHL custom fields matched ${missingSocialFields.join(", ")}; those social touchpoints were saved in the research note.`);
   }
 
   return { customFields, warnings };
