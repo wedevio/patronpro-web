@@ -213,9 +213,9 @@ function collectSocialTouchpoints({
       pushExtra(socialLabel(null, label), url);
       return;
     }
-    if (url) seenUrls.add(url);
     const current = byPlatform.get(platform) ?? {};
     if (!current.url && !isCommunityUrl(url)) {
+      if (url) seenUrls.add(url);
       byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handle ?? undefined });
       return;
     }
