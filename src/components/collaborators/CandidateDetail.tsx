@@ -300,6 +300,13 @@ function contactBadges(contact: ContactBookProjection) {
   ].filter(Boolean) as string[];
 }
 
+function contactHeader(contact: ContactBookProjection) {
+  const title = contact.roleTitle ?? contact.label ?? "Contact";
+  const subtitle = [contact.headline, contact.label, contact.relationshipType?.replace(/_/g, " ")]
+    .find((value) => value && value !== title);
+  return { title, subtitle: subtitle ?? "Role needs verification" };
+}
+
 function isExternalContact(contact: ContactBookProjection) {
   const relationship = `${contact.relationshipType ?? ""} ${contact.group ?? ""} ${contact.label ?? ""}`.toLowerCase();
   return (
@@ -359,16 +366,17 @@ function ContactBookList({ candidate, contacts }: { candidate: CollaboratorProje
         {contacts.map((contact) => {
           const route = bestGhlRoute(contact);
           const badges = contactBadges(contact);
+          const header = contactHeader(contact);
           return (
             <details key={contact.personId} className="group rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4" open={contact.rank === 1}>
               <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">
                     {contact.rank ? `#${contact.rank} · ` : ""}
-                    {contact.label ?? "Contact"}
+                    {header.title}
                   </p>
                   <h3 className="mt-1 text-lg font-semibold text-[#182235]">{contact.name}</h3>
-                  <p className="mt-1 text-sm text-[#526078]">{contact.roleTitle ?? contact.headline ?? contact.relationshipType ?? "Role needs verification"}</p>
+                  <p className="mt-1 text-sm text-[#526078]">{header.subtitle}</p>
                 </div>
                 <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#1E2C46] shadow-sm group-open:bg-[#fff3df] group-open:text-[#9b5200]">
                   {contact.routes.length} routes
