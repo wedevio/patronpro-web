@@ -69,6 +69,11 @@ type SocialTouchpoint = {
   handle?: string;
 };
 
+type SocialTouchpointCollection = {
+  touchpoints: Record<string, SocialTouchpoint>;
+  additionalLines: string[];
+};
+
 class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -173,32 +178,63 @@ function handleFromUrl(value: string | null | undefined) {
   }
 }
 
+function socialLabel(platform: string | null, label: string | null | undefined) {
+  return [platform ?? "other", readString(label)].filter(Boolean).join(" ");
+}
+
+function isCommunityUrl(value: string | null | undefined) {
+  const url = webUrl(value);
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.includes("facebook.com") && parsed.pathname.split("/").filter(Boolean)[0]?.toLowerCase() === "groups";
+  } catch {
+    return false;
+  }
+}
+
 function collectSocialTouchpoints({
   routes,
   socialProfiles,
 }: {
   routes: ContactRouteRow[];
   socialProfiles: SocialProfileRow[];
-}) {
+}): SocialTouchpointCollection {
   const byPlatform = new Map<string, SocialTouchpoint>();
+  const additionalLines: string[] = [];
+  const seenUrls = new Set<string>();
+  const pushExtra = (label: string, url: string | undefined) => {
+    if (!url || seenUrls.has(url)) return;
+    seenUrls.add(url);
+    additionalLines.push(`${label}: ${url}`);
+  };
+  const pushPrimary = (platform: string | null, url: string | undefined, handle: string | null | undefined, label: string | null | undefined) => {
+    if (!platform) {
+      pushExtra(socialLabel(null, label), url);
+      return;
+    }
+    if (url) seenUrls.add(url);
+    const current = byPlatform.get(platform) ?? {};
+    if (!current.url && !isCommunityUrl(url)) {
+      byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handle ?? undefined });
+      return;
+    }
+    if (handle && !current.handle) byPlatform.set(platform, { ...current, handle });
+    if (url && url !== current.url) pushExtra(socialLabel(platform, label), url);
+  };
   for (const profile of socialProfiles) {
     const platform = canonicalPlatform(profile.platform) ?? platformFromUrl(profile.canonical_url);
     const url = webUrl(readString(profile.canonical_url));
     const handle = readString(profile.handle) ?? handleFromUrl(url);
-    if (platform && (url || handle)) {
-      const current = byPlatform.get(platform) ?? {};
-      byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handle ?? undefined });
-    }
+    pushPrimary(platform, url, handle, "profile");
   }
   for (const route of routes) {
     const url = webUrl(readString(route.url) ?? readString(route.value));
     const platform = platformFromUrl(url);
-    if (platform && url) {
-      const current = byPlatform.get(platform) ?? {};
-      byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handleFromUrl(url) ?? undefined });
-    }
+    if (isCommunityUrl(url)) pushExtra("facebook community", url);
+    else pushPrimary(platform, url, handleFromUrl(url), route.label ?? route.type);
   }
-  return Object.fromEntries(byPlatform.entries());
+  return { touchpoints: Object.fromEntries(byPlatform.entries()), additionalLines };
 }
 
 function normalizeGhlLanguage(value: string | null | undefined) {
@@ -276,11 +312,13 @@ async function buildGhlCustomFields({
   locationId,
   language,
   socialTouchpoints,
+  additionalSocialUrls,
 }: {
   token: string;
   locationId: string;
   language: string;
   socialTouchpoints: Record<string, SocialTouchpoint>;
+  additionalSocialUrls: string[];
 }) {
   const { fields, warning } = await loadContactCustomFields(token, locationId);
   const warnings = warning ? [warning] : [];
@@ -342,6 +380,15 @@ async function buildGhlCustomFields({
 
   if (missingSocialFields.length) {
     warnings.push(`No GHL custom fields matched ${missingSocialFields.join(", ")}; those social touchpoints were saved in the research note.`);
+  }
+
+  const additionalValue = additionalSocialUrls.join("\n").slice(0, 3500);
+  const additionalField = findCustomField(fields, ["Additional Social / Community URLs", "contact.additional_social_community_urls"]);
+  const additionalFieldValue = makeCustomFieldValue(additionalField, additionalValue);
+  if (additionalFieldValue) {
+    customFields.push(additionalFieldValue);
+  } else if (additionalValue) {
+    warnings.push("No GHL custom field matched Additional Social / Community URLs; overflow social URLs were saved in the research note.");
   }
 
   return { customFields, warnings };
@@ -530,7 +577,8 @@ export async function POST(request: Request): Promise<Response> {
     const email = selectedEmail ?? routes.map(routeEmail).find(Boolean);
     const phone = selectedPhone ?? routes.map(routePhone).find(Boolean);
     const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
-    const socialTouchpoints = collectSocialTouchpoints({ routes, socialProfiles });
+    const socialCollection = collectSocialTouchpoints({ routes, socialProfiles });
+    const socialTouchpoints = socialCollection.touchpoints;
     const canApply = Boolean(email || phone || allowWithoutDirectRoute);
     const minimumContactDataStatus = !locationId
       ? "missing_location_id"
@@ -592,6 +640,7 @@ export async function POST(request: Request): Promise<Response> {
           verification_status: profile.verification_status ?? null,
         })),
         social_touchpoints: socialTouchpoints,
+        additional_social_urls: socialCollection.additionalLines,
         custom_field_warnings: customFieldWarnings,
         allow_without_direct_route: allowWithoutDirectRoute,
         bypass_reason: allowWithoutDirectRoute ? bypassReason : null,
@@ -638,6 +687,7 @@ export async function POST(request: Request): Promise<Response> {
       locationId,
       language: ghlLanguage,
       socialTouchpoints,
+      additionalSocialUrls: socialCollection.additionalLines,
     });
     customFieldWarnings = customFieldResult.warnings;
     if (customFieldResult.customFields.length) {
