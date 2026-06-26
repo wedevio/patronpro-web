@@ -13,6 +13,9 @@ type ContactRouteRow = {
   value?: string | null;
   url?: string | null;
   label?: string | null;
+  is_direct?: boolean | null;
+  is_business_route?: boolean | null;
+  verification_status?: string | null;
 };
 
 type ContactBookRow = {
@@ -97,15 +100,17 @@ function splitName(name: string) {
   return { firstName, lastName: rest.join(" ") || undefined };
 }
 
-function routeEmail(route: ContactRouteRow | undefined | null) {
+function routeEmail(route: ContactRouteRow | undefined | null, allowIndirect = true) {
   if (!route || route.type !== "email") return undefined;
+  if (!allowIndirect && route.is_direct !== true) return undefined;
   const value = readString(route.value) ?? readString(route.url);
   const email = value?.replace(/^mailto:/i, "").trim();
   return email?.includes("@") ? email : undefined;
 }
 
-function routePhone(route: ContactRouteRow | undefined | null) {
+function routePhone(route: ContactRouteRow | undefined | null, allowIndirect = true) {
   if (!route || route.type !== "phone") return undefined;
+  if (!allowIndirect && route.is_direct !== true) return undefined;
   return readString(route.value) ?? undefined;
 }
 
@@ -253,6 +258,11 @@ function collectSocialTouchpoints({
     }
   }
   return { touchpoints: Object.fromEntries(byPlatform.entries()), additionalLines };
+}
+
+function isActiveContactRoute(route: ContactRouteRow) {
+  const status = normalizeLabel(route.verification_status);
+  return !status.startsWith("superseded") && !status.startsWith("duplicate");
 }
 
 function shouldUseCandidateSocialProfiles(contact: ContactBookRow) {
@@ -592,7 +602,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (!contact) throw new ApiError(404, "Contact not found in candidate contact book");
 
-    const routes = Array.isArray(contact.contact_routes) ? contact.contact_routes : [];
+    const routes = Array.isArray(contact.contact_routes) ? contact.contact_routes.filter(isActiveContactRoute) : [];
     const selectedRoute = selectRoute(routes, routeId);
     const candidateSocialProfiles = await queryRows<SocialProfileRow>(
       `SELECT platform, canonical_url, handle, visible_metric_text, followers_count, subscribers_count, likes_count, status, verification_status, captured_at
@@ -602,13 +612,14 @@ export async function POST(request: Request): Promise<Response> {
        ORDER BY platform, canonical_url`,
       [candidateId]
     );
-    const locationId = readLocationId();
-    const selectedEmail = routeEmail(selectedRoute);
-    const selectedPhone = routePhone(selectedRoute);
-    const email = selectedEmail ?? routes.map(routeEmail).find(Boolean);
-    const phone = selectedPhone ?? routes.map(routePhone).find(Boolean);
-    const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
     const useCandidateSocialProfiles = shouldUseCandidateSocialProfiles(contact);
+    const allowIndirectContactRoutes = useCandidateSocialProfiles;
+    const locationId = readLocationId();
+    const selectedEmail = routeEmail(selectedRoute, allowIndirectContactRoutes);
+    const selectedPhone = routePhone(selectedRoute, allowIndirectContactRoutes);
+    const email = selectedEmail ?? routes.map((route) => routeEmail(route, allowIndirectContactRoutes)).find(Boolean);
+    const phone = selectedPhone ?? routes.map((route) => routePhone(route, allowIndirectContactRoutes)).find(Boolean);
+    const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
     const contactSocialProfiles = useCandidateSocialProfiles ? candidateSocialProfiles : [];
     const organizationSocialProfiles = useCandidateSocialProfiles ? [] : candidateSocialProfiles;
     const socialCollection = collectSocialTouchpoints({ routes, socialProfiles: contactSocialProfiles });

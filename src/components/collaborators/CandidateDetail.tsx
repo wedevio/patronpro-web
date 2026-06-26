@@ -282,15 +282,15 @@ function routeDisplay(route: ContactRouteProjection) {
 }
 
 function routeCanSyncToGhl(route: ContactRouteProjection) {
-  return route.type === "email" || route.type === "phone";
+  return (route.type === "email" || route.type === "phone") && route.isDirect;
 }
 
 function bestGhlRoute(contact: ContactBookProjection) {
   return (
-    contact.routes.find((route) => route.type === "email") ??
-    contact.routes.find((route) => route.type === "phone") ??
-    contact.routes.find((route) => route.isPreferred && route.isBusinessRoute) ??
-    contact.routes.find((route) => route.isBusinessRoute) ??
+    contact.routes.find((route) => route.type === "email" && route.isDirect) ??
+    contact.routes.find((route) => route.type === "phone" && route.isDirect) ??
+    contact.routes.find((route) => route.isPreferred && route.isBusinessRoute && route.isDirect) ??
+    contact.routes.find((route) => route.isBusinessRoute && route.isDirect) ??
     contact.routes.find((route) => route.isDirect) ??
     contact.routes.find((route) => route.type === "contact_form") ??
     contact.routes.find((route) => route.type === "website") ??
@@ -308,6 +308,12 @@ function contactBadges(contact: ContactBookProjection) {
     contact.isInfluencer ? "influencer" : null,
     contact.hasDirectRoute ? "direct route" : null,
   ].filter(Boolean) as string[];
+}
+
+function routeScopeBadge(route: ContactRouteProjection) {
+  if (route.isDirect) return { label: "direct", className: "bg-[#eef4ff] text-[#1d5fa7]" };
+  if (route.isBusinessRoute) return { label: "via organization", className: "bg-[#f1f5f9] text-[#526078]" };
+  return { label: "context", className: "bg-[#f1f5f9] text-[#526078]" };
 }
 
 function contactHeader(contact: ContactBookProjection) {
@@ -335,6 +341,7 @@ function ContactRouteList({ routes }: { routes: ContactRouteProjection[] }) {
       {routes.map((route) => {
         const href = routeHref(route);
         const display = routeDisplay(route);
+        const scope = routeScopeBadge(route);
         return (
           <div key={route.id} className="rounded-xl border border-[#e4eaf2] bg-white p-3 text-sm">
             <div className="flex flex-wrap items-start justify-between gap-2">
@@ -350,6 +357,7 @@ function ContactRouteList({ routes }: { routes: ContactRouteProjection[] }) {
               </div>
               <div className="flex flex-wrap justify-end gap-1 text-xs">
                 {route.isPreferred ? <span className="rounded-full bg-[#fff3df] px-2 py-1 font-semibold text-[#9b5200]">preferred</span> : null}
+                <span className={`rounded-full px-2 py-1 font-semibold ${scope.className}`}>{scope.label}</span>
                 {route.isBusinessRoute ? <span className="rounded-full bg-[#e9f6ef] px-2 py-1 font-semibold text-[#1d6a3a]">business</span> : null}
                 {route.verificationStatus ? <span className="rounded-full bg-[#f1f5f9] px-2 py-1 font-semibold text-[#526078]">{route.verificationStatus}</span> : null}
                 {route.latestGhlSyncStatus ? <span className="rounded-full bg-[#eef4ff] px-2 py-1 font-semibold text-[#1d5fa7]">GHL {route.latestGhlSyncStatus}</span> : null}

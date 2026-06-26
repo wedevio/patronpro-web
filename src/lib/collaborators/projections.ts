@@ -539,11 +539,17 @@ function projectContactRoute(row: ContactRouteRow): ContactRouteProjection | nul
   };
 }
 
+function visibleContactRoute(route: ContactRouteProjection | null): route is ContactRouteProjection {
+  if (!route) return false;
+  const status = normalizeLabel(route.verificationStatus);
+  return !status.startsWith("superseded") && !status.startsWith("duplicate");
+}
+
 function projectContactBook(row: ContactBookRow): ContactBookProjection | null {
   const personId = cleanString(row.person_id);
   const name = cleanString(row.full_name);
   if (!personId || !name) return null;
-  const routes = (row.contact_routes ?? []).map(projectContactRoute).filter(Boolean) as ContactRouteProjection[];
+  const routes = (row.contact_routes ?? []).map(projectContactRoute).filter(visibleContactRoute);
   return {
     rank: numberOrNull(row.contact_book_rank),
     personId,
