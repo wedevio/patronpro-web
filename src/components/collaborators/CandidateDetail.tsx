@@ -286,7 +286,18 @@ function routeCanSyncToGhl(route: ContactRouteProjection) {
 }
 
 function bestGhlRoute(contact: ContactBookProjection) {
-  return contact.routes.find((route) => route.type === "email") ?? contact.routes.find((route) => route.type === "phone") ?? null;
+  return (
+    contact.routes.find((route) => route.type === "email") ??
+    contact.routes.find((route) => route.type === "phone") ??
+    contact.routes.find((route) => route.isPreferred && route.isBusinessRoute) ??
+    contact.routes.find((route) => route.isBusinessRoute) ??
+    contact.routes.find((route) => route.isDirect) ??
+    contact.routes.find((route) => route.type === "contact_form") ??
+    contact.routes.find((route) => route.type === "website") ??
+    contact.routes.find((route) => route.type === "public_profile") ??
+    contact.routes[0] ??
+    null
+  );
 }
 
 function contactBadges(contact: ContactBookProjection) {
@@ -422,7 +433,7 @@ function ContactBookList({ candidate, contacts }: { candidate: CollaboratorProje
 
                 <div className="space-y-4">
                   <ContactRouteList routes={contact.routes} />
-                  {route && routeCanSyncToGhl(route) ? (
+                  {route ? (
                     <div className="rounded-xl border border-[#dfe5ee] bg-white p-3">
                       <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">
                         CRM action
@@ -433,7 +444,10 @@ function ContactBookList({ candidate, contacts }: { candidate: CollaboratorProje
                         routeId={route.id}
                         latestStatus={contact.latestGhlSyncStatus}
                       />
-                      <p className="mt-2 text-xs leading-5 text-[#68758d]">Creates or updates the contact only. It does not send outreach.</p>
+                      <p className="mt-2 text-xs leading-5 text-[#68758d]">
+                        Creates or updates the contact only. It does not send outreach.
+                        {routeCanSyncToGhl(route) ? "" : " This route is preview-only unless another email or phone is captured for the contact."}
+                      </p>
                     </div>
                   ) : null}
                 </div>

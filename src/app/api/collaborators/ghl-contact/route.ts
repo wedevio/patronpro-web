@@ -26,7 +26,21 @@ type ContactBookRow = {
   contact_book_group?: string | null;
   contact_book_rank?: number | string | null;
   relationship_confidence?: string | null;
+  source_urls?: string[] | null;
   contact_routes?: ContactRouteRow[] | null;
+};
+
+type SocialProfileRow = {
+  platform?: string | null;
+  canonical_url?: string | null;
+  handle?: string | null;
+  visible_metric_text?: string | null;
+  followers_count?: number | string | null;
+  subscribers_count?: number | string | null;
+  likes_count?: number | string | null;
+  status?: string | null;
+  verification_status?: string | null;
+  captured_at?: string | null;
 };
 
 type GhlUpsertResponse = {
@@ -73,6 +87,51 @@ function routeUrl(route: ContactRouteRow | undefined | null) {
   if (!["website", "contact_form", "public_profile", "third_party_profile"].includes(route.type ?? "")) return undefined;
   const url = readString(route.url) ?? readString(route.value);
   return webUrl(url);
+}
+
+function routeLine(route: ContactRouteRow) {
+  const label = readString(route.label) ?? readString(route.type) ?? "route";
+  const value = readString(route.value) ?? readString(route.url);
+  if (!value) return null;
+  return `${label}: ${value}`;
+}
+
+function socialLine(profile: SocialProfileRow) {
+  const platform = readString(profile.platform) ?? "social";
+  const url = readString(profile.canonical_url);
+  const metric = readString(profile.visible_metric_text)
+    ?? (profile.followers_count != null ? `${profile.followers_count} followers` : null)
+    ?? (profile.subscribers_count != null ? `${profile.subscribers_count} subscribers` : null)
+    ?? (profile.likes_count != null ? `${profile.likes_count} likes` : null);
+  const status = [readString(profile.status), readString(profile.verification_status)].filter(Boolean).join("/");
+  return [platform, url, metric, status ? `(${status})` : null].filter(Boolean).join(" - ");
+}
+
+function buildResearchNote({
+  contact,
+  routes,
+  socialProfiles,
+  selectedRoute,
+}: {
+  contact: ContactBookRow;
+  routes: ContactRouteRow[];
+  socialProfiles: SocialProfileRow[];
+  selectedRoute: ContactRouteRow | null;
+}) {
+  const routeLines = routes.map(routeLine).filter(Boolean).slice(0, 12);
+  const socialLines = socialProfiles.map(socialLine).filter(Boolean).slice(0, 12);
+  const sourceLines = (contact.source_urls ?? []).slice(0, 6);
+  return [
+    "PatronPro collaborator research contact.",
+    `Candidate: ${contact.canonical_name} (${contact.candidate_id})`,
+    `Contact: ${contact.full_name}`,
+    `Role: ${contact.role_taxonomy_key ?? "unknown"}; group: ${contact.contact_book_group ?? "unknown"}; confidence: ${contact.relationship_confidence ?? "unknown"}`,
+    selectedRoute ? `Selected route: ${routeLine(selectedRoute) ?? selectedRoute.person_contact_route_id ?? "selected route"}` : null,
+    routeLines.length ? `Public contact routes:\n- ${routeLines.join("\n- ")}` : "Public contact routes: none captured",
+    socialLines.length ? `Public social/profile routes:\n- ${socialLines.join("\n- ")}` : "Public social/profile routes: none captured",
+    sourceLines.length ? `Evidence/source links:\n- ${sourceLines.join("\n- ")}` : null,
+    "Guardrail: this sync creates/updates the CRM contact and note only. No outreach, DM, SMS, WhatsApp, email, or workflow trigger was sent by the dashboard.",
+  ].filter(Boolean).join("\n\n").slice(0, 6500);
 }
 
 function webUrl(value: string | null | undefined) {
@@ -212,6 +271,14 @@ export async function POST(request: Request): Promise<Response> {
 
     const routes = Array.isArray(contact.contact_routes) ? contact.contact_routes : [];
     const selectedRoute = selectRoute(routes, routeId);
+    const socialProfiles = await queryRows<SocialProfileRow>(
+      `SELECT platform, canonical_url, handle, visible_metric_text, followers_count, subscribers_count, likes_count, status, verification_status, captured_at
+       FROM patronpro_collab.social_profiles
+       WHERE candidate_id = $1
+         AND lower(coalesce(status, '')) !~ '^(superseded|duplicate)'
+       ORDER BY platform, canonical_url`,
+      [candidateId]
+    );
     const locationId = readLocationId();
     const selectedEmail = routeEmail(selectedRoute);
     const selectedPhone = routePhone(selectedRoute);
@@ -261,6 +328,21 @@ export async function POST(request: Request): Promise<Response> {
         contact_book_group: contact.contact_book_group ?? null,
         contact_book_rank: contact.contact_book_rank ?? null,
         relationship_confidence: contact.relationship_confidence ?? null,
+        contact_routes: routes.map((route) => ({
+          type: route.type ?? null,
+          label: route.label ?? null,
+          value: route.value ?? null,
+          url: route.url ?? null,
+        })),
+        social_profiles: socialProfiles.map((profile) => ({
+          platform: profile.platform ?? null,
+          url: profile.canonical_url ?? null,
+          handle: profile.handle ?? null,
+          visible_metric_text: profile.visible_metric_text ?? null,
+          captured_at: profile.captured_at ?? null,
+          status: profile.status ?? null,
+          verification_status: profile.verification_status ?? null,
+        })),
         outreach_guard: "No outreach message is sent by this endpoint.",
       },
       _minimum_contact_data_status: minimumContactDataStatus,
@@ -320,6 +402,19 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const summary = summarizeGhlResponse(responseBody);
+    let noteStatus: "skipped" | "success" | "failed" = "skipped";
+    if (summary.crmContactId) {
+      const noteResponse = await ghlFetch(`/contacts/${summary.crmContactId}/notes`, {
+        method: "POST",
+        token,
+        body: JSON.stringify({
+          locationId,
+          body: buildResearchNote({ contact, routes, socialProfiles, selectedRoute }),
+          userId: "patronpro-collab-research",
+        }),
+      }).catch(() => null);
+      noteStatus = noteResponse?.ok ? "success" : "failed";
+    }
     const receiptId = await insertReceipt({
       candidateId,
       personId,
@@ -330,7 +425,7 @@ export async function POST(request: Request): Promise<Response> {
       status: "success",
       dryRun: false,
       publicPayload,
-      responseSummary: { crmContactIdPresent: summary.crmContactIdPresent, payloadHash },
+      responseSummary: { crmContactIdPresent: summary.crmContactIdPresent, noteStatus, payloadHash },
     });
 
     return NextResponse.json({
@@ -339,6 +434,7 @@ export async function POST(request: Request): Promise<Response> {
       receiptId,
       minimumContactDataStatus,
       crmContactIdPresent: summary.crmContactIdPresent,
+      noteStatus,
     });
   } catch (error) {
     if (error instanceof ApiError) {

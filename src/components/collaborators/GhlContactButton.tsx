@@ -6,6 +6,7 @@ import { useState } from "react";
 type SyncState =
   | { status: "idle" }
   | { status: "loading" }
+  | { status: "preview"; message: string; canApply: boolean }
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
@@ -22,7 +23,7 @@ export function GhlContactButton({
 }) {
   const [state, setState] = useState<SyncState>({ status: "idle" });
 
-  async function syncContact() {
+  async function syncContact(apply: boolean) {
     setState({ status: "loading" });
     try {
       const response = await fetch("/api/collaborators/ghl-contact", {
@@ -32,16 +33,35 @@ export function GhlContactButton({
           candidateId,
           personId,
           personContactRouteId: routeId ?? undefined,
-          apply: true,
+          apply,
         }),
       });
-      const json = (await response.json()) as { error?: string; syncStatus?: string; crmContactIdPresent?: boolean };
+      const json = (await response.json()) as {
+        error?: string;
+        syncStatus?: string;
+        crmContactIdPresent?: boolean;
+        canApply?: boolean;
+        minimumContactDataStatus?: string;
+        noteStatus?: string;
+      };
       if (!response.ok) {
         throw new Error(json.error ?? "GHL sync failed");
       }
+      if (!apply) {
+        setState({
+          status: "preview",
+          canApply: Boolean(json.canApply),
+          message: json.canApply
+            ? "Preview ready. Confirm to create or update this contact in PatronPro / GHL."
+            : `Preview only: ${json.minimumContactDataStatus ?? "missing email or phone"}.`,
+        });
+        return;
+      }
       setState({
         status: "success",
-        message: json.crmContactIdPresent ? "Synced in PatronPro / GHL." : `Recorded ${json.syncStatus ?? "sync"}.`,
+        message: json.crmContactIdPresent
+          ? `Synced in PatronPro / GHL${json.noteStatus === "success" ? " with research note." : "."}`
+          : `Recorded ${json.syncStatus ?? "sync"}.`,
       });
     } catch (error) {
       setState({ status: "error", message: error instanceof Error ? error.message : "GHL sync failed" });
@@ -49,14 +69,16 @@ export function GhlContactButton({
   }
 
   const disabled = state.status === "loading";
-  const label = latestStatus === "success" ? "Update in GHL" : "Create in GHL";
+  const label = state.status === "preview" && state.canApply
+    ? latestStatus === "success" ? "Confirm update" : "Confirm create"
+    : latestStatus === "success" ? "Preview GHL update" : "Preview GHL create";
 
   return (
     <div className="space-y-2">
       <button
         type="button"
         disabled={disabled}
-        onClick={syncContact}
+        onClick={() => syncContact(state.status === "preview" && state.canApply)}
         className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#1E2C46] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2b3e60] disabled:cursor-not-allowed disabled:opacity-65"
         title="Create or update this public contact in the PatronPro GoHighLevel account. No outreach message is sent."
       >
@@ -67,6 +89,12 @@ export function GhlContactButton({
         <p className="inline-flex items-center gap-2 text-sm text-[#1d6a3a]">
           <CheckCircle2 size={15} />
           {state.message}
+        </p>
+      ) : null}
+      {state.status === "preview" ? (
+        <p className={`inline-flex items-start gap-2 text-sm ${state.canApply ? "text-[#42506a]" : "text-[#a6402b]"}`}>
+          {state.canApply ? <CheckCircle2 size={15} className="mt-0.5 shrink-0" /> : <AlertCircle size={15} className="mt-0.5 shrink-0" />}
+          <span>{state.message}</span>
         </p>
       ) : null}
       {state.status === "error" ? (
