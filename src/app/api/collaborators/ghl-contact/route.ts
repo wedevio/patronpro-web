@@ -231,8 +231,12 @@ function collectSocialTouchpoints({
   for (const route of routes) {
     const url = webUrl(readString(route.url) ?? readString(route.value));
     const platform = platformFromUrl(url);
+    const routeHint = normalizeLabel([route.label, route.type].filter(Boolean).join(" "));
     if (isCommunityUrl(url)) pushExtra("facebook community", url);
-    else pushPrimary(platform, url, handleFromUrl(url), route.label ?? route.type);
+    else if (platform) pushPrimary(platform, url, handleFromUrl(url), route.label ?? route.type);
+    else if (routeHint.includes("social") || routeHint.includes("community") || routeHint.includes("group")) {
+      pushExtra(socialLabel(null, route.label ?? route.type), url);
+    }
   }
   return { touchpoints: Object.fromEntries(byPlatform.entries()), additionalLines };
 }
