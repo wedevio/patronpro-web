@@ -8,9 +8,9 @@ export default function ChatWidget() {
   if (pathname.startsWith("/panel") || pathname.startsWith("/ghl") || pathname.startsWith("/onboarding")) return null;
   return (
     <Script
-      src="https://widgets.leadconnectorhq.com/loader.js"
-      data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-      data-widget-id="69eba589fa2b28ffe2cf48fa"
+      src="https://widgets.leadconnectorhq.com/loader.js" 
+      data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js" 
+      data-widget-id="6a363b805dcabc40b599a028"
       strategy="lazyOnload"
     />
   );
