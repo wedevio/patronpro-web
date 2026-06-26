@@ -31,6 +31,7 @@ type ContactBookRow = {
   relationship_confidence?: string | null;
   source_urls?: string[] | null;
   contact_routes?: ContactRouteRow[] | null;
+  latest_ghl_contact_id?: string | null;
 };
 
 type SocialProfileRow = {
@@ -531,7 +532,7 @@ async function insertReceipt({
   routeId?: string | null;
   locationId?: string | null;
   crmContactId?: string | null;
-  action: "preview" | "upsert_contact";
+  action: "preview" | "upsert_contact" | "create_contact" | "update_contact";
   status: "dry_run" | "success" | "failed" | "skipped";
   dryRun: boolean;
   publicPayload: Record<string, unknown>;
@@ -750,11 +751,22 @@ export async function POST(request: Request): Promise<Response> {
     publicPayload = buildPublicPayload(customFieldWarnings);
     payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
 
-    const ghlResponse = await ghlFetch("/contacts/upsert", {
-      method: "POST",
-      token,
-      body: JSON.stringify(apiPayload),
-    });
+    const existingNoRouteContactId = !email && !phone && allowWithoutDirectRoute
+      ? readString(contact.latest_ghl_contact_id)
+      : null;
+    const syncAction = !email && !phone && allowWithoutDirectRoute
+      ? existingNoRouteContactId
+        ? "update_contact"
+        : "create_contact"
+      : "upsert_contact";
+    const ghlResponse = await ghlFetch(
+      syncAction === "update_contact" ? `/contacts/${existingNoRouteContactId}` : syncAction === "create_contact" ? "/contacts/" : "/contacts/upsert",
+      {
+        method: syncAction === "update_contact" ? "PUT" : "POST",
+        token,
+        body: JSON.stringify(apiPayload),
+      }
+    );
     const responseBody = (await ghlResponse.clone().json().catch(() => ({}))) as GhlUpsertResponse;
     if (!ghlResponse.ok) {
       const detail = await readGhlResponseDetail(ghlResponse);
@@ -763,7 +775,7 @@ export async function POST(request: Request): Promise<Response> {
         personId,
         routeId: selectedRoute?.person_contact_route_id,
         locationId,
-        action: "upsert_contact",
+        action: syncAction,
         status: "failed",
         dryRun: false,
         publicPayload,
@@ -801,7 +813,7 @@ export async function POST(request: Request): Promise<Response> {
       routeId: selectedRoute?.person_contact_route_id,
       locationId,
       crmContactId: summary.crmContactId,
-      action: "upsert_contact",
+      action: syncAction,
       status: "success",
       dryRun: false,
       publicPayload,

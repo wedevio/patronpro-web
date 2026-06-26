@@ -14,11 +14,13 @@ export function GhlContactButton({
   personId,
   routeId,
   latestStatus,
+  allowWithoutDirectRoute,
 }: {
   candidateId: string;
   personId: string;
   routeId?: string | null;
   latestStatus?: string | null;
+  allowWithoutDirectRoute?: boolean;
 }) {
   const [state, setState] = useState<SyncState>({ status: "idle" });
 
@@ -33,6 +35,12 @@ export function GhlContactButton({
           personId,
           personContactRouteId: routeId ?? undefined,
           apply: true,
+          ...(allowWithoutDirectRoute
+            ? {
+                allowWithoutDirectRoute: true,
+                bypassReason: "operator approved creating this research contact without direct email or phone",
+              }
+            : {}),
         }),
       });
       const json = (await response.json()) as {
@@ -63,7 +71,11 @@ export function GhlContactButton({
   }
 
   const disabled = state.status === "loading";
-  const label = latestStatus === "success" ? "Update in GHL" : "Create in GHL";
+  const label = latestStatus === "success"
+    ? "Update in GHL"
+    : allowWithoutDirectRoute
+      ? "Create in GHL without email/phone"
+      : "Create in GHL";
 
   return (
     <div className="space-y-2">

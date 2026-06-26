@@ -451,6 +451,7 @@ function ContactBookList({ candidate, contacts }: { candidate: CollaboratorProje
                         personId={contact.personId}
                         routeId={route.id}
                         latestStatus={contact.latestGhlSyncStatus}
+                        allowWithoutDirectRoute={!routeCanSyncToGhl(route)}
                       />
                       <p className="mt-2 text-xs leading-5 text-[#68758d]">
                         Creates or updates the contact only. It does not send outreach.
