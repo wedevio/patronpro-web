@@ -48,10 +48,27 @@ type GhlUpsertResponse = {
   id?: string;
 };
 
+type GhlCustomFieldRow = {
+  id?: string | null;
+  name?: string | null;
+  fieldKey?: string | null;
+  key?: string | null;
+  dataType?: string | null;
+  model?: string | null;
+  picklistOptions?: string[] | null;
+};
+
+type GhlCustomFieldValue = {
+  id?: string;
+  key?: string;
+  field_value: string;
+};
+
 class ApiError extends Error {
   constructor(
     public readonly status: number,
-    message: string
+    message: string,
+    public readonly detail?: string
   ) {
     super(message);
   }
@@ -105,6 +122,168 @@ function socialLine(profile: SocialProfileRow) {
     ?? (profile.likes_count != null ? `${profile.likes_count} likes` : null);
   const status = [readString(profile.status), readString(profile.verification_status)].filter(Boolean).join("/");
   return [platform, url, metric, status ? `(${status})` : null].filter(Boolean).join(" - ");
+}
+
+function normalizeLabel(value: string | null | undefined) {
+  return (value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function platformFromUrl(value: string | null | undefined) {
+  const url = webUrl(value);
+  if (!url) return null;
+  let host: string;
+  try {
+    host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
+  if (host.includes("facebook.com")) return "facebook";
+  if (host.includes("instagram.com")) return "instagram";
+  if (host.includes("tiktok.com")) return "tiktok";
+  if (host.includes("linkedin.com")) return "linkedin";
+  if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
+  if (host.includes("x.com") || host.includes("twitter.com")) return "x";
+  return null;
+}
+
+function collectSocialTouchpoints({
+  routes,
+  socialProfiles,
+}: {
+  routes: ContactRouteRow[];
+  socialProfiles: SocialProfileRow[];
+}) {
+  const byPlatform = new Map<string, string>();
+  for (const profile of socialProfiles) {
+    const platform = normalizeLabel(profile.platform);
+    const url = webUrl(readString(profile.canonical_url));
+    if (platform && url && !byPlatform.has(platform)) byPlatform.set(platform, url);
+  }
+  for (const route of routes) {
+    const url = webUrl(readString(route.url) ?? readString(route.value));
+    const platform = platformFromUrl(url);
+    if (platform && url && !byPlatform.has(platform)) byPlatform.set(platform, url);
+  }
+  return Object.fromEntries(byPlatform.entries());
+}
+
+function normalizeGhlLanguage(value: string | null | undefined) {
+  const normalized = normalizeLabel(value);
+  if (["es", "esp", "espanol", "espanol latino", "spanish"].includes(normalized)) return "Español";
+  if (["en", "eng", "english", "ingles"].includes(normalized)) return "English";
+  return "English";
+}
+
+function readGhlDefaultLanguage(bodyLanguage: string | null) {
+  return normalizeGhlLanguage(
+    bodyLanguage
+      ?? readString(process.env.PATRONPRO_COLLAB_GHL_DEFAULT_LANGUAGE)
+      ?? readString(process.env.PATRONPRO_DEFAULT_LANGUAGE)
+      ?? "English"
+  );
+}
+
+async function readGhlResponseDetail(response: Response) {
+  const text = await response.text().catch(() => "");
+  if (!text) return `status ${response.status}`;
+  try {
+    const json = JSON.parse(text) as Record<string, unknown>;
+    return readString(json.message)
+      ?? readString(json.error)
+      ?? readString(json.msg)
+      ?? JSON.stringify(json).slice(0, 400);
+  } catch {
+    return text.slice(0, 400);
+  }
+}
+
+async function loadContactCustomFields(token: string, locationId: string) {
+  const response = await ghlFetch(`/locations/${encodeURIComponent(locationId)}/customFields`, {
+    method: "GET",
+    token,
+  });
+  if (!response.ok) {
+    return {
+      fields: [] as GhlCustomFieldRow[],
+      warning: `GHL custom fields lookup failed (${response.status}); social URLs were saved in the research note only.`,
+    };
+  }
+  const body = (await response.json().catch(() => ({}))) as {
+    customFields?: GhlCustomFieldRow[];
+    fields?: GhlCustomFieldRow[];
+  };
+  const fields = (Array.isArray(body.customFields) ? body.customFields : body.fields ?? [])
+    .filter((field) => (field.model ?? "contact") === "contact");
+  return { fields, warning: null as string | null };
+}
+
+function findCustomField(fields: GhlCustomFieldRow[], candidates: string[]) {
+  const normalizedCandidates = candidates.map(normalizeLabel).filter(Boolean);
+  return fields.find((field) => {
+    const values = [field.name, field.fieldKey, field.key].map(normalizeLabel);
+    return normalizedCandidates.some((candidate) => values.some((value) => value === candidate || value.includes(candidate)));
+  });
+}
+
+function makeCustomFieldValue(field: GhlCustomFieldRow | undefined, value: string | undefined) {
+  if (!field || !value) return null;
+  const id = readString(field.id);
+  const key = readString(field.fieldKey) ?? readString(field.key);
+  if (!id && !key) return null;
+  return {
+    ...(id ? { id } : {}),
+    ...(key ? { key } : {}),
+    field_value: value,
+  } satisfies GhlCustomFieldValue;
+}
+
+async function buildGhlCustomFields({
+  token,
+  locationId,
+  language,
+  socialTouchpoints,
+}: {
+  token: string;
+  locationId: string;
+  language: string;
+  socialTouchpoints: Record<string, string>;
+}) {
+  const { fields, warning } = await loadContactCustomFields(token, locationId);
+  const warnings = warning ? [warning] : [];
+  const customFields: GhlCustomFieldValue[] = [];
+  const languageField = findCustomField(fields, ["Language", "contact.language"]);
+  const languageValue = makeCustomFieldValue(languageField, language);
+  if (languageValue) {
+    customFields.push(languageValue);
+  } else {
+    warnings.push("GHL Language custom field was not found; contact sync may fail if the location requires it.");
+  }
+
+  const platformFieldNames: Record<string, string[]> = {
+    facebook: ["Collaborator Facebook URL", "Facebook URL", "Facebook", "contact.facebook"],
+    instagram: ["Collaborator Instagram URL", "Instagram URL", "Instagram", "contact.instagram"],
+    tiktok: ["Collaborator TikTok URL", "TikTok URL", "TikTok", "contact.tiktok"],
+    linkedin: ["Collaborator LinkedIn URL", "LinkedIn URL", "LinkedIn", "contact.linkedin"],
+    youtube: ["Collaborator YouTube URL", "YouTube URL", "YouTube", "contact.youtube"],
+    x: ["Collaborator X URL", "X URL", "Twitter URL", "Twitter", "contact.x"],
+  };
+
+  for (const [platform, url] of Object.entries(socialTouchpoints)) {
+    const field = findCustomField(fields, platformFieldNames[platform] ?? [platform]);
+    const value = makeCustomFieldValue(field, url);
+    if (value) customFields.push(value);
+  }
+
+  const missingSocialFields = Object.keys(socialTouchpoints)
+    .filter((platform) => !customFields.some((field) => {
+      const matched = findCustomField(fields, platformFieldNames[platform] ?? [platform]);
+      return matched && (field.id === matched.id || field.key === (matched.fieldKey ?? matched.key));
+    }));
+  if (missingSocialFields.length) {
+    warnings.push(`No GHL custom fields matched ${missingSocialFields.join(", ")}; those social URLs were saved in the research note.`);
+  }
+
+  return { customFields, warnings };
 }
 
 function buildResearchNote({
@@ -254,9 +433,14 @@ export async function POST(request: Request): Promise<Response> {
     const routeId = readString(body.personContactRouteId);
     const apply = body.apply === true;
     const allowWithoutDirectRoute = body.allowWithoutDirectRoute === true;
+    const bypassReason = readString(body.bypassReason);
+    const ghlLanguage = readGhlDefaultLanguage(readString(body.language));
 
     if (!candidateId || !personId) {
       throw new ApiError(400, "candidateId and personId are required");
+    }
+    if (allowWithoutDirectRoute && !bypassReason) {
+      throw new ApiError(400, "allowWithoutDirectRoute requires bypassReason", "blocked_missing_bypass_reason");
     }
 
     const [contact] = await queryRows<ContactBookRow>(
@@ -285,6 +469,7 @@ export async function POST(request: Request): Promise<Response> {
     const email = selectedEmail ?? routes.map(routeEmail).find(Boolean);
     const phone = selectedPhone ?? routes.map(routePhone).find(Boolean);
     const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
+    const socialTouchpoints = collectSocialTouchpoints({ routes, socialProfiles });
     const canApply = Boolean(email || phone || allowWithoutDirectRoute);
     const minimumContactDataStatus = !locationId
       ? "missing_location_id"
@@ -318,7 +503,8 @@ export async function POST(request: Request): Promise<Response> {
       source: "PatronPro collaborator research",
       tags,
     };
-    const publicPayload = {
+
+    const buildPublicPayload = (customFieldWarnings: string[]) => ({
       ...apiPayload,
       _patronpro_metadata: {
         candidate_id: contact.candidate_id,
@@ -328,6 +514,7 @@ export async function POST(request: Request): Promise<Response> {
         contact_book_group: contact.contact_book_group ?? null,
         contact_book_rank: contact.contact_book_rank ?? null,
         relationship_confidence: contact.relationship_confidence ?? null,
+        ghl_language: ghlLanguage,
         contact_routes: routes.map((route) => ({
           type: route.type ?? null,
           label: route.label ?? null,
@@ -343,11 +530,17 @@ export async function POST(request: Request): Promise<Response> {
           status: profile.status ?? null,
           verification_status: profile.verification_status ?? null,
         })),
+        social_touchpoints: socialTouchpoints,
+        custom_field_warnings: customFieldWarnings,
+        allow_without_direct_route: allowWithoutDirectRoute,
+        bypass_reason: allowWithoutDirectRoute ? bypassReason : null,
         outreach_guard: "No outreach message is sent by this endpoint.",
       },
       _minimum_contact_data_status: minimumContactDataStatus,
-    };
-    const payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
+    });
+    let customFieldWarnings: string[] = [];
+    let publicPayload = buildPublicPayload(customFieldWarnings);
+    let payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
 
     if (!apply) {
       const receiptId = await insertReceipt({
@@ -359,7 +552,7 @@ export async function POST(request: Request): Promise<Response> {
         status: "dry_run",
         dryRun: true,
         publicPayload,
-        responseSummary: { minimumContactDataStatus, payloadHash },
+        responseSummary: { minimumContactDataStatus, payloadHash, allowWithoutDirectRoute, bypassReasonPresent: Boolean(bypassReason) },
       });
       return NextResponse.json({
         applied: false,
@@ -375,17 +568,31 @@ export async function POST(request: Request): Promise<Response> {
       throw new ApiError(403, "GHL contact sync is disabled for this deployment");
     }
     if (!locationId) throw new ApiError(400, "Missing GHL location id");
-    if (!canApply) throw new ApiError(400, "Contact needs a public email or phone before syncing to GHL");
+    if (!canApply) throw new ApiError(400, "Contact needs a public email or phone before syncing to GHL", minimumContactDataStatus);
     const token = readGhlToken();
     if (!token) throw new ApiError(500, "Missing GHL server token");
+
+    const customFieldResult = await buildGhlCustomFields({
+      token,
+      locationId,
+      language: ghlLanguage,
+      socialTouchpoints,
+    });
+    customFieldWarnings = customFieldResult.warnings;
+    if (customFieldResult.customFields.length) {
+      apiPayload.customFields = customFieldResult.customFields;
+    }
+    publicPayload = buildPublicPayload(customFieldWarnings);
+    payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
 
     const ghlResponse = await ghlFetch("/contacts/upsert", {
       method: "POST",
       token,
       body: JSON.stringify(apiPayload),
     });
-    const responseBody = (await ghlResponse.json().catch(() => ({}))) as GhlUpsertResponse;
+    const responseBody = (await ghlResponse.clone().json().catch(() => ({}))) as GhlUpsertResponse;
     if (!ghlResponse.ok) {
+      const detail = await readGhlResponseDetail(ghlResponse);
       const receiptId = await insertReceipt({
         candidateId,
         personId,
@@ -395,25 +602,33 @@ export async function POST(request: Request): Promise<Response> {
         status: "failed",
         dryRun: false,
         publicPayload,
-        responseSummary: { statusCode: ghlResponse.status, payloadHash },
-        errorSummary: `GHL upsert failed with status ${ghlResponse.status}`,
+        responseSummary: { statusCode: ghlResponse.status, payloadHash, allowWithoutDirectRoute, bypassReasonPresent: Boolean(bypassReason) },
+        errorSummary: `GHL upsert failed with status ${ghlResponse.status}: ${detail}`,
       });
-      return NextResponse.json({ error: "GHL upsert failed", receiptId }, { status: 502 });
+      return NextResponse.json({
+        error: "GHL upsert failed",
+        detail: `GHL rejected the contact: ${detail}`,
+        receiptId,
+        minimumContactDataStatus,
+        customFieldWarnings,
+      }, { status: 502 });
     }
 
     const summary = summarizeGhlResponse(responseBody);
     let noteStatus: "skipped" | "success" | "failed" = "skipped";
+    let noteDetail: string | null = null;
     if (summary.crmContactId) {
       const noteResponse = await ghlFetch(`/contacts/${summary.crmContactId}/notes`, {
         method: "POST",
         token,
         body: JSON.stringify({
-          locationId,
           body: buildResearchNote({ contact, routes, socialProfiles, selectedRoute }),
-          userId: "patronpro-collab-research",
         }),
       }).catch(() => null);
       noteStatus = noteResponse?.ok ? "success" : "failed";
+      if (noteResponse && !noteResponse.ok) {
+        noteDetail = await readGhlResponseDetail(noteResponse);
+      }
     }
     const receiptId = await insertReceipt({
       candidateId,
@@ -425,7 +640,14 @@ export async function POST(request: Request): Promise<Response> {
       status: "success",
       dryRun: false,
       publicPayload,
-      responseSummary: { crmContactIdPresent: summary.crmContactIdPresent, noteStatus, payloadHash },
+      responseSummary: {
+        crmContactIdPresent: summary.crmContactIdPresent,
+        noteStatus,
+        ...(noteDetail ? { noteDetail } : {}),
+        payloadHash,
+        allowWithoutDirectRoute,
+        bypassReasonPresent: Boolean(bypassReason),
+      },
     });
 
     return NextResponse.json({
@@ -435,10 +657,14 @@ export async function POST(request: Request): Promise<Response> {
       minimumContactDataStatus,
       crmContactIdPresent: summary.crmContactIdPresent,
       noteStatus,
+      customFieldWarnings,
     });
   } catch (error) {
     if (error instanceof ApiError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json({
+        error: error.message,
+        detail: error.detail,
+      }, { status: error.status });
     }
     console.error("[collaborators/ghl-contact] sync failed", error);
     return NextResponse.json({ error: "Internal GHL contact sync error" }, { status: 500 });
