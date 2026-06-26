@@ -541,7 +541,7 @@ function projectContactRoute(row: ContactRouteRow): ContactRouteProjection | nul
 
 function visibleContactRoute(route: ContactRouteProjection | null): route is ContactRouteProjection {
   if (!route) return false;
-  const status = normalizeLabel(route.verificationStatus);
+  const status = cleanString(route.verificationStatus)?.toLowerCase() ?? "";
   return !status.startsWith("superseded") && !status.startsWith("duplicate");
 }
 
