@@ -48,6 +48,11 @@ type AuditRow = {
   contact_person_count: number | string | null;
   person_contact_route_count: number | string | null;
   verified_person_contact_route_count: number | string | null;
+  named_leadership_count: number | string | null;
+  named_leadership_route_count: number | string | null;
+  generic_profile_decision_maker_count: number | string | null;
+  generic_profile_decision_maker_examples: string[] | null;
+  named_leadership_status: string | null;
   required_question_count: number | string | null;
   answered_question_count: number | string | null;
   answers: Record<string, { answer_status?: string | null }> | null;
@@ -541,6 +546,11 @@ SELECT
   b.contact_person_count,
   b.person_contact_route_count,
   b.verified_person_contact_route_count,
+  coalesce(b.named_leadership_count, 0)::integer AS named_leadership_count,
+  coalesce(b.named_leadership_route_count, 0)::integer AS named_leadership_route_count,
+  coalesce(b.generic_profile_decision_maker_count, 0)::integer AS generic_profile_decision_maker_count,
+  coalesce(b.generic_profile_decision_maker_examples, ARRAY[]::text[]) AS generic_profile_decision_maker_examples,
+  coalesce(b.named_leadership_status, 'named_leadership_needs_repair') AS named_leadership_status,
   coalesce(cas.required_question_count, 0)::integer AS required_question_count,
   coalesce(cas.answered_question_count, 0)::integer AS answered_question_count,
   cas.answers,
@@ -714,6 +724,10 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const websiteScreenshots = readNumber(row.website_screenshot_count);
   const decisionMakers = readNumber(row.decision_maker_count);
   const verifiedRoutes = readNumber(row.verified_person_contact_route_count);
+  const namedLeadership = readNumber(row.named_leadership_count);
+  const namedLeadershipRoutes = readNumber(row.named_leadership_route_count);
+  const genericProfileDecisionMakers = readNumber(row.generic_profile_decision_maker_count);
+  const namedLeadershipStatus = row.named_leadership_status || "named_leadership_needs_repair";
   const requiredQuestions = readNumber(row.required_question_count);
   const answeredQuestions = meaningfulRequiredAnswerCount(row);
   const rejectedOrBlocked = isRejectedOrBlockedCandidate(row);
@@ -859,7 +873,48 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     }
   }
 
-  if (decisionMakers === 0 && !isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"))) {
+  if (genericProfileDecisionMakers > 0) {
+    const examples = readArray(row.generic_profile_decision_maker_examples)
+      .map((item) => String(item))
+      .slice(0, 3)
+      .join(", ");
+    addAction(
+      actions,
+      "repair_generic_profile_decision_maker",
+      "Repair generic profile counted as decision maker",
+      "P0",
+      `${genericProfileDecisionMakers} public profile/contact row(s) are marked as decision makers${examples ? ` (${examples})` : ""}. Demote them to outreach routes and add or block a named leader.`
+    );
+  }
+
+  if (
+    namedLeadershipStatus === "named_leadership_needs_repair" &&
+    !isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"))
+  ) {
+    addAction(
+      actions,
+      "find_named_leadership",
+      "Find head, founder, executive, council, admin, or creator lead",
+      "P0",
+      "No verified named leadership/contact authority is registered. Generic public profiles do not satisfy this gate."
+    );
+  }
+
+  if (namedLeadershipStatus === "named_leadership_route_missing" && !rejectedOrBlocked) {
+    addAction(
+      actions,
+      "verify_named_leadership_contact_route",
+      "Verify public route for named leader",
+      "P1",
+      `${namedLeadership} named leader(s) are present, but ${namedLeadershipRoutes} verified leader route(s) are registered.`
+    );
+  }
+
+  if (
+    !row.named_leadership_status &&
+    decisionMakers === 0 &&
+    !isClosedNegativeAnswerStatus(answerStatus(row, "decision_makers"))
+  ) {
     addAction(actions, "find_decision_maker", "Find owner/decision-maker", "P0", "No decision-maker relationship is registered.");
   }
 
@@ -966,6 +1021,9 @@ export async function GET(request: Request): Promise<Response> {
             websiteScreenshots: readNumber(row.website_screenshot_count),
             contactIntelligence: readNumber(row.contact_intelligence_count),
             decisionMakers: readNumber(row.decision_maker_count),
+            namedLeadership: readNumber(row.named_leadership_count),
+            namedLeadershipRoutes: readNumber(row.named_leadership_route_count),
+            genericProfileDecisionMakers: readNumber(row.generic_profile_decision_maker_count),
             contactPeople: readNumber(row.contact_person_count),
             contactRoutes: readNumber(row.person_contact_route_count),
             verifiedContactRoutes: readNumber(row.verified_person_contact_route_count),
@@ -973,6 +1031,8 @@ export async function GET(request: Request): Promise<Response> {
             answeredQuestions: meaningfulAnswers,
             rawAnswerRows: readNumber(row.answered_question_count),
           },
+          namedLeadershipStatus: row.named_leadership_status || "named_leadership_needs_repair",
+          genericProfileDecisionMakerExamples: readStringArray(row.generic_profile_decision_maker_examples),
           baseMissingFields: readMissingFields(row.missing_fields),
           suggestedNextAction: row.suggested_next_action,
           caveats,
