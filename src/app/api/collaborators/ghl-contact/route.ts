@@ -255,6 +255,15 @@ function collectSocialTouchpoints({
   return { touchpoints: Object.fromEntries(byPlatform.entries()), additionalLines };
 }
 
+function shouldUseCandidateSocialProfiles(contact: ContactBookRow) {
+  const group = normalizeLabel(contact.contact_book_group);
+  const role = normalizeLabel(contact.role_taxonomy_key);
+  const name = normalizeLabel(contact.full_name);
+  return group === "public official contact"
+    || role === "public business route"
+    || name.includes("public business contact");
+}
+
 function normalizeGhlLanguage(value: string | null | undefined) {
   const normalized = normalizeLabel(value);
   if (["es", "esp", "espanol", "espanol latino", "spanish"].includes(normalized)) return "Español";
@@ -415,16 +424,19 @@ async function buildGhlCustomFields({
 function buildResearchNote({
   contact,
   routes,
-  socialProfiles,
+  contactSocialProfiles,
+  organizationSocialProfiles,
   selectedRoute,
 }: {
   contact: ContactBookRow;
   routes: ContactRouteRow[];
-  socialProfiles: SocialProfileRow[];
+  contactSocialProfiles: SocialProfileRow[];
+  organizationSocialProfiles: SocialProfileRow[];
   selectedRoute: ContactRouteRow | null;
 }) {
   const routeLines = routes.map(routeLine).filter(Boolean).slice(0, 12);
-  const socialLines = socialProfiles.map(socialLine).filter(Boolean).slice(0, 12);
+  const contactSocialLines = contactSocialProfiles.map(socialLine).filter(Boolean).slice(0, 12);
+  const organizationSocialLines = organizationSocialProfiles.map(socialLine).filter(Boolean).slice(0, 12);
   const sourceLines = (contact.source_urls ?? []).slice(0, 6);
   return [
     "PatronPro collaborator research contact.",
@@ -433,7 +445,8 @@ function buildResearchNote({
     `Role: ${contact.role_taxonomy_key ?? "unknown"}; group: ${contact.contact_book_group ?? "unknown"}; confidence: ${contact.relationship_confidence ?? "unknown"}`,
     selectedRoute ? `Selected route: ${routeLine(selectedRoute) ?? selectedRoute.person_contact_route_id ?? "selected route"}` : null,
     routeLines.length ? `Public contact routes:\n- ${routeLines.join("\n- ")}` : "Public contact routes: none captured",
-    socialLines.length ? `Public social/profile routes:\n- ${socialLines.join("\n- ")}` : "Public social/profile routes: none captured",
+    contactSocialLines.length ? `Contact social/profile routes:\n- ${contactSocialLines.join("\n- ")}` : "Contact social/profile routes: none captured",
+    organizationSocialLines.length ? `Organization social/profile routes, kept as context only:\n- ${organizationSocialLines.join("\n- ")}` : null,
     sourceLines.length ? `Evidence/source links:\n- ${sourceLines.join("\n- ")}` : null,
     "Guardrail: this sync creates/updates the CRM contact and note only. No outreach, DM, SMS, WhatsApp, email, or workflow trigger was sent by the dashboard.",
   ].filter(Boolean).join("\n\n").slice(0, 6500);
@@ -581,7 +594,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const routes = Array.isArray(contact.contact_routes) ? contact.contact_routes : [];
     const selectedRoute = selectRoute(routes, routeId);
-    const socialProfiles = await queryRows<SocialProfileRow>(
+    const candidateSocialProfiles = await queryRows<SocialProfileRow>(
       `SELECT platform, canonical_url, handle, visible_metric_text, followers_count, subscribers_count, likes_count, status, verification_status, captured_at
        FROM patronpro_collab.social_profiles
        WHERE candidate_id = $1
@@ -595,7 +608,10 @@ export async function POST(request: Request): Promise<Response> {
     const email = selectedEmail ?? routes.map(routeEmail).find(Boolean);
     const phone = selectedPhone ?? routes.map(routePhone).find(Boolean);
     const website = routeUrl(selectedRoute) ?? webUrl(readString(contact.primary_public_url));
-    const socialCollection = collectSocialTouchpoints({ routes, socialProfiles });
+    const useCandidateSocialProfiles = shouldUseCandidateSocialProfiles(contact);
+    const contactSocialProfiles = useCandidateSocialProfiles ? candidateSocialProfiles : [];
+    const organizationSocialProfiles = useCandidateSocialProfiles ? [] : candidateSocialProfiles;
+    const socialCollection = collectSocialTouchpoints({ routes, socialProfiles: contactSocialProfiles });
     const socialTouchpoints = socialCollection.touchpoints;
     const canApply = Boolean(email || phone || allowWithoutDirectRoute);
     const minimumContactDataStatus = !locationId
@@ -648,7 +664,16 @@ export async function POST(request: Request): Promise<Response> {
           value: route.value ?? null,
           url: route.url ?? null,
         })),
-        social_profiles: socialProfiles.map((profile) => ({
+        social_profiles: contactSocialProfiles.map((profile) => ({
+          platform: profile.platform ?? null,
+          url: profile.canonical_url ?? null,
+          handle: profile.handle ?? null,
+          visible_metric_text: profile.visible_metric_text ?? null,
+          captured_at: profile.captured_at ?? null,
+          status: profile.status ?? null,
+          verification_status: profile.verification_status ?? null,
+        })),
+        organization_social_profiles: organizationSocialProfiles.map((profile) => ({
           platform: profile.platform ?? null,
           url: profile.canonical_url ?? null,
           handle: profile.handle ?? null,
@@ -751,7 +776,7 @@ export async function POST(request: Request): Promise<Response> {
         method: "POST",
         token,
         body: JSON.stringify({
-          body: buildResearchNote({ contact, routes, socialProfiles, selectedRoute }),
+          body: buildResearchNote({ contact, routes, contactSocialProfiles, organizationSocialProfiles, selectedRoute }),
         }),
       }).catch(() => null);
       noteStatus = noteResponse?.ok ? "success" : "failed";
