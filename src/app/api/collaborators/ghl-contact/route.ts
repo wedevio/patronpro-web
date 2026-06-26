@@ -68,6 +68,10 @@ type GhlCustomFieldValue = {
   field_value: string;
 };
 
+type ExistingCrmContactRow = {
+  crm_contact_id?: string | null;
+};
+
 type SocialTouchpoint = {
   url?: string;
   handle?: string;
@@ -751,8 +755,23 @@ export async function POST(request: Request): Promise<Response> {
     publicPayload = buildPublicPayload(customFieldWarnings);
     payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
 
+    const [existingSuccessReceipt] = !email && !phone && allowWithoutDirectRoute
+      ? await queryRows<ExistingCrmContactRow>(
+        `SELECT crm_contact_id
+         FROM patronpro_collab.crm_contact_sync_receipts
+         WHERE candidate_id = $1
+           AND person_id = $2
+           AND crm_system = 'ghl'
+           AND sync_status = 'success'
+           AND crm_contact_id IS NOT NULL
+           AND crm_contact_id <> ''
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [candidateId, personId]
+      )
+      : [];
     const existingNoRouteContactId = !email && !phone && allowWithoutDirectRoute
-      ? readString(contact.latest_ghl_contact_id)
+      ? readString(contact.latest_ghl_contact_id) ?? readString(existingSuccessReceipt?.crm_contact_id)
       : null;
     if (existingNoRouteContactId) {
       const receiptId = await insertReceipt({
