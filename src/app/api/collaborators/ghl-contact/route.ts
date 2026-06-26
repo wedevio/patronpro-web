@@ -754,15 +754,42 @@ export async function POST(request: Request): Promise<Response> {
     const existingNoRouteContactId = !email && !phone && allowWithoutDirectRoute
       ? readString(contact.latest_ghl_contact_id)
       : null;
+    if (existingNoRouteContactId) {
+      const receiptId = await insertReceipt({
+        candidateId,
+        personId,
+        routeId: selectedRoute?.person_contact_route_id,
+        locationId,
+        crmContactId: existingNoRouteContactId,
+        action: "update_contact",
+        status: "skipped",
+        dryRun: false,
+        publicPayload,
+        responseSummary: {
+          crmContactIdPresent: true,
+          skippedReason: "existing_no_direct_route_contact_reused",
+          payloadHash,
+          allowWithoutDirectRoute,
+          bypassReasonPresent: Boolean(bypassReason),
+        },
+      });
+      return NextResponse.json({
+        applied: true,
+        syncStatus: "success",
+        receiptId,
+        minimumContactDataStatus,
+        crmContactIdPresent: true,
+        noteStatus: "skipped",
+        customFieldWarnings,
+      });
+    }
     const syncAction = !email && !phone && allowWithoutDirectRoute
-      ? existingNoRouteContactId
-        ? "update_contact"
-        : "create_contact"
+      ? "create_contact"
       : "upsert_contact";
     const ghlResponse = await ghlFetch(
-      syncAction === "update_contact" ? `/contacts/${existingNoRouteContactId}` : syncAction === "create_contact" ? "/contacts/" : "/contacts/upsert",
+      syncAction === "create_contact" ? "/contacts/" : "/contacts/upsert",
       {
-        method: syncAction === "update_contact" ? "PUT" : "POST",
+        method: "POST",
         token,
         body: JSON.stringify(apiPayload),
       }
@@ -780,10 +807,10 @@ export async function POST(request: Request): Promise<Response> {
         dryRun: false,
         publicPayload,
         responseSummary: { statusCode: ghlResponse.status, payloadHash, allowWithoutDirectRoute, bypassReasonPresent: Boolean(bypassReason) },
-        errorSummary: `GHL upsert failed with status ${ghlResponse.status}: ${detail}`,
+        errorSummary: `GHL contact sync failed with status ${ghlResponse.status}: ${detail}`,
       });
       return NextResponse.json({
-        error: "GHL upsert failed",
+        error: "GHL contact sync failed",
         detail: `GHL rejected the contact: ${detail}`,
         receiptId,
         minimumContactDataStatus,
