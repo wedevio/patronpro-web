@@ -193,6 +193,18 @@ function isCommunityUrl(value: string | null | undefined) {
   }
 }
 
+function socialUrlKey(value: string | undefined) {
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    const path = parsed.pathname.replace(/\/+$/, "").toLowerCase();
+    return `${host}${path}`;
+  } catch {
+    return value.toLowerCase();
+  }
+}
+
 function collectSocialTouchpoints({
   routes,
   socialProfiles,
@@ -204,8 +216,9 @@ function collectSocialTouchpoints({
   const additionalLines: string[] = [];
   const seenUrls = new Set<string>();
   const pushExtra = (label: string, url: string | undefined) => {
-    if (!url || seenUrls.has(url)) return;
-    seenUrls.add(url);
+    const key = socialUrlKey(url);
+    if (!url || !key || seenUrls.has(key)) return;
+    seenUrls.add(key);
     additionalLines.push(`${label}: ${url}`);
   };
   const pushPrimary = (platform: string | null, url: string | undefined, handle: string | null | undefined, label: string | null | undefined) => {
@@ -215,12 +228,13 @@ function collectSocialTouchpoints({
     }
     const current = byPlatform.get(platform) ?? {};
     if (!current.url && !isCommunityUrl(url)) {
-      if (url) seenUrls.add(url);
+      const key = socialUrlKey(url);
+      if (key) seenUrls.add(key);
       byPlatform.set(platform, { url: current.url ?? url, handle: current.handle ?? handle ?? undefined });
       return;
     }
     if (handle && !current.handle) byPlatform.set(platform, { ...current, handle });
-    if (url && url !== current.url) pushExtra(socialLabel(platform, label), url);
+    if (url && socialUrlKey(url) !== socialUrlKey(current.url)) pushExtra(socialLabel(platform, label), url);
   };
   for (const profile of socialProfiles) {
     const platform = canonicalPlatform(profile.platform) ?? platformFromUrl(profile.canonical_url);
