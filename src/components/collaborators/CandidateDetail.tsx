@@ -8,7 +8,6 @@ import type {
   WebsiteProjection,
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
-import { CommercialClearanceButton } from "./CommercialClearanceButton";
 import { GhlContactButton } from "./GhlContactButton";
 import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
@@ -537,6 +536,10 @@ function cleanTextList(value: unknown) {
   return value.map((item) => safeText(item)).filter(Boolean) as string[];
 }
 
+function shortSignal(value: string) {
+  return value.length > 360 ? `${value.slice(0, 357).trim()}...` : value;
+}
+
 function commercialProfileFromRuns(clearanceRuns: ClearanceRunProjection[]) {
   for (const run of clearanceRuns) {
     const payload = run.rawPublicPayload;
@@ -573,51 +576,63 @@ function CommercialSignalsOffers({ clearanceRuns }: { clearanceRuns: ClearanceRu
         ) : null}
       </div>
       {summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{summary}</p> : null}
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {services.length ? <MiniSignalList title="Services / offers" items={services} /> : null}
-        {seminarSignals.length ? <MiniSignalList title="Seminars / classes" items={seminarSignals} /> : null}
-        {techMentions.length ? <MiniSignalList title="CRM / tech mentions" items={techMentions} /> : null}
-        {brandSignals.length ? <MiniSignalList title="Brand / product signals" items={brandSignals} /> : null}
-        {tone.length ? <MiniSignalList title="Tone / style" items={tone} /> : null}
+      <div className="mt-5 grid gap-4">
+        {services.length ? <SignalSection title="Services / offers" items={services} /> : null}
+        {seminarSignals.length ? <SignalSection title="Seminars / classes" items={seminarSignals} /> : null}
+        {techMentions.length ? <SignalSection title="CRM / tech mentions" items={techMentions} /> : null}
+        {brandSignals.length ? <SignalSection title="Brand / product signals" items={brandSignals} /> : null}
+        {tone.length ? <SignalSection title="Tone / style" items={tone} compact /> : null}
       </div>
     </article>
   );
 }
 
-function MiniSignalList({ title, items }: { title: string; items: string[] }) {
+function SignalSection({ title, items, compact = false }: { title: string; items: string[]; compact?: boolean }) {
   return (
-    <div className="rounded-xl bg-white p-3">
-      <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a5b17]">{title}</h3>
-      <ul className="mt-2 grid gap-1 text-xs leading-5 text-[#42506a]">
-        {items.slice(0, 4).map((item) => (
-          <li key={item}>{item}</li>
+    <section className="rounded-2xl border border-[#f0dfbd] bg-white p-4">
+      <h3 className="text-sm font-semibold text-[#8a5b17]">{title}</h3>
+      <ul className={compact ? "mt-3 flex flex-wrap gap-2" : "mt-3 grid gap-2"}>
+        {items.slice(0, 5).map((item) => (
+          <li
+            key={item}
+            className={
+              compact
+                ? "rounded-full bg-[#fff7ea] px-3 py-1 text-sm font-medium text-[#42506a]"
+                : "rounded-xl bg-[#fffaf2] px-3 py-2 text-sm leading-6 text-[#42506a]"
+            }
+          >
+            {shortSignal(item)}
+          </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }
 
 function ClearanceSummary({ clearanceRuns }: { clearanceRuns: ClearanceRunProjection[] }) {
   if (!clearanceRuns.length) return null;
   return (
-    <div className="mt-4 grid gap-3 md:grid-cols-2">
-      {clearanceRuns.slice(0, 4).map((run) => (
-        <article key={run.id} className="rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{run.platform ?? "clearance"}</p>
-            {run.status ? <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{run.status}</span> : null}
-          </div>
-          <p className="mt-3 text-sm leading-6 text-[#42506a]">
-            {formatNumber(run.itemsScanned) ?? "0"} items reviewed; {formatNumber(run.keywordHits) ?? "0"} keyword hits; {formatNumber(run.confirmedFindings) ?? "0"} confirmed conflicts.
-          </p>
-          {run.notes.length ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#526078]">{run.notes[0]}</p> : null}
-          {run.sourceUrl ? (
-            <a className="mt-3 block break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={run.sourceUrl} target="_blank" rel="noreferrer">
-              {run.sourceUrl}
-            </a>
-          ) : null}
-        </article>
-      ))}
+    <div className="mt-4 rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4">
+      <h3 className="text-sm font-semibold text-[#182235]">Clearance receipts</h3>
+      <div className="mt-3 grid gap-2">
+        {clearanceRuns.slice(0, 6).map((run) => (
+          <article key={run.id} className="rounded-xl bg-white p-3 text-sm leading-6 text-[#42506a]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-[#182235]">{run.platform ?? "clearance"}</span>
+              {run.status ? <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-xs font-semibold text-[#526078]">{run.status.replaceAll("_", " ")}</span> : null}
+              <span>
+                {formatNumber(run.itemsScanned) ?? "0"} reviewed · {formatNumber(run.keywordHits) ?? "0"} hits · {formatNumber(run.confirmedFindings) ?? "0"} confirmed conflicts
+              </span>
+            </div>
+            {run.notes.length ? <p className="mt-2 text-xs leading-5 text-[#68758d]">{shortSignal(run.notes[0])}</p> : null}
+            {run.sourceUrl ? (
+              <a className="mt-2 block break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={run.sourceUrl} target="_blank" rel="noreferrer">
+                {run.sourceUrl}
+              </a>
+            ) : null}
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -715,7 +730,6 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
         <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
         <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
-        <CommercialClearanceButton candidateId={candidate.id} profiles={candidate.socialProfiles} />
       </Section>
 
       <Section id="internal-contacts" title="Internal contacts / public routes" value={internalContactsValue}>
