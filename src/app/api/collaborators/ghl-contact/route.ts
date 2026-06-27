@@ -2,6 +2,11 @@ import { createHash, randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { queryRows } from "@/lib/collaborators/db";
+import {
+  type AdditionalSocialMergeResult,
+  canonicalSocialUrlKey,
+  mergeAdditionalSocialLines,
+} from "@/lib/collaborators/ghl-social-overflow";
 import { requirePpSession } from "@/lib/auth/require-session";
 import { ghlFetch } from "@/lib/ghl/client";
 
@@ -67,6 +72,15 @@ type GhlCustomFieldValue = {
   id?: string;
   key?: string;
   field_value: string;
+};
+
+type GhlContactLookupRow = {
+  id?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  customFields?: unknown;
+  customField?: unknown;
+  custom_fields?: unknown;
 };
 
 type ExistingCrmContactRow = {
@@ -205,15 +219,7 @@ function isCommunityUrl(value: string | null | undefined) {
 }
 
 function socialUrlKey(value: string | undefined) {
-  if (!value) return null;
-  try {
-    const parsed = new URL(value);
-    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
-    const path = parsed.pathname.replace(/\/+$/, "").toLowerCase();
-    return `${host}${path}`;
-  } catch {
-    return value.toLowerCase();
-  }
+  return canonicalSocialUrlKey(value);
 }
 
 function collectSocialTouchpoints({
@@ -350,18 +356,132 @@ function makeCustomFieldValue(field: GhlCustomFieldRow | undefined, value: strin
   } satisfies GhlCustomFieldValue;
 }
 
+function normalizeEmail(value: string | undefined) {
+  return readString(value)?.toLowerCase() ?? null;
+}
+
+function normalizePhone(value: string | undefined) {
+  return readString(value)?.replace(/\D/g, "") || null;
+}
+
+function readObject(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function readGhlContactFromBody(value: unknown): GhlContactLookupRow | null {
+  const body = readObject(value);
+  const contact = readObject(body?.contact);
+  return (contact ?? body) as GhlContactLookupRow | null;
+}
+
+function readGhlContactsFromBody(value: unknown): GhlContactLookupRow[] {
+  const body = readObject(value);
+  const contacts = body?.contacts;
+  return Array.isArray(contacts)
+    ? contacts.map((item) => readObject(item)).filter(Boolean) as GhlContactLookupRow[]
+    : [];
+}
+
+function readCustomFieldRows(contact: GhlContactLookupRow | null | undefined) {
+  if (!contact) return [];
+  const arrays = [contact.customFields, contact.customField, contact.custom_fields];
+  return arrays.find(Array.isArray)?.map((item) => readObject(item)).filter(Boolean) as Record<string, unknown>[] | undefined ?? [];
+}
+
+function readExistingCustomFieldValue(contact: GhlContactLookupRow | null | undefined, field: GhlCustomFieldRow | undefined) {
+  if (!contact || !field) return null;
+  const ids = [field.id, field.fieldKey, field.key].map(readString).filter(Boolean);
+  const labels = [field.name, field.fieldKey, field.key].map(normalizeLabel).filter(Boolean);
+  for (const row of readCustomFieldRows(contact)) {
+    const rowIds = [row.id, row.fieldId, row.customFieldId, row.key, row.fieldKey].map(readString).filter(Boolean);
+    const rowLabels = [row.name, row.fieldKey, row.key].map((value) => typeof value === "string" ? normalizeLabel(value) : "").filter(Boolean);
+    const matched = ids.some((id) => rowIds.includes(id)) || labels.some((label) => rowLabels.includes(label));
+    if (!matched) continue;
+    return readString(row.value) ?? readString(row.field_value) ?? readString(row.fieldValue);
+  }
+  return null;
+}
+
+async function loadExistingGhlContactById(token: string, contactId: string) {
+  const response = await ghlFetch(`/contacts/${encodeURIComponent(contactId)}`, {
+    method: "GET",
+    token,
+  });
+  if (!response.ok) return null;
+  const body = await response.json().catch(() => null);
+  return readGhlContactFromBody(body);
+}
+
+async function searchExistingGhlContact({
+  token,
+  locationId,
+  email,
+  phone,
+  knownContactId,
+}: {
+  token: string;
+  locationId: string;
+  email?: string;
+  phone?: string;
+  knownContactId?: string | null;
+}) {
+  const warnings: string[] = [];
+  if (knownContactId) {
+    const contact = await loadExistingGhlContactById(token, knownContactId).catch(() => null);
+    if (contact) return { contact, warnings };
+    warnings.push("Stored GHL contact id could not be read; contact lookup fell back to email/phone search before custom-field merge.");
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const normalizedPhone = normalizePhone(phone);
+  const queries = Array.from(
+    new Set([email, phone].map(readString).filter((value): value is string => Boolean(value)))
+  );
+  for (const query of queries) {
+    const response = await ghlFetch(
+      `/contacts/?locationId=${encodeURIComponent(locationId)}&query=${encodeURIComponent(query)}&limit=10`,
+      { method: "GET", token }
+    );
+    if (!response.ok) {
+      warnings.push(`GHL contact lookup failed (${response.status}); remote-only social overflow could not be merged for that lookup path.`);
+      continue;
+    }
+    const contacts = readGhlContactsFromBody(await response.json().catch(() => null));
+    const exact = contacts.find((contact) => {
+      const contactEmail = normalizeEmail(readString(contact.email) ?? undefined);
+      const contactPhone = normalizePhone(readString(contact.phone) ?? undefined);
+      return (normalizedEmail && contactEmail === normalizedEmail) || (normalizedPhone && contactPhone === normalizedPhone);
+    });
+    const found = exact ?? contacts[0];
+    const foundId = readString(found?.id);
+    if (foundId) {
+      return {
+        contact: await loadExistingGhlContactById(token, foundId).catch(() => null) ?? found,
+        warnings,
+      };
+    }
+    if (found) return { contact: found, warnings };
+  }
+
+  return { contact: null, warnings };
+}
+
 async function buildGhlCustomFields({
   token,
   locationId,
   language,
   socialTouchpoints,
   additionalSocialUrls,
+  existingContact,
 }: {
   token: string;
   locationId: string;
   language: string;
   socialTouchpoints: Record<string, SocialTouchpoint>;
   additionalSocialUrls: string[];
+  existingContact?: GhlContactLookupRow | null;
 }) {
   const { fields, warning } = await loadContactCustomFields(token, locationId);
   const warnings = warning ? [warning] : [];
@@ -425,16 +545,23 @@ async function buildGhlCustomFields({
     warnings.push(`No GHL custom fields matched ${missingSocialFields.join(", ")}; those social touchpoints were saved in the research note.`);
   }
 
-  const additionalValue = additionalSocialUrls.join("\n").slice(0, 3500);
   const additionalField = findCustomField(fields, ["Additional Social / Community URLs", "contact.additional_social_community_urls"]);
+  const additionalMerge = mergeAdditionalSocialLines(
+    additionalSocialUrls,
+    readExistingCustomFieldValue(existingContact, additionalField)
+  );
+  const additionalValue = additionalMerge.value;
   const additionalFieldValue = makeCustomFieldValue(additionalField, additionalValue);
   if (additionalFieldValue) {
     customFields.push(additionalFieldValue);
   } else if (additionalValue) {
     warnings.push("No GHL custom field matched Additional Social / Community URLs; overflow social URLs were saved in the research note.");
   }
+  if (additionalMerge.truncated) {
+    warnings.push("Additional Social / Community URLs exceeded the GHL field limit and was truncated after preserving deduped local and remote entries.");
+  }
 
-  return { customFields, warnings };
+  return { customFields, warnings, additionalMerge };
 }
 
 function buildResearchNote({
@@ -667,6 +794,8 @@ export async function POST(request: Request): Promise<Response> {
       tags,
     };
 
+    let additionalSocialMerge: AdditionalSocialMergeResult | null = null;
+    let existingGhlContactFound = false;
     const buildPublicPayload = (customFieldWarnings: string[]) => ({
       ...apiPayload,
       _patronpro_metadata: {
@@ -704,6 +833,8 @@ export async function POST(request: Request): Promise<Response> {
         })),
         social_touchpoints: socialTouchpoints,
         additional_social_urls: socialCollection.additionalLines,
+        additional_social_merge: additionalSocialMerge,
+        existing_ghl_contact_found_for_merge: existingGhlContactFound,
         custom_field_warnings: customFieldWarnings,
         allow_without_direct_route: allowWithoutDirectRoute,
         bypass_reason: allowWithoutDirectRoute ? bypassReason : null,
@@ -745,37 +876,46 @@ export async function POST(request: Request): Promise<Response> {
     const token = readGhlToken();
     if (!token) throw new ApiError(500, "Missing GHL server token");
 
+    const [existingSuccessReceipt] = await queryRows<ExistingCrmContactRow>(
+      `SELECT crm_contact_id
+       FROM patronpro_collab.crm_contact_sync_receipts
+       WHERE candidate_id = $1
+         AND person_id = $2
+         AND crm_system = 'ghl'
+         AND sync_status = 'success'
+         AND crm_contact_id IS NOT NULL
+         AND crm_contact_id <> ''
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [candidateId, personId]
+    );
+    const knownContactId = readString(contact.latest_ghl_contact_id) ?? readString(existingSuccessReceipt?.crm_contact_id);
+    const existingContactLookup = await searchExistingGhlContact({
+      token,
+      locationId,
+      email,
+      phone,
+      knownContactId,
+    });
+    existingGhlContactFound = Boolean(existingContactLookup.contact);
     const customFieldResult = await buildGhlCustomFields({
       token,
       locationId,
       language: ghlLanguage,
       socialTouchpoints,
       additionalSocialUrls: socialCollection.additionalLines,
+      existingContact: existingContactLookup.contact,
     });
-    customFieldWarnings = customFieldResult.warnings;
+    additionalSocialMerge = customFieldResult.additionalMerge;
+    customFieldWarnings = [...existingContactLookup.warnings, ...customFieldResult.warnings];
     if (customFieldResult.customFields.length) {
       apiPayload.customFields = customFieldResult.customFields;
     }
     publicPayload = buildPublicPayload(customFieldWarnings);
     payloadHash = createHash("sha256").update(JSON.stringify(publicPayload)).digest("hex");
 
-    const [existingSuccessReceipt] = !email && !phone && allowWithoutDirectRoute
-      ? await queryRows<ExistingCrmContactRow>(
-        `SELECT crm_contact_id
-         FROM patronpro_collab.crm_contact_sync_receipts
-         WHERE candidate_id = $1
-           AND person_id = $2
-           AND crm_system = 'ghl'
-           AND sync_status = 'success'
-           AND crm_contact_id IS NOT NULL
-           AND crm_contact_id <> ''
-         ORDER BY created_at DESC
-         LIMIT 1`,
-        [candidateId, personId]
-      )
-      : [];
     const existingNoRouteContactId = !email && !phone && allowWithoutDirectRoute
-      ? readString(contact.latest_ghl_contact_id) ?? readString(existingSuccessReceipt?.crm_contact_id)
+      ? knownContactId
       : null;
     if (existingNoRouteContactId) {
       const receiptId = await insertReceipt({
@@ -794,6 +934,8 @@ export async function POST(request: Request): Promise<Response> {
           payloadHash,
           allowWithoutDirectRoute,
           bypassReasonPresent: Boolean(bypassReason),
+          existingGhlContactFound,
+          additionalSocialMerge,
         },
       });
       return NextResponse.json({
@@ -804,6 +946,7 @@ export async function POST(request: Request): Promise<Response> {
         crmContactIdPresent: true,
         noteStatus: "skipped",
         customFieldWarnings,
+        additionalSocialMerge,
       });
     }
     const syncAction = !email && !phone && allowWithoutDirectRoute
@@ -829,7 +972,14 @@ export async function POST(request: Request): Promise<Response> {
         status: "failed",
         dryRun: false,
         publicPayload,
-        responseSummary: { statusCode: ghlResponse.status, payloadHash, allowWithoutDirectRoute, bypassReasonPresent: Boolean(bypassReason) },
+        responseSummary: {
+          statusCode: ghlResponse.status,
+          payloadHash,
+          allowWithoutDirectRoute,
+          bypassReasonPresent: Boolean(bypassReason),
+          existingGhlContactFound,
+          additionalSocialMerge,
+        },
         errorSummary: `GHL contact sync failed with status ${ghlResponse.status}: ${detail}`,
       });
       return NextResponse.json({
@@ -874,6 +1024,8 @@ export async function POST(request: Request): Promise<Response> {
         payloadHash,
         allowWithoutDirectRoute,
         bypassReasonPresent: Boolean(bypassReason),
+        existingGhlContactFound,
+        additionalSocialMerge,
       },
     });
 
@@ -885,6 +1037,7 @@ export async function POST(request: Request): Promise<Response> {
       crmContactIdPresent: summary.crmContactIdPresent,
       noteStatus,
       customFieldWarnings,
+      additionalSocialMerge,
     });
   } catch (error) {
     if (error instanceof ApiError) {
