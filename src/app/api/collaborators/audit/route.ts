@@ -230,7 +230,8 @@ website_screenshot_paths AS (
         ELSE '[]'::jsonb
       END
     ) AS screenshot_item(item)
-    WHERE jsonb_typeof(screenshot_item.item) = 'string'
+    WHERE lower(coalesce(w.url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+      AND jsonb_typeof(screenshot_item.item) = 'string'
       AND coalesce(screenshot_item.item #>> '{}', '') <> ''
 
     UNION ALL
@@ -249,7 +250,8 @@ website_screenshot_paths AS (
         ELSE '{}'::jsonb
       END
     ) AS entry(key, value)
-    WHERE coalesce(entry.value, '') <> ''
+    WHERE lower(coalesce(w.url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+      AND coalesce(entry.value, '') <> ''
 
     UNION ALL
 
@@ -261,7 +263,8 @@ website_screenshot_paths AS (
         ELSE '{}'::jsonb
       END
     ) AS entry(key, value)
-    WHERE coalesce(entry.value, '') <> ''
+    WHERE lower(coalesce(w.url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+      AND coalesce(entry.value, '') <> ''
   ) paths
   WHERE path ~* '[.](png|jpg|jpeg|webp)$'
   GROUP BY candidate_id
@@ -270,12 +273,14 @@ candidate_domain_sources AS (
   SELECT candidate_id, primary_url AS url
   FROM patronpro_collab.candidates
   WHERE coalesce(primary_url, '') <> ''
+    AND lower(coalesce(primary_url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
 
   UNION ALL
 
   SELECT candidate_id, url
   FROM patronpro_collab.websites
   WHERE coalesce(url, '') <> ''
+    AND lower(coalesce(url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
 ),
 candidate_domains AS (
   SELECT DISTINCT
@@ -393,7 +398,8 @@ website_detail AS (
   SELECT
     candidate_id,
     count(*) FILTER (
-      WHERE coalesce(crawl_status, '') NOT LIKE '%social_only%'
+      WHERE lower(coalesce(url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+        AND coalesce(crawl_status, '') NOT LIKE '%social_only%'
         AND coalesce(crawl_status, '') NOT IN (
           'no_official_website_found',
           'no_official_website_found_social_only',
@@ -410,12 +416,17 @@ website_detail AS (
         )
     ) AS owned_website_count,
     count(*) FILTER (
-      WHERE coalesce(crawl_status, '') IN ('ok', 'analyzed', 'captured', 'complete')
-         OR summary IS NOT NULL
-         OR website_quality_score IS NOT NULL
+      WHERE lower(coalesce(url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+        AND (
+          coalesce(crawl_status, '') IN ('ok', 'analyzed', 'captured', 'complete', 'rendered_website_crawl_complete')
+          OR summary IS NOT NULL
+          OR website_quality_score IS NOT NULL
+        )
     ) AS website_analyzed_count,
     coalesce(sum(
       CASE
+        WHEN lower(coalesce(url, '')) ~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
+          THEN 0
         WHEN jsonb_typeof(screenshot_manifest) = 'array'
           THEN jsonb_array_length(screenshot_manifest)
         WHEN jsonb_typeof(screenshot_manifest) = 'object'
@@ -855,6 +866,14 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   if (row.source_lane === "schools") {
     if (websites === 0) {
       addAction(actions, "run_deep_website_review", "Run website review", "P0", "No website crawl/review row is registered.");
+    } else if (ownedWebsites === 0 && !rejectedOrBlocked) {
+      addAction(
+        actions,
+        "find_owned_website_or_close_no_website",
+        "Find owned website or close no-owned-site",
+        "P1",
+        "Only social, directory, unavailable, or non-owned website receipts are registered. Confirm an owned website or mark this as a closed no-owned-site finding."
+      );
     } else if (ownedWebsites > 0) {
       if (websiteAnalyzed === 0) {
         addAction(actions, "complete_website_analysis", "Complete website analysis", "P0", "Website exists but no analysis summary/quality score is present.");
