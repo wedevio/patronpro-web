@@ -1,5 +1,6 @@
 import type {
   ActionabilityAnswerProjection,
+  CandidateTaskProjection,
   ClearanceRunProjection,
   CollaboratorProjection,
   ContactBookProjection,
@@ -13,9 +14,10 @@ import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } fr
 
 function Section({ id, title, children, value }: { id?: string; title: string; children: React.ReactNode; value: unknown }) {
   if (!hasMeaningfulContent(value)) return null;
+  const headingId = id ? `${id}-heading` : undefined;
   return (
-    <section id={id} className="scroll-mt-24 rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-[#182235]">{title}</h2>
+    <section id={id} aria-labelledby={headingId} className="scroll-mt-24 rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
+      <h2 id={headingId} className="text-lg font-semibold text-[#182235]">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -25,13 +27,13 @@ function SectionNav({ items }: { items: Array<{ id: string; title: string; value
   const visibleItems = items.filter((item) => hasMeaningfulContent(item.value));
   if (visibleItems.length < 2) return null;
   return (
-    <nav className="sticky top-3 z-10 rounded-2xl border border-[#dfe5ee] bg-white/95 p-3 shadow-sm backdrop-blur">
+    <nav aria-label="Candidate detail sections" className="sticky top-3 z-10 rounded-2xl border border-[#dfe5ee] bg-white/95 p-3 shadow-sm backdrop-blur">
       <div className="flex gap-2 overflow-x-auto">
         {visibleItems.map((item) => (
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="whitespace-nowrap rounded-xl bg-[#f5f7fb] px-3 py-2 text-sm font-semibold text-[#42506a] hover:bg-[#e8eef7] hover:text-[#182235]"
+            className="whitespace-nowrap rounded-xl bg-[#f5f7fb] px-3 py-2 text-sm font-semibold text-[#42506a] outline-none hover:bg-[#e8eef7] hover:text-[#182235] focus-visible:ring-2 focus-visible:ring-[#f1a13c]"
           >
             {item.title}
           </a>
@@ -62,6 +64,11 @@ function bullets(items: string[]) {
     </ul>
   );
 }
+
+type SourceLink = {
+  label: string;
+  url: string;
+};
 
 function formatNumber(value?: number | null) {
   if (!value) return null;
@@ -102,8 +109,53 @@ function isUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
 
+function safeUrl(value: unknown) {
+  const text = safeText(value);
+  return text && isUrl(text) ? text : null;
+}
+
 function linkTargetProps(href: string) {
   return href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {};
+}
+
+function websiteReviewLinks(websites: WebsiteProjection[]) {
+  return websites.flatMap((website) => website.reviewLinks.filter(hasMeaningfulContent));
+}
+
+function mediaWithComments(media: CollaboratorProjection["media"]) {
+  return media.filter((item) => item.comments);
+}
+
+function addSourceLink(links: SourceLink[], seen: Set<string>, label: string, value: unknown) {
+  const url = safeUrl(value);
+  if (!url || seen.has(url)) return;
+  seen.add(url);
+  links.push({ label, url });
+}
+
+function collectSourceLinks(candidate: CollaboratorProjection) {
+  const links: SourceLink[] = [];
+  const seen = new Set<string>();
+
+  addSourceLink(links, seen, "Primary public URL", candidate.primaryUrl);
+  for (const profile of candidate.socialProfiles) addSourceLink(links, seen, `${profile.platform} profile`, profile.url);
+  for (const website of candidate.websites) addSourceLink(links, seen, "Website", website.url);
+  for (const item of candidate.media) addSourceLink(links, seen, `${item.platform ?? "media"} evidence`, item.url);
+  for (const answer of candidate.actionabilityAnswers) {
+    for (const url of answer.sourceUrls) addSourceLink(links, seen, answer.shortLabel ?? answer.label, url);
+  }
+  for (const run of candidate.clearanceRuns) addSourceLink(links, seen, `${run.platform ?? "clearance"} receipt`, run.sourceUrl);
+  for (const contact of candidate.contactBook) {
+    addSourceLink(links, seen, `${contact.name} profile`, contact.primaryPublicUrl);
+    for (const url of contact.sourceUrls) addSourceLink(links, seen, `${contact.name} source`, url);
+    for (const route of contact.routes) addSourceLink(links, seen, `${contact.name} route`, route.sourceUrl);
+  }
+  for (const collaborator of candidate.externalCollaborators) {
+    addSourceLink(links, seen, `${collaborator.candidateName} profile`, collaborator.primaryUrl);
+    for (const url of collaborator.sourceUrls) addSourceLink(links, seen, `${collaborator.candidateName} source`, url);
+  }
+
+  return links;
 }
 
 function InlineValue({ value }: { value: unknown }) {
@@ -264,6 +316,90 @@ function WebsiteAnalysis({ websites }: { websites: WebsiteProjection[] }) {
           </article>
         );
       })}
+    </div>
+  );
+}
+
+function WebsiteReviews({ websites }: { websites: WebsiteProjection[] }) {
+  const websitesWithReviews = websites.filter((website) => hasMeaningfulContent(website.reviewLinks));
+  if (!websitesWithReviews.length) return null;
+  return (
+    <div className="grid gap-4">
+      {websitesWithReviews.map((website) => (
+        <article key={`${website.url}-reviews`} className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+          <a href={website.url} className="break-all text-sm font-semibold text-[#1d5fa7] underline-offset-4 hover:underline" target="_blank" rel="noreferrer">
+            {website.url}
+          </a>
+          <div className="mt-3">
+            <ObjectEvidenceList title="Review links" items={website.reviewLinks} />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function CommentSignals({ media }: { media: CollaboratorProjection["media"] }) {
+  const items = mediaWithComments(media);
+  if (!items.length) return null;
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      {items.map((item) => (
+        <article key={`${item.id}-comments`} className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{item.platform ?? "media"} engagement</p>
+          <h3 className="mt-2 text-base font-semibold text-[#182235]">{item.id}</h3>
+          <p className="mt-2 text-sm text-[#42506a]">{formatNumber(item.comments)} comments captured</p>
+          {item.url ? (
+            <a href={item.url} target="_blank" rel="noreferrer" className="mt-3 block break-all text-sm text-[#1d5fa7] underline-offset-4 hover:underline">
+              {item.url}
+            </a>
+          ) : null}
+          {item.riskSummary ? <p className="mt-3 text-sm leading-6 text-[#7c4a05]">{item.riskSummary}</p> : null}
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function SourceIndex({ links, evidenceIds }: { links: SourceLink[]; evidenceIds: string[] }) {
+  return (
+    <div className="grid gap-4">
+      {links.length ? (
+        <div className="overflow-x-auto rounded-2xl border border-[#edf1f6]">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead className="bg-[#f8fafc] text-xs uppercase tracking-[0.12em] text-[#68758d]">
+              <tr>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">URL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {links.slice(0, 48).map((link) => (
+                <tr key={link.url} className="border-t border-[#edf1f6]">
+                  <td className="px-3 py-2 font-semibold text-[#182235]">{link.label}</td>
+                  <td className="px-3 py-2">
+                    <a href={link.url} target="_blank" rel="noreferrer" className="break-all text-[#1d5fa7] underline-offset-4 hover:underline">
+                      {link.url}
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+      {evidenceIds.length ? (
+        <div>
+          <h3 className="text-sm font-semibold text-[#182235]">Evidence IDs</h3>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {evidenceIds.slice(0, 48).map((id) => (
+              <span key={id} className="rounded-full bg-[#f1f5f9] px-3 py-1 text-xs font-semibold text-[#526078]">
+                {id}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -518,6 +654,60 @@ function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
   );
 }
 
+function CandidateRoadmap({ candidate }: { candidate: CollaboratorProjection }) {
+  return (
+    <div className="grid gap-4">
+      {candidate.nextAction ? (
+        <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Next action</p>
+          <p className="mt-2 text-sm leading-6 text-[#42506a]">{candidate.nextAction}</p>
+        </article>
+      ) : null}
+
+      {candidate.tasks.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {candidate.tasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </div>
+      ) : null}
+
+      {candidate.missingFields.length ? (
+        <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Open evidence gaps</p>
+          <div className="mt-3">{bullets(candidate.missingFields)}</div>
+        </article>
+      ) : null}
+    </div>
+  );
+}
+
+function TaskCard({ task }: { task: CandidateTaskProjection }) {
+  const meta = [task.priority, task.status, task.followUpAt ? `follow-up ${task.followUpAt}` : null, task.crmSyncEligible ? "CRM eligible" : null].filter(Boolean);
+  return (
+    <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{task.type ?? "task"}</p>
+          <h3 className="mt-2 text-base font-semibold text-[#182235]">{task.label}</h3>
+        </div>
+        {task.completedAt ? <span className="rounded-full bg-[#e9f6ef] px-2 py-1 text-xs font-semibold text-[#1d6a3a]">done</span> : null}
+      </div>
+      {task.summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
+      {task.blockerReason ? <p className="mt-3 text-sm leading-6 text-[#7c4a05]">{task.blockerReason}</p> : null}
+      {meta.length ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {meta.map((item) => (
+            <span key={item} className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">
+              {item}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 function actionabilityCardValue(answer: ActionabilityAnswerProjection) {
   return answer.value ?? answer.evidenceSummary ?? answer.status ?? null;
 }
@@ -715,20 +905,29 @@ function ExternalCollaborators({ candidate }: { candidate: CollaboratorProjectio
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
   const internalContactsValue = [candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts];
   const externalCollaboratorsValue = [candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)];
+  const reviewsValue = websiteReviewLinks(candidate.websites);
+  const commentsValue = mediaWithComments(candidate.media);
+  const sourceLinks = collectSourceLinks(candidate);
+  const sourceIndexValue = [sourceLinks, candidate.evidenceIds];
+  const roadmapValue = [candidate.tasks, candidate.missingFields, candidate.nextAction];
   const sectionNavItems = [
-    { id: "collaboration-compatibility", title: "Compatibility", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
-    { id: "internal-contacts", title: "Contacts", value: internalContactsValue },
+    { id: "overview", title: "Overview", value: [candidate.overviewSummary, candidate.fitSummary, candidate.score, candidate.evidenceConfidence, candidate.totalReach] },
+    { id: "collaboration-compatibility", title: "Fit answers", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
+    { id: "internal-contacts", title: "Contact intelligence", value: internalContactsValue },
     { id: "recommendation", title: "Recommendation", value: candidate.recommendation },
-    { id: "opportunities", title: "Opportunities", value: [candidate.opportunities, candidate.shortcomings, candidate.risks] },
-    { id: "social-profiles", title: "Social", value: candidate.socialProfiles },
+    { id: "strategy", title: "Strategy", value: [candidate.opportunities, candidate.shortcomings, candidate.risks] },
+    { id: "social-profiles", title: "Social inventory", value: candidate.socialProfiles },
     { id: "website-analysis", title: "Website", value: candidate.websites },
+    { id: "review-links", title: "Reviews", value: reviewsValue },
     { id: "external-collaborators", title: "Collaborators", value: externalCollaboratorsValue },
-    { id: "reviewed-media", title: "Media", value: candidate.media },
-    { id: "evidence-gaps", title: "Gaps", value: candidate.missingFields },
+    { id: "comments-engagement", title: "Comments", value: commentsValue },
+    { id: "reviewed-media", title: "Media evidence", value: candidate.media },
+    { id: "source-index", title: "Sources", value: sourceIndexValue },
+    { id: "roadmap-strategy", title: "Roadmap", value: roadmapValue },
   ];
   return (
     <div className="space-y-5">
-      <header className="rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
+      <header id="overview" className="scroll-mt-24 rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">{candidate.lane}</p>
         <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight md:text-5xl">{candidate.name}</h1>
         {candidate.overviewSummary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.overviewSummary}</p> : null}
@@ -749,13 +948,13 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
 
       <SectionNav items={sectionNavItems} />
 
-      <Section id="collaboration-compatibility" title="Collaboration Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
+      <Section id="collaboration-compatibility" title="Fit Answers / Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
         <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
         <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
       </Section>
 
-      <Section id="internal-contacts" title="Internal contacts / public routes" value={internalContactsValue}>
+      <Section id="internal-contacts" title="Contact Intelligence / Public Routes" value={internalContactsValue}>
         <ContactBook candidate={candidate} />
       </Section>
 
@@ -763,7 +962,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <p className="text-base leading-7 text-[#42506a]">{candidate.recommendation}</p>
       </Section>
 
-      <div id="opportunities" className="scroll-mt-24 grid gap-5 lg:grid-cols-2">
+      <div id="strategy" className="scroll-mt-24 grid gap-5 lg:grid-cols-2">
         <Section title="Opportunities" value={candidate.opportunities}>
           {bullets(candidate.opportunities)}
         </Section>
@@ -772,7 +971,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         </Section>
       </div>
 
-      <Section id="social-profiles" title="Verified social profiles" value={candidate.socialProfiles}>
+      <Section id="social-profiles" title="Verified Social Inventory" value={candidate.socialProfiles}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="text-xs uppercase tracking-[0.14em] text-[#68758d]">
@@ -812,17 +1011,28 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <WebsiteAnalysis websites={candidate.websites} />
       </Section>
 
+      <Section id="review-links" title="Reviews / Ratings Sources" value={reviewsValue}>
+        <WebsiteReviews websites={candidate.websites} />
+      </Section>
+
       <Section id="external-collaborators" title="External collaborators" value={externalCollaboratorsValue}>
         <ExternalCollaborators candidate={candidate} />
+      </Section>
+
+      <Section id="comments-engagement" title="Comments / Engagement Signals" value={commentsValue}>
+        <CommentSignals media={candidate.media} />
       </Section>
 
       <Section id="reviewed-media" title="Reviewed media evidence" value={candidate.media}>
         <MediaEvidenceGallery media={candidate.media} />
       </Section>
 
-      <Section id="evidence-gaps" title="Evidence gaps" value={candidate.missingFields}>
-        <p className="text-sm text-[#526078]">Next action: {candidate.nextAction ?? "review"}</p>
-        <div className="mt-3">{bullets(candidate.missingFields)}</div>
+      <Section id="source-index" title="Source Index" value={sourceIndexValue}>
+        <SourceIndex links={sourceLinks} evidenceIds={candidate.evidenceIds} />
+      </Section>
+
+      <Section id="roadmap-strategy" title="Roadmap / Next Steps" value={roadmapValue}>
+        <CandidateRoadmap candidate={candidate} />
       </Section>
     </div>
   );
