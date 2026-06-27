@@ -17,6 +17,57 @@ function formatNumber(value?: number | null) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function analysisParts(text?: string | null) {
+  const normalized = (text ?? "").replace(/\r\n/g, "\n").trim();
+  if (!normalized) return [];
+
+  const lines = normalized
+    .split(/\n+/)
+    .map((line) => line.replace(/^[-*•]\s*/, "").trim())
+    .filter(Boolean);
+  if (lines.length > 1) return lines;
+
+  if (normalized.length < 260) return [normalized];
+  const sentences = normalized
+    .split(/(?<=[.!?])\s+(?=[A-Z0-9])/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return sentences.length > 1 ? sentences : [normalized];
+}
+
+function AnalysisBlock({
+  label,
+  text,
+  tone = "default",
+}: {
+  label: string;
+  text?: string | null;
+  tone?: "default" | "risk";
+}) {
+  const parts = analysisParts(text);
+  if (!parts.length) return null;
+  const color = tone === "risk" ? "text-[#7c4a05]" : "text-[#42506a]";
+
+  if (parts.length === 1) {
+    return (
+      <p className={`mt-2 text-sm leading-6 ${color}`}>
+        <strong>{label}:</strong> {parts[0]}
+      </p>
+    );
+  }
+
+  return (
+    <div className={`mt-3 text-sm leading-6 ${color}`}>
+      <p className="font-semibold">{label}:</p>
+      <ul className="mt-1 list-disc space-y-1 pl-5">
+        {parts.map((part, index) => (
+          <li key={`${label}-${index}`}>{part}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function collectImages(media: MediaEvidenceProjection[]): GalleryImage[] {
   return media.flatMap((item) => {
     const labelPrefix = item.slot ? `${item.slot}. ` : "";
@@ -280,12 +331,12 @@ export function MediaEvidenceGallery({ media }: { media: MediaEvidenceProjection
                   ))}
                 </div>
               ) : null}
-              {item.hook ? <p className="mt-3 text-sm leading-6 text-[#42506a]"><strong>Hook:</strong> {item.hook}</p> : null}
-              {item.seminarPotential ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Seminar:</strong> {item.seminarPotential}</p> : null}
-              {item.visualSummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Visual:</strong> {item.visualSummary}</p> : null}
-              {item.audioSummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>Audio:</strong> {item.audioSummary}</p> : null}
-              {item.cta ? <p className="mt-2 text-sm leading-6 text-[#42506a]"><strong>CTA:</strong> {item.cta}</p> : null}
-              {item.riskSummary ? <p className="mt-2 text-sm leading-6 text-[#7c4a05]"><strong>Risk:</strong> {item.riskSummary}</p> : null}
+              <AnalysisBlock label="Hook" text={item.hook} />
+              <AnalysisBlock label="Seminar" text={item.seminarPotential} />
+              <AnalysisBlock label="Visual" text={item.visualSummary} />
+              <AnalysisBlock label="Audio" text={item.audioSummary} />
+              <AnalysisBlock label="CTA" text={item.cta} />
+              <AnalysisBlock label="Risk" text={item.riskSummary} tone="risk" />
             </article>
           );
         })}
