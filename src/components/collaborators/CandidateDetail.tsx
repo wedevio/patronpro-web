@@ -65,6 +65,107 @@ function bullets(items: string[]) {
   );
 }
 
+const OUTREACH_CHANNEL_MATRIX = [
+  {
+    channel: "Email / SMS",
+    status: "GHL-ready after contact sync",
+    use: "Use from GHL only when the public email or phone is verified and the operator chooses to send.",
+    requirement: "PatronPro location email/SMS channel, consent rules, and contact dedupe settings.",
+    docs: [
+      ["Conversations API", "https://marketplace.gohighlevel.com/docs/ghl/conversations/send-a-new-message/"],
+      ["Conversations tab", "https://help.gohighlevel.com/support/solutions/articles/155000006610-getting-started-with-the-conversations-tab"],
+    ],
+  },
+  {
+    channel: "WhatsApp",
+    status: "Conditional",
+    use: "Use only when WhatsApp is configured for the PatronPro location and the contact route is eligible.",
+    requirement: "WhatsApp Business/API or coexistence setup plus template/session and opt-in constraints.",
+    docs: [["WhatsApp settings", "https://help.gohighlevel.com/support/solutions/articles/155000006911-whatsapp-settings"]],
+  },
+  {
+    channel: "Facebook / Instagram DMs",
+    status: "Inbound-window limited",
+    use: "Store public profile URLs, then use GHL only after a compliant inbound message, comment trigger, or reply window exists.",
+    requirement: "Connected Facebook page and Instagram account; Meta message-access and session rules still apply.",
+    docs: [
+      ["FB/IG Messenger setup", "https://help.gohighlevel.com/support/solutions/articles/155000005068-getting-started-setup-facebook-and-instagram-messenger"],
+      ["Instagram messenger action", "https://help.gohighlevel.com/support/solutions/articles/155000004662-workflow-action-instagram-interactive-messenger"],
+    ],
+  },
+  {
+    channel: "TikTok DMs / comments",
+    status: "Conditional",
+    use: "Use GHL only for connected TikTok Messaging flows; public TikTok profile URLs alone are not cold-DM permission.",
+    requirement: "TikTok Messaging integration in the sub-account and eligible DM/comment automation context.",
+    docs: [
+      ["Integrate TikTok Messaging", "https://help.gohighlevel.com/support/solutions/articles/155000006620-integrate-tiktok-messaging"],
+      ["TikTok DMs/comment automations", "https://help.gohighlevel.com/support/solutions/articles/155000006703-tiktok-dms-comment-automations"],
+    ],
+  },
+  {
+    channel: "LinkedIn / YouTube / X",
+    status: "Manual-only",
+    use: "Keep as research touchpoints and source URLs. Do not imply GHL can message these platforms from the dashboard.",
+    requirement: "Manual outreach or another approved channel outside this dashboard.",
+    docs: [],
+  },
+] as const;
+
+function OutreachChannelMatrix() {
+  return (
+    <div className="rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-[#182235]">GHL Outreach Channel Matrix</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-[#526078]">
+            Creating a contact in PatronPro / GHL stores the route and research note only. It does not send SMS, email, WhatsApp, DMs, workflow messages, or comments.
+          </p>
+        </div>
+        <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">No auto outreach</span>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[860px] text-left text-sm">
+          <thead className="text-xs uppercase tracking-[0.14em] text-[#68758d]">
+            <tr>
+              <th className="border-b border-[#dfe5ee] pb-3">Channel</th>
+              <th className="border-b border-[#dfe5ee] pb-3">Dashboard stance</th>
+              <th className="border-b border-[#dfe5ee] pb-3">Use after contact sync</th>
+              <th className="border-b border-[#dfe5ee] pb-3">Prerequisites</th>
+              <th className="border-b border-[#dfe5ee] pb-3">Official docs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {OUTREACH_CHANNEL_MATRIX.map((row) => (
+              <tr key={row.channel} className="border-b border-[#edf1f6] align-top">
+                <td className="py-3 font-semibold text-[#182235]">{row.channel}</td>
+                <td className="py-3">
+                  <span className="inline-flex rounded-full bg-[#f1f5f9] px-2 py-1 text-xs font-semibold text-[#526078]">{row.status}</span>
+                </td>
+                <td className="py-3 leading-6 text-[#42506a]">{row.use}</td>
+                <td className="py-3 leading-6 text-[#42506a]">{row.requirement}</td>
+                <td className="py-3">
+                  {row.docs.length ? (
+                    <div className="grid gap-1">
+                      {row.docs.map(([label, url]) => (
+                        <a key={url} className="text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                          {label}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-[#68758d]">No supported GHL channel in this workflow</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 type SourceLink = {
   label: string;
   url: string;
@@ -915,7 +1016,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
     { id: "collaboration-compatibility", title: "Fit answers", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
     { id: "internal-contacts", title: "Contact intelligence", value: internalContactsValue },
     { id: "recommendation", title: "Recommendation", value: candidate.recommendation },
-    { id: "strategy", title: "Strategy", value: [candidate.opportunities, candidate.shortcomings, candidate.risks] },
+    { id: "strategy", title: "Strategy", value: [candidate.opportunities, candidate.shortcomings, candidate.risks, OUTREACH_CHANNEL_MATRIX] },
     { id: "social-profiles", title: "Social inventory", value: candidate.socialProfiles },
     { id: "website-analysis", title: "Website", value: candidate.websites },
     { id: "review-links", title: "Reviews", value: reviewsValue },
@@ -969,6 +1070,9 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Section title="Shortcomings / Caveats" value={[candidate.shortcomings, candidate.risks]}>
           {bullets([...candidate.shortcomings, ...candidate.risks])}
         </Section>
+        <div className="lg:col-span-2">
+          <OutreachChannelMatrix />
+        </div>
       </div>
 
       <Section id="social-profiles" title="Verified Social Inventory" value={candidate.socialProfiles}>
