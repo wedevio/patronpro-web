@@ -52,10 +52,10 @@ function SectionNav({
         <div className="flex min-h-10 items-center gap-2">
           <a
             href="#overview"
-            className="min-w-0 rounded-xl px-3 py-2 text-white outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#FCCC7B] md:w-72"
+            className="min-w-0 flex-1 rounded-xl px-3 py-2 text-white outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#FCCC7B]"
           >
             <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{lane}</span>
-            <span className="block truncate text-sm font-semibold leading-5">{candidateName}</span>
+            <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
           </a>
           {visibleItems.length > 1 ? (
             <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto rounded-xl bg-white/95 p-1 xl:hidden">{links()}</div>
@@ -63,7 +63,7 @@ function SectionNav({
         </div>
       </nav>
       {visibleItems.length > 1 ? (
-        <details className="fixed right-4 top-24 z-30 hidden w-64 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white/95 shadow-lg backdrop-blur xl:block" open>
+        <details className="fixed right-4 top-24 z-30 hidden w-64 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white/95 shadow-lg backdrop-blur xl:block">
           <summary className="cursor-pointer list-none bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 py-3 text-sm font-semibold text-white outline-none [&::-webkit-details-marker]:hidden">
             Sections
           </summary>
