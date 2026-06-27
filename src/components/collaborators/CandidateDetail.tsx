@@ -191,15 +191,21 @@ function SocialBioLinkEvidence({ profile }: { profile: SocialProfileProjection }
     <div className="grid gap-2">
       {profile.bioLinkAudits.map((audit, index) => {
         const link = audit.resolvedUrl ?? audit.rawUrl;
+        const relationshipSignal = audit.relationshipSignal && audit.relationshipSignal !== "none" ? audit.relationshipSignal : null;
         return (
-          <div key={`${link ?? profile.url}-${index}`} className="rounded-xl bg-[#f8fafc] p-3">
+          <div key={`${link ?? profile.url}-${index}`} className={`rounded-xl p-3 ${audit.isAbsenceReceipt ? "bg-[#fff8ed]" : "bg-[#f8fafc]"}`}>
             <div className="flex flex-wrap items-center gap-2">
               {audit.destinationType ? <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{humanizeKey(audit.destinationType)}</span> : null}
-              {audit.relationshipSignal ? <span className="rounded-full bg-[#fff7ea] px-2 py-1 text-xs font-semibold text-[#9b5200]">{humanizeKey(audit.relationshipSignal)}</span> : null}
+              {relationshipSignal ? <span className="rounded-full bg-[#fff7ea] px-2 py-1 text-xs font-semibold text-[#9b5200]">{humanizeKey(relationshipSignal)}</span> : null}
             </div>
             {audit.destinationTitle || audit.destinationOwner ? (
               <p className="mt-2 text-sm font-semibold text-[#182235]">
                 {[audit.destinationTitle, audit.destinationOwner].filter(Boolean).join(" / ")}
+              </p>
+            ) : null}
+            {audit.bioText ? (
+              <p className="mt-1 text-xs leading-5 text-[#526078]">
+                <span className="font-semibold text-[#30405c]">Visible bio:</span> {audit.bioText}
               </p>
             ) : null}
             {audit.analysisNote ? <p className="mt-1 text-xs leading-5 text-[#526078]">{audit.analysisNote}</p> : null}

@@ -410,15 +410,16 @@ function projectSocial(row: SocialProfileRow): SocialProfileProjection | null {
 function projectSocialBioLinkAudits(rawPublicPayload: Record<string, unknown> | null | undefined) {
   const auditPayload = rawPublicPayload?.bio_link_audit_v1;
   if (!auditPayload || typeof auditPayload !== "object" || Array.isArray(auditPayload)) return [];
-  const audits = (auditPayload as { audits?: unknown }).audits;
-  if (!Array.isArray(audits)) return [];
-  return audits
+  const payload = auditPayload as { audits?: unknown; absence_receipt?: unknown };
+  const audits = Array.isArray(payload.audits) ? payload.audits : [];
+  const projectedAudits = audits
     .map((item) => {
       if (!item || typeof item !== "object" || Array.isArray(item)) return null;
       const value = item as Record<string, unknown>;
       return {
         rawUrl: safePublicUrl(value.bio_link_raw),
         resolvedUrl: safePublicUrl(value.bio_link_resolved),
+        bioText: cleanString(value.bio_text),
         destinationType: cleanString(value.destination_type),
         destinationOwner: cleanString(value.destination_owner_guess),
         destinationTitle: cleanString(value.destination_title),
@@ -428,6 +429,20 @@ function projectSocialBioLinkAudits(rawPublicPayload: Record<string, unknown> | 
       };
     })
     .filter((item) => item && hasMeaningfulContent(item)) as SocialProfileProjection["bioLinkAudits"];
+  const absenceReceipt = payload.absence_receipt;
+  if (!absenceReceipt || typeof absenceReceipt !== "object" || Array.isArray(absenceReceipt)) return projectedAudits;
+  const absenceValue = absenceReceipt as Record<string, unknown>;
+  const projectedAbsence = {
+    bioText: cleanString(absenceValue.bio_text),
+    destinationType: cleanString(absenceValue.bio_link_status) ?? "no_public_bio_link_visible",
+    destinationTitle: "No public bio/link visible",
+    relationshipSignal: cleanString(absenceValue.relationship_signal),
+    analysisNote: cleanString(absenceValue.analysis_note),
+    capturedAt: cleanString(absenceValue.captured_at),
+    isAbsenceReceipt: true,
+  };
+  if (!hasMeaningfulContent(projectedAbsence)) return projectedAudits;
+  return [...projectedAudits, projectedAbsence];
 }
 
 function safePublicUrl(value: unknown) {
