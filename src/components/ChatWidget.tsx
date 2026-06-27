@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 
-const PATRONPRO_LIVE_CHAT_WIDGET_ID = "6a363b805dcabc40b599a028";
+const PATRONPRO_LIVE_CHAT_WIDGET_ID = "6a3fa8918ac6276654579733";
 
 export default function ChatWidget() {
   const pathname = usePathname();
