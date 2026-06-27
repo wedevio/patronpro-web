@@ -9,6 +9,7 @@ import type {
   WebsiteProjection,
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+import { CandidateSectionNav } from "./CandidateSectionNav";
 import { GhlContactButton } from "./GhlContactButton";
 import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
@@ -20,57 +21,6 @@ function Section({ id, title, children, value }: { id?: string; title: string; c
       <h2 id={headingId} className="text-lg font-semibold text-[#182235]">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
-  );
-}
-
-function SectionNav({
-  candidateName,
-  lane,
-  items,
-}: {
-  candidateName: string;
-  lane: string;
-  items: Array<{ id: string; title: string; value: unknown }>;
-}) {
-  const visibleItems = items.filter((item) => hasMeaningfulContent(item.value));
-  const links = () =>
-    visibleItems.map((item) => (
-      <a
-        key={item.id}
-        href={`#${item.id}`}
-        className="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold text-[#42506a] outline-none hover:bg-[#e8eef7] hover:text-[#182235] focus-visible:ring-2 focus-visible:ring-[#f1a13c]"
-      >
-        {item.title}
-      </a>
-    ));
-  return (
-    <>
-      <nav
-        aria-label="Candidate detail sections"
-        className="sticky top-3 z-20 rounded-2xl border border-[#1d3559]/30 bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] p-2 shadow-md"
-      >
-        <div className="flex min-h-10 items-center gap-2">
-          <a
-            href="#overview"
-            className="min-w-0 flex-1 rounded-xl px-3 py-2 text-white outline-none hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-[#FCCC7B]"
-          >
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{lane}</span>
-            <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
-          </a>
-          {visibleItems.length > 1 ? (
-            <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto rounded-xl bg-white/95 p-1 xl:hidden">{links()}</div>
-          ) : null}
-        </div>
-      </nav>
-      {visibleItems.length > 1 ? (
-        <details className="fixed right-4 top-24 z-30 hidden w-64 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white/95 shadow-lg backdrop-blur xl:block">
-          <summary className="cursor-pointer list-none bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 py-3 text-sm font-semibold text-white outline-none [&::-webkit-details-marker]:hidden">
-            Sections
-          </summary>
-          <div className="grid max-h-[calc(100vh-9rem)] gap-1 overflow-y-auto p-2">{links()}</div>
-        </details>
-      ) : null}
-    </>
   );
 }
 
@@ -1100,6 +1050,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
     { id: "source-index", title: "Sources", value: sourceIndexValue },
     { id: "roadmap-strategy", title: "Roadmap", value: roadmapValue },
   ];
+  const visibleSectionNavItems = sectionNavItems.filter((item) => hasMeaningfulContent(item.value));
   return (
     <div className="space-y-5">
       <header id="overview" className="scroll-mt-24 rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
@@ -1121,7 +1072,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Metric label="Reviewed media" value={candidate.media.length || null} />
       </div>
 
-      <SectionNav candidateName={candidate.name} lane={candidate.lane} items={sectionNavItems} />
+      <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={visibleSectionNavItems} />
 
       <Section id="collaboration-compatibility" title="Fit Answers / Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
