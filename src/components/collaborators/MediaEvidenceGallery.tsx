@@ -137,19 +137,37 @@ function Lightbox({
   const image = images[index];
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [imageVisible, setImageVisible] = useState(true);
   const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fadeFrame = useRef<number | null>(null);
   const resetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
     drag.current = null;
   };
+  const clearFade = () => {
+    if (fadeTimer.current) clearTimeout(fadeTimer.current);
+    if (fadeFrame.current) cancelAnimationFrame(fadeFrame.current);
+    fadeTimer.current = null;
+    fadeFrame.current = null;
+  };
+  const changeImage = (nextIndex: number) => {
+    if (nextIndex === index) return;
+    clearFade();
+    setImageVisible(false);
+    fadeTimer.current = setTimeout(() => {
+      resetView();
+      onChange(nextIndex);
+      fadeFrame.current = requestAnimationFrame(() => setImageVisible(true));
+      fadeTimer.current = null;
+    }, 150);
+  };
   const previous = () => {
-    resetView();
-    onChange((index - 1 + images.length) % images.length);
+    changeImage((index - 1 + images.length) % images.length);
   };
   const next = () => {
-    resetView();
-    onChange((index + 1) % images.length);
+    changeImage((index + 1) % images.length);
   };
   const changeZoom = (value: number) => {
     const nextZoom = Math.max(1, Math.min(5, value));
@@ -169,9 +187,12 @@ function Lightbox({
     return () => window.removeEventListener("keydown", onKeyDown);
   });
 
+  useEffect(() => () => clearFade(), []);
+
   return (
     <div
-      className="fixed inset-0 z-50 bg-[#0b1220]/90 p-4 text-white"
+      className="fixed inset-0 bg-[#0b1220]/90 p-4 text-white"
+      style={{ zIndex: 2147483647 }}
       role="dialog"
       aria-modal="true"
       onClick={(event) => {
@@ -193,7 +214,7 @@ function Lightbox({
           </button>
         </div>
         <div
-          className="min-h-0 flex-1 overflow-hidden rounded-2xl bg-black/30 p-3"
+          className="min-h-0 flex flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/30 p-3"
           onWheel={(event) => {
             if (zoom <= 1) return;
             event.preventDefault();
@@ -204,13 +225,18 @@ function Lightbox({
           }}
         >
           <Image
+            key={image.id}
             src={image.detailUrl}
             width={image.detailWidth ?? 1600}
             height={image.detailHeight ?? 1200}
             alt={`${image.label} for ${image.mediaTitle}`}
             unoptimized
-            className={`mx-auto max-h-none max-w-none rounded-xl ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
-            style={{ transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`, transformOrigin: "center center" }}
+            className={`h-auto w-auto max-h-full max-w-full rounded-xl object-contain transition-opacity duration-150 ease-out ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+            style={{
+              opacity: imageVisible ? 1 : 0,
+              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+              transformOrigin: "center center",
+            }}
             onClick={(event) => {
               event.stopPropagation();
               changeZoom(zoom + (event.shiftKey || event.altKey ? -0.5 : 0.5));
