@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { queryRows } from "@/lib/collaborators/db";
+import { requirePpSession } from "@/lib/auth/require-session";
 import mediaDerivativeManifest from "@/lib/collaborators/media-derivatives.generated.json";
 
 export const dynamic = "force-dynamic";
@@ -1014,6 +1015,9 @@ function severitySortValue(actionItems: ActionItem[]) {
 }
 
 export async function GET(request: Request): Promise<Response> {
+  const auth = await requirePpSession();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const url = new URL(request.url);
     const lane = url.searchParams.get("lane");

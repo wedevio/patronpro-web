@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { getCollaboratorPool, queryRows } from "@/lib/collaborators/db";
+import { requirePpSession } from "@/lib/auth/require-session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -208,6 +209,9 @@ function previewPayload({
 }
 
 export async function GET(request: Request): Promise<Response> {
+  const auth = await requirePpSession();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const url = new URL(request.url);
     const jobId = readString(url.searchParams.get("jobId"));
@@ -229,6 +233,9 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const auth = await requirePpSession();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const candidateId = readString(body.candidateId);

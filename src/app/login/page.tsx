@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useActionState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { loginAction } from "@/app/actions/auth";
 
@@ -9,14 +9,16 @@ import { loginAction } from "@/app/actions/auth";
 
 function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [state, action, pending] = useActionState(loginAction, null);
+  const nextPath = safeNextPath(searchParams.get("next"));
 
   // Redirect client-side on success (avoids redirect() throw from Server Action)
   useEffect(() => {
     if (state && "success" in state) {
-      router.push("/panel");
+      router.push(nextPath);
     }
-  }, [state, router]);
+  }, [state, router, nextPath]);
 
   const error = state && "error" in state ? state.error : null;
 
@@ -24,17 +26,17 @@ function LoginForm() {
     <form action={action} className="space-y-4">
       <div>
         <label className="block text-[12px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-          Email
+          Usuario
         </label>
         <input
-          type="email"
-          name="email"
+          type="text"
+          name="username"
           required
-          autoComplete="email"
+          autoComplete="username"
           className="w-full px-3.5 py-2.5 text-[14px] border border-slate-200 rounded-lg outline-none
                      focus:border-[#1E2C46] focus:ring-2 focus:ring-[#1E2C46]/10 transition-all
                      bg-slate-50 placeholder:text-slate-300"
-          placeholder="admin@patronpro.com"
+          placeholder="Usuario"
         />
       </div>
 
@@ -70,6 +72,12 @@ function LoginForm() {
       </button>
     </form>
   );
+}
+
+function safeNextPath(value: string | null) {
+  if (!value || value.startsWith("//")) return "/panel";
+  if (value.startsWith("/panel") || value.startsWith("/collaborators")) return value;
+  return "/panel";
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

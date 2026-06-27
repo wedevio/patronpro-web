@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { queryRows } from "@/lib/collaborators/db";
+import { requirePpSession } from "@/lib/auth/require-session";
 import { ghlFetch } from "@/lib/ghl/client";
 
 export const dynamic = "force-dynamic";
@@ -580,6 +581,9 @@ async function insertReceipt({
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const auth = await requirePpSession();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const candidateId = readString(body.candidateId);
