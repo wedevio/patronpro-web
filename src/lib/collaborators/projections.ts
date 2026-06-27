@@ -63,6 +63,8 @@ type SocialProfileRow = {
   subscribers_count?: number | string | null;
   likes_count?: number | string | null;
   captured_at?: string | null;
+  bio_links?: unknown;
+  raw_public_payload?: Record<string, unknown> | null;
 };
 
 type WebsiteRow = {
@@ -400,7 +402,39 @@ function projectSocial(row: SocialProfileRow): SocialProfileProjection | null {
     subscribers: numberOrNull(row.subscribers_count),
     likes: numberOrNull(row.likes_count),
     capturedAt: row.captured_at,
+    bioLinks: cleanUrlList(row.bio_links),
+    bioLinkAudits: projectSocialBioLinkAudits(row.raw_public_payload),
   };
+}
+
+function projectSocialBioLinkAudits(rawPublicPayload: Record<string, unknown> | null | undefined) {
+  const auditPayload = rawPublicPayload?.bio_link_audit_v1;
+  if (!auditPayload || typeof auditPayload !== "object" || Array.isArray(auditPayload)) return [];
+  const audits = (auditPayload as { audits?: unknown }).audits;
+  if (!Array.isArray(audits)) return [];
+  return audits
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const value = item as Record<string, unknown>;
+      return {
+        rawUrl: safePublicUrl(value.bio_link_raw),
+        resolvedUrl: safePublicUrl(value.bio_link_resolved),
+        destinationType: cleanString(value.destination_type),
+        destinationOwner: cleanString(value.destination_owner_guess),
+        destinationTitle: cleanString(value.destination_title),
+        relationshipSignal: cleanString(value.relationship_signal),
+        analysisNote: cleanString(value.analysis_note),
+        capturedAt: cleanString(value.captured_at),
+      };
+    })
+    .filter((item) => item && hasMeaningfulContent(item)) as SocialProfileProjection["bioLinkAudits"];
+}
+
+function safePublicUrl(value: unknown) {
+  const url = cleanString(value);
+  if (!url || !/^https?:\/\//i.test(url)) return null;
+  if (/cookie|token|signed_url|api[_-]?key|secret/i.test(url)) return null;
+  return url;
 }
 
 function projectWebsite(row: WebsiteRow): WebsiteProjection | null {

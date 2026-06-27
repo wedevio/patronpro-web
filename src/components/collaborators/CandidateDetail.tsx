@@ -185,6 +185,43 @@ function socialMetric(profile: SocialProfileProjection) {
   return profile.visibleMetric || metrics.join(" + ") || profile.status || "captured";
 }
 
+function SocialBioLinkEvidence({ profile }: { profile: SocialProfileProjection }) {
+  if (!profile.bioLinks.length && !profile.bioLinkAudits.length) return <span className="text-[#68758d]">-</span>;
+  return (
+    <div className="grid gap-2">
+      {profile.bioLinkAudits.map((audit, index) => {
+        const link = audit.resolvedUrl ?? audit.rawUrl;
+        return (
+          <div key={`${link ?? profile.url}-${index}`} className="rounded-xl bg-[#f8fafc] p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {audit.destinationType ? <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{humanizeKey(audit.destinationType)}</span> : null}
+              {audit.relationshipSignal ? <span className="rounded-full bg-[#fff7ea] px-2 py-1 text-xs font-semibold text-[#9b5200]">{humanizeKey(audit.relationshipSignal)}</span> : null}
+            </div>
+            {audit.destinationTitle || audit.destinationOwner ? (
+              <p className="mt-2 text-sm font-semibold text-[#182235]">
+                {[audit.destinationTitle, audit.destinationOwner].filter(Boolean).join(" / ")}
+              </p>
+            ) : null}
+            {audit.analysisNote ? <p className="mt-1 text-xs leading-5 text-[#526078]">{audit.analysisNote}</p> : null}
+            {link ? (
+              <a className="mt-2 block break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={link} target="_blank" rel="noreferrer">
+                {link}
+              </a>
+            ) : null}
+          </div>
+        );
+      })}
+      {!profile.bioLinkAudits.length
+        ? profile.bioLinks.map((link) => (
+            <a key={link} className="break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={link} target="_blank" rel="noreferrer">
+              {link}
+            </a>
+          ))
+        : null}
+    </div>
+  );
+}
+
 function scoreValue(score?: number | null) {
   if (score === null || score === undefined) return null;
   return (
@@ -1083,6 +1120,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
                 <th className="border-b border-[#dfe5ee] pb-3">Platform</th>
                 <th className="border-b border-[#dfe5ee] pb-3">Profile</th>
                 <th className="border-b border-[#dfe5ee] pb-3">Metric</th>
+                <th className="border-b border-[#dfe5ee] pb-3">Bio / link-out</th>
                 <th className="border-b border-[#dfe5ee] pb-3">Captured</th>
               </tr>
             </thead>
@@ -1102,6 +1140,9 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
                         {profile.verificationStatus}
                       </span>
                     ) : null}
+                  </td>
+                  <td className="py-3">
+                    <SocialBioLinkEvidence profile={profile} />
                   </td>
                   <td className="py-3">{profile.capturedAt}</td>
                 </tr>

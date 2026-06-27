@@ -11,6 +11,19 @@ export type SocialProfileProjection = {
   subscribers?: number | null;
   likes?: number | null;
   capturedAt?: string | null;
+  bioLinks: string[];
+  bioLinkAudits: SocialProfileBioLinkAuditProjection[];
+};
+
+export type SocialProfileBioLinkAuditProjection = {
+  rawUrl?: string | null;
+  resolvedUrl?: string | null;
+  destinationType?: string | null;
+  destinationOwner?: string | null;
+  destinationTitle?: string | null;
+  relationshipSignal?: string | null;
+  analysisNote?: string | null;
+  capturedAt?: string | null;
 };
 
 export type WebsiteProjection = {
