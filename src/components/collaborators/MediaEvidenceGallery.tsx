@@ -231,7 +231,8 @@ function Lightbox({
             height={image.detailHeight ?? 1200}
             alt={`${image.label} for ${image.mediaTitle}`}
             unoptimized
-            className={`h-auto w-auto max-h-full max-w-full rounded-xl object-contain transition-opacity duration-150 ease-out ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+            loading="eager"
+            className={`max-h-full max-w-full rounded-xl object-contain transition-opacity duration-150 ease-out ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
             style={{
               opacity: imageVisible ? 1 : 0,
               transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
