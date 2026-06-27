@@ -4,6 +4,7 @@ import { Suspense, useActionState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { loginAction } from "@/app/actions/auth";
+import { safeLoginNextPath } from "@/lib/auth/login-redirects";
 
 // ─── Inner form ───────────────────────────────────────────────────────────────
 
@@ -11,7 +12,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, action, pending] = useActionState(loginAction, null);
-  const nextPath = safeNextPath(searchParams.get("next"));
+  const nextPath = safeLoginNextPath(searchParams.get("next"));
 
   // Redirect client-side on success (avoids redirect() throw from Server Action)
   useEffect(() => {
@@ -74,12 +75,6 @@ function LoginForm() {
   );
 }
 
-function safeNextPath(value: string | null) {
-  if (!value || value.startsWith("//")) return "/panel";
-  if (value.startsWith("/panel") || value.startsWith("/collaborators")) return value;
-  return "/panel";
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
@@ -100,8 +95,8 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl px-8 py-10">
-          <h1 className="text-[20px] font-bold text-[#1E2C46] mb-1">Panel de administración</h1>
-          <p className="text-slate-400 text-[13px] mb-8">Ingresá con tus credenciales para continuar.</p>
+          <h1 className="text-[20px] font-bold text-[#1E2C46] mb-1">Collaborator OS</h1>
+          <p className="text-slate-400 text-[13px] mb-8">Ingresá para revisar colaboradores.</p>
 
           <Suspense fallback={<div className="h-40" />}>
             <LoginForm />

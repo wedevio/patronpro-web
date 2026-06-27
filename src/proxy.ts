@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPpSession } from "@/lib/auth/session";
+import {
+  DEFAULT_PANEL_LAB_LOGIN_URL,
+  buildPanelLabLoginRedirect,
+  isCollaboratorNextPath,
+  isPanelPath,
+} from "@/lib/auth/login-redirects";
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtectedPage = pathname.startsWith("/panel") || pathname.startsWith("/collaborators");
+  if (isPanelPath(pathname)) {
+    return NextResponse.redirect(
+      buildPanelLabLoginRedirect(
+        req.url,
+        process.env.PATRONPRO_PANEL_LAB_LOGIN_URL ?? DEFAULT_PANEL_LAB_LOGIN_URL
+      )
+    );
+  }
+
+  const isProtectedPage = isCollaboratorNextPath(pathname);
   const isProtectedApi = pathname.startsWith("/api/collaborators");
 
   if (!isProtectedPage && !isProtectedApi) return NextResponse.next();
@@ -33,17 +48,10 @@ function unauthorizedResponse(req: NextRequest, isApi: boolean) {
 
   const loginUrl = new URL("/login", req.url);
   const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-  if (isSafeNextPath(nextPath)) {
+  if (isCollaboratorNextPath(nextPath)) {
     loginUrl.searchParams.set("next", nextPath);
   }
   return NextResponse.redirect(loginUrl);
-}
-
-function isSafeNextPath(value: string) {
-  return (
-    value.startsWith("/panel") ||
-    value.startsWith("/collaborators")
-  ) && !value.startsWith("//");
 }
 
 export const config = {
