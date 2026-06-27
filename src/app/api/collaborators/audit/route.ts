@@ -182,6 +182,7 @@ media_owner_provenance AS (
   ) evidence_workspace
   WHERE coalesce(mi.source_type, '') NOT IN ('misattributed_media', 'superseded_media')
     AND coalesce(ma.analysis_status, '') IN ('ok', 'analysis_backed', 'metadata_reviewed')
+    AND coalesce(ma.raw_public_payload->>'owner_match_status', mi.raw_public_payload->>'owner_match_status', '') <> 'confirmed'
     AND (
       coalesce(ma.raw_public_payload->>'owner_match_status', mi.raw_public_payload->>'owner_match_status', '') IN (
         'mismatch',
@@ -642,11 +643,19 @@ function hasMediaUnavailableReceipt(row: AuditRow) {
   const clearanceRuns = readArray(row.clearance_runs);
   return (
     tasks.some(
-      (task) =>
-        task.task_type === "media_refresh" &&
-        task.status === "blocked" &&
-        typeof task.blocker_reason === "string" &&
-        task.blocker_reason.toLowerCase().includes("no official owned public")
+      (task) => {
+        if (task.task_type !== "media_refresh" || task.status !== "blocked" || typeof task.blocker_reason !== "string") {
+          return false;
+        }
+        const reason = task.blocker_reason.toLowerCase();
+        return (
+          reason.includes("no official owned public") ||
+          reason.includes("download route") ||
+          reason.includes("media route") ||
+          reason.includes("visual capture") ||
+          reason.includes("metadata-only")
+        );
+      }
     ) ||
     clearanceRuns.some(
       (run) =>
@@ -771,7 +780,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
     );
   }
 
-  if (mediaMissingVisualPaths > 0) {
+  if (mediaMissingVisualPaths > 0 && !mediaUnavailable) {
     addAction(
       actions,
       "capture_media_visual_paths",
