@@ -40,6 +40,7 @@ type AuditRow = {
   comment_evidence_count: number | string | null;
   website_count: number | string | null;
   owned_website_count: number | string | null;
+  no_owned_website_receipt_count: number | string | null;
   website_screenshot_count: number | string | null;
   website_analyzed_count: number | string | null;
   contact_intelligence_count: number | string | null;
@@ -416,6 +417,18 @@ website_detail AS (
         )
     ) AS owned_website_count,
     count(*) FILTER (
+      WHERE coalesce(crawl_status, '') IN (
+          'no_official_website_found',
+          'no_official_website_found_social_only',
+          'no_owned_website_found',
+          'not_run_no_verified_website'
+        )
+        OR coalesce(raw_public_payload #>> '{website_analysis,classification_reason}', '') IN (
+          'social_only_no_owned_site_verified',
+          'no_owned_website_found'
+        )
+    ) AS no_owned_website_receipt_count,
+    count(*) FILTER (
       WHERE lower(coalesce(url, '')) !~ '^https?://(www[.])?(facebook|instagram|tiktok|youtube|youtu[.]be|linkedin|x|twitter|pinterest)[.]'
         AND (
           coalesce(crawl_status, '') IN ('ok', 'analyzed', 'captured', 'complete', 'rendered_website_crawl_complete')
@@ -550,6 +563,7 @@ SELECT
   coalesce(cd.comment_evidence_count, 0)::integer AS comment_evidence_count,
   b.website_count,
   coalesce(wd.owned_website_count, 0)::integer AS owned_website_count,
+  coalesce(wd.no_owned_website_receipt_count, 0)::integer AS no_owned_website_receipt_count,
   cardinality(coalesce(wsp.website_screenshot_paths, ARRAY[]::text[]))::integer AS website_screenshot_count,
   coalesce(wd.website_analyzed_count, 0)::integer AS website_analyzed_count,
   b.contact_intelligence_count,
@@ -740,6 +754,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   const metricRequiredSocials = readNumber(row.metric_required_social_count);
   const websites = readNumber(row.website_count);
   const ownedWebsites = readNumber(row.owned_website_count);
+  const noOwnedWebsiteReceipts = readNumber(row.no_owned_website_receipt_count);
   const websiteAnalyzed = readNumber(row.website_analyzed_count);
   const websiteScreenshots = readNumber(row.website_screenshot_count);
   const decisionMakers = readNumber(row.decision_maker_count);
@@ -866,7 +881,7 @@ function buildActionItems(row: AuditRow, strict: boolean) {
   if (row.source_lane === "schools") {
     if (websites === 0) {
       addAction(actions, "run_deep_website_review", "Run website review", "P0", "No website crawl/review row is registered.");
-    } else if (ownedWebsites === 0 && !rejectedOrBlocked) {
+    } else if (ownedWebsites === 0 && noOwnedWebsiteReceipts === 0 && !rejectedOrBlocked) {
       addAction(
         actions,
         "find_owned_website_or_close_no_website",
@@ -1045,6 +1060,7 @@ export async function GET(request: Request): Promise<Response> {
             commentEvidence: readNumber(row.comment_evidence_count),
             websites: readNumber(row.website_count),
             ownedWebsites: readNumber(row.owned_website_count),
+            noOwnedWebsiteReceipts: readNumber(row.no_owned_website_receipt_count),
             websiteAnalyzed: readNumber(row.website_analyzed_count),
             websiteScreenshots: readNumber(row.website_screenshot_count),
             contactIntelligence: readNumber(row.contact_intelligence_count),

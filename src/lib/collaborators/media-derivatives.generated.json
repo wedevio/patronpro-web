@@ -11931,6 +11931,177 @@
       }
     }
   },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/01-www-clbcenter-com.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 41390,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/01-www-clbcenter-com-7a23edbfd445/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 11546,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/01-www-clbcenter-com-7a23edbfd445/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/02-www-clbcenter-com-marketing.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10206,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/02-www-clbcenter-com-marketing-a0bc2c89b171/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2916,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/02-www-clbcenter-com-marketing-a0bc2c89b171/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/03-www-clbcenter-com-services.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10006,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/03-www-clbcenter-com-services-8e5cdd8f9f8a/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2870,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/03-www-clbcenter-com-services-8e5cdd8f9f8a/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/04-www-clbcenter-com-locations.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10120,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/04-www-clbcenter-com-locations-53035a3df4a7/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2896,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/04-www-clbcenter-com-locations-53035a3df4a7/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/05-www-clbcenter-com-contact-us.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10124,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/05-www-clbcenter-com-contact-us-652d19a1238a/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2896,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/05-www-clbcenter-com-contact-us-652d19a1238a/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/06-www-clbcenter-com-seminars.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10068,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/06-www-clbcenter-com-seminars-345ebfc2f58c/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2884,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/06-www-clbcenter-com-seminars-345ebfc2f58c/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/07-www-clbcenter-com-contractor-preparation-courses.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10916,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/07-www-clbcenter-com-contractor-preparation-courses-bf8b6b961217/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 3114,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/07-www-clbcenter-com-contractor-preparation-courses-bf8b6b961217/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/08-www-clbcenter-com-business-registration-services.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10970,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/08-www-clbcenter-com-business-registration-services-495e5802d302/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 3082,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/08-www-clbcenter-com-business-registration-services-495e5802d302/thumb.webp",
+        "width": 720
+      }
+    }
+  },
+  "media/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/09-www-clbcenter-com-extra-classes.png": {
+    "kind": "text_screenshot",
+    "sourceHeight": 1400,
+    "sourceWidth": 1440,
+    "variants": {
+      "detail": {
+        "byteSize": 10200,
+        "height": 1400,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/09-www-clbcenter-com-extra-classes-d98fbacba422/detail.webp",
+        "width": 1440
+      },
+      "thumb": {
+        "byteSize": 2920,
+        "height": 700,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/schools/sch-0019-avis-contractors-license-school/derived/website-deep-crawl/20260626-clbcenter-successor-certfixed/screenshots/09-www-clbcenter-com-extra-classes-d98fbacba422/thumb.webp",
+        "width": 720
+      }
+    }
+  },
   "media/schools/sch-0021-contractors-license-exam-center-inc/derived/website-deep-crawl/20260625-bestcontractorschool-v2/screenshots/01-bestcontractorschool-com.png": {
     "kind": "text_screenshot",
     "sourceHeight": 4463,
