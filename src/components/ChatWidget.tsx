@@ -3,6 +3,8 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 
+const PATRONPRO_LIVE_CHAT_WIDGET_ID = "6a363b805dcabc40b599a028";
+
 export default function ChatWidget() {
   const pathname = usePathname();
   if (pathname.startsWith("/panel") || pathname.startsWith("/ghl") || pathname.startsWith("/onboarding")) return null;
@@ -10,7 +12,7 @@ export default function ChatWidget() {
     <Script
       src="https://widgets.leadconnectorhq.com/loader.js"
       data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-      data-widget-id="69eba589fa2b28ffe2cf48fa"
+      data-widget-id={PATRONPRO_LIVE_CHAT_WIDGET_ID}
       strategy="lazyOnload"
     />
   );
