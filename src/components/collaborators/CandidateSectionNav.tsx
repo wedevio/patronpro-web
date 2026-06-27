@@ -40,7 +40,7 @@ export function CandidateSectionNav({
       >
         <a
           href="#overview"
-          className={`block bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
+          className={`block overflow-hidden bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
             stuck ? "max-h-16 py-2" : "max-h-0 py-0"
           }`}
           aria-hidden={!stuck}

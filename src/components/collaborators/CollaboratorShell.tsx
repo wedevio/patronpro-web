@@ -39,7 +39,7 @@ export function CollaboratorShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-[#f5f7fb] text-[#182235]">
       <aside className="hidden lg:block">
-        <details className="fixed left-3 top-24 z-40 w-14 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white shadow-lg transition-[width] open:w-72">
+        <details className="fixed -left-2 top-24 z-40 w-14 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white shadow-lg transition-[width] open:w-72">
           <summary className="flex h-14 cursor-pointer list-none items-center justify-center bg-[#1E2C46] text-sm font-semibold text-white outline-none [&::-webkit-details-marker]:hidden">
             OS
           </summary>
