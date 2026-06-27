@@ -19,6 +19,16 @@ type ClearanceResponse = {
     scope: string;
     scopeLevel: string;
     maxRecords: number;
+    requestedScope?: {
+      dateRangePreset: string;
+      dateStart?: string | null;
+      dateEnd?: string | null;
+      intentPreset: string;
+      customQuery?: string | null;
+      maxRecords: number;
+      paidRouteEnabled: boolean;
+      outreachEnabled: boolean;
+    };
     safetyWarnings?: string[];
   };
   job?: {
@@ -35,7 +45,7 @@ type ClearanceResponse = {
 };
 
 function platformScope(platform: string) {
-  return platform === "youtube" ? "subtitle_smoke" : "metadata_smoke";
+  return platform === "youtube" ? "metadata_smoke" : "metadata_smoke";
 }
 
 function platformCap(platform: string) {
@@ -52,6 +62,12 @@ export function CommercialClearanceButton({
   const options = useMemo(() => profiles.filter((profile) => ["youtube", "tiktok"].includes(profile.platform)), [profiles]);
   const [selected, setSelected] = useState(options[0]?.url ?? "");
   const selectedProfile = options.find((profile) => profile.url === selected) ?? options[0] ?? null;
+  const cap = selectedProfile ? platformCap(selectedProfile.platform) : 20;
+  const [maxRecords, setMaxRecords] = useState(20);
+  const effectiveMaxRecords = Math.min(Math.max(1, Number.isFinite(maxRecords) ? Math.floor(maxRecords) : cap), cap);
+  const [dateRangePreset, setDateRangePreset] = useState("all_time");
+  const [intentPreset, setIntentPreset] = useState("commercial_signals");
+  const [customQuery, setCustomQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [response, setResponse] = useState<ClearanceResponse | null>(null);
 
@@ -70,7 +86,10 @@ export function CommercialClearanceButton({
           platform: selectedProfile.platform,
           sourceUrl: selectedProfile.url,
           scope: platformScope(selectedProfile.platform),
-          maxRecords: platformCap(selectedProfile.platform),
+          maxRecords: effectiveMaxRecords,
+          dateRangePreset,
+          intentPreset,
+          customQuery: intentPreset === "custom" ? customQuery : undefined,
           apply,
         }),
       });
@@ -126,6 +145,59 @@ export function CommercialClearanceButton({
         ))}
       </select>
 
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+          Items
+          <input
+            className="mt-2 w-full rounded-xl border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-normal tracking-normal text-[#182235]"
+            type="number"
+            min={1}
+            max={cap}
+            value={effectiveMaxRecords}
+            onChange={(event) => setMaxRecords(Number(event.target.value))}
+          />
+        </label>
+        <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+          Date range
+          <select
+            className="mt-2 w-full rounded-xl border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-normal tracking-normal text-[#182235]"
+            value={dateRangePreset}
+            onChange={(event) => setDateRangePreset(event.target.value)}
+          >
+            <option value="all_time">All time</option>
+            <option value="last_30_days">Last 30 days</option>
+            <option value="last_90_days">Last 90 days</option>
+            <option value="current_year">Current year</option>
+          </select>
+        </label>
+        <label className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+          Intent
+          <select
+            className="mt-2 w-full rounded-xl border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-normal tracking-normal text-[#182235]"
+            value={intentPreset}
+            onChange={(event) => setIntentPreset(event.target.value)}
+          >
+            <option value="commercial_signals">Commercial signals</option>
+            <option value="crm_software">CRM/software</option>
+            <option value="sponsor_affiliate">Sponsor/affiliate</option>
+            <option value="product_endorsement">Product endorsements</option>
+            <option value="events_courses">Events/classes</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+      </div>
+      {intentPreset === "custom" ? (
+        <label className="mt-3 block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+          Custom query
+          <input
+            className="mt-2 w-full rounded-xl border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-normal tracking-normal text-[#182235]"
+            maxLength={180}
+            value={customQuery}
+            onChange={(event) => setCustomQuery(event.target.value)}
+          />
+        </label>
+      ) : null}
+
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
@@ -161,6 +233,12 @@ export function CommercialClearanceButton({
           <p>
             {response.applied ? "Queued" : "Preview"}: {response.preview.platform} {response.preview.scopeLevel} check, up to {response.preview.maxRecords} public items.
           </p>
+          {response.preview.requestedScope ? (
+            <p className="text-xs text-[#68758d]">
+              {response.preview.requestedScope.dateRangePreset.replaceAll("_", " ")} · {response.preview.requestedScope.intentPreset.replaceAll("_", " ")}
+              {response.preview.requestedScope.customQuery ? ` · ${response.preview.requestedScope.customQuery}` : ""}
+            </p>
+          ) : null}
           <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={response.preview.canonicalSourceUrl} target="_blank" rel="noreferrer">
             {response.preview.canonicalSourceUrl}
           </a>

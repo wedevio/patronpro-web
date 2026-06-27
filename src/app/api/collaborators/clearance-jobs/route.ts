@@ -1,13 +1,27 @@
-import { createHash, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
 import { getCollaboratorPool, queryRows } from "@/lib/collaborators/db";
 import { requirePpSession } from "@/lib/auth/require-session";
+import {
+  ADAPTER_VERSION,
+  type ClearanceJobControls,
+  ClearanceControlError,
+  type ClearancePlatform,
+  adapterFor,
+  canonicalizeUrl,
+  clearanceRunId,
+  idempotentControls,
+  matchKey,
+  parseClearanceJobControls,
+  readPlatform,
+  readScope,
+  readString,
+  stableJsonHash,
+} from "@/lib/collaborators/clearance-job-controls";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-type Platform = "youtube" | "tiktok";
 
 type SocialProfileRow = {
   social_profile_id: string;
@@ -22,7 +36,7 @@ type ResearchJobRow = {
   job_id: string;
   status: string;
   candidate_id: string;
-  platform: Platform;
+  platform: ClearancePlatform;
   source_url_canonical: string;
   adapter: string;
   scope: string;
@@ -53,73 +67,6 @@ class ApiError extends Error {
   }
 }
 
-const ADAPTER_VERSION = "commercial-clearance-adapter-v1";
-const PLATFORM_CAPS: Record<Platform, number> = {
-  youtube: 25,
-  tiktok: 20,
-};
-
-function readString(value: unknown) {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed || null;
-}
-
-function readPlatform(value: unknown): Platform {
-  const platform = readString(value)?.toLowerCase();
-  if (platform === "youtube" || platform === "tiktok") return platform;
-  throw new ApiError(400, "platform must be youtube or tiktok for this clearance slice");
-}
-
-function readScope(platform: Platform, value: unknown) {
-  const fallback = platform === "youtube" ? "subtitle_smoke" : "metadata_smoke";
-  const scope = readString(value)?.toLowerCase() ?? fallback;
-  if (platform === "youtube" && ["subtitle_smoke", "smoke"].includes(scope)) return scope;
-  if (platform === "tiktok" && ["metadata_smoke", "smoke"].includes(scope)) return scope;
-  throw new ApiError(400, `unsupported ${platform} clearance scope`);
-}
-
-function adapterFor(platform: Platform, scope: string) {
-  if (platform === "youtube" && ["subtitle_smoke", "smoke"].includes(scope)) return "youtube_subtitles_smoke";
-  if (platform === "tiktok" && ["metadata_smoke", "smoke"].includes(scope)) return "tiktok_public_metadata_smoke";
-  throw new ApiError(400, "unsupported clearance adapter");
-}
-
-function canonicalizeUrl(value: string) {
-  let parsed: URL;
-  try {
-    parsed = new URL(value);
-  } catch {
-    throw new ApiError(400, "sourceUrl must be an absolute URL");
-  }
-  if (!["http:", "https:"].includes(parsed.protocol)) throw new ApiError(400, "sourceUrl must be http(s)");
-  let host = parsed.hostname.toLowerCase();
-  if (host.startsWith("www.")) host = host.slice(4);
-  if (host.startsWith("m.")) host = host.slice(2);
-  const path = parsed.pathname.replace(/\/+/g, "/").replace(/\/+$/, "");
-  return `https://${host}${path}`;
-}
-
-function matchKey(platform: Platform, url: string) {
-  const canonical = canonicalizeUrl(url).toLowerCase();
-  if (platform === "youtube") return canonical.replace(/\/videos$/, "");
-  return canonical;
-}
-
-function stableJsonHash(payload: Record<string, unknown>) {
-  const ordered = Object.keys(payload)
-    .sort()
-    .reduce<Record<string, unknown>>((acc, key) => {
-      acc[key] = payload[key];
-      return acc;
-    }, {});
-  return createHash("sha256").update(JSON.stringify(ordered)).digest("hex");
-}
-
-function clearanceRunId(candidateId: string, platform: Platform, adapter: string, canonicalUrl: string, scope: string, maxRecords: number) {
-  return `clear_${candidateId.toLowerCase()}_${platform}_${stableJsonHash({ adapter, candidateId, canonicalUrl, maxRecords, platform, scope }).slice(0, 16)}`;
-}
-
 function sanitizeJob(row: ResearchJobRow) {
   return {
     jobId: row.job_id,
@@ -137,7 +84,7 @@ function sanitizeJob(row: ResearchJobRow) {
   };
 }
 
-async function loadVerifiedSource(candidateId: string, platform: Platform, requestedUrl: string | null) {
+async function loadVerifiedSource(candidateId: string, platform: ClearancePlatform, requestedUrl: string | null) {
   const profiles = await queryRows<SocialProfileRow>(
     `SELECT social_profile_id, candidate_id, platform, canonical_url, status, verification_status
      FROM patronpro_collab.social_profiles
@@ -170,14 +117,14 @@ function previewPayload({
   sourceUrlRaw,
   sourceUrlCanonical,
   scope,
-  maxRecords,
+  controls,
 }: {
   candidateId: string;
-  platform: Platform;
+  platform: ClearancePlatform;
   sourceUrlRaw: string;
   sourceUrlCanonical: string;
   scope: string;
-  maxRecords: number;
+  controls: ClearanceJobControls;
 }) {
   const adapter = adapterFor(platform, scope);
   const scopeLevel = "smoke";
@@ -186,11 +133,11 @@ function previewPayload({
     adapter_version: ADAPTER_VERSION,
     candidate_id: candidateId,
     canonical_source_url: sourceUrlCanonical,
-    max_records: maxRecords,
+    controls: idempotentControls(controls),
     platform,
     scope,
   });
-  const runId = clearanceRunId(candidateId, platform, adapter, sourceUrlCanonical, scope, maxRecords);
+  const runId = clearanceRunId(candidateId, platform, adapter, sourceUrlCanonical, scope, controls);
   return {
     wouldCreateJob: true,
     candidateId,
@@ -201,11 +148,34 @@ function previewPayload({
     adapterVersion: ADAPTER_VERSION,
     scope,
     scopeLevel,
-    maxRecords,
+    maxRecords: controls.maxRecords,
+    requestedScope: {
+      scope,
+      scopeLevel,
+      dateRangePreset: controls.dateRangePreset,
+      dateStart: controls.dateStart,
+      dateEnd: controls.dateEnd,
+      intentPreset: controls.intentPreset,
+      customQuery: controls.customQuery,
+      maxRecords: controls.maxRecords,
+      paidRouteEnabled: controls.paidRouteEnabled,
+      outreachEnabled: controls.outreachEnabled,
+    },
     idempotencyKey,
     clearanceRunId: runId,
-    safetyWarnings: platform === "tiktok" ? ["TikTok smoke checks public metadata only; selected-video transcript review may still be required."] : [],
+    safetyWarnings: [
+      "Preview-only by default. A live job requires apply=true and cannot send outreach.",
+      "Paid scraping routes are disabled for this clearance API.",
+      ...(platform === "tiktok" ? ["TikTok smoke checks public metadata only; selected-video transcript review may still be required."] : []),
+      ...(platform === "youtube" ? ["YouTube uses metadata-first clearance and exact-language subtitle fallback only when needed."] : []),
+    ],
   };
+}
+
+function errorStatus(error: unknown) {
+  if (error instanceof ApiError) return error.status;
+  if (error instanceof ClearanceControlError) return error.status;
+  return 500;
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -227,7 +197,7 @@ export async function GET(request: Request): Promise<Response> {
     );
     return NextResponse.json({ ok: true, job: sanitizeJob(job), events });
   } catch (error) {
-    const status = error instanceof ApiError ? error.status : 500;
+    const status = errorStatus(error);
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Unknown error" }, { status });
   }
 }
@@ -242,9 +212,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!candidateId) throw new ApiError(400, "candidateId is required");
     const platform = readPlatform(body.platform);
     const scope = readScope(platform, body.scope);
-    const requestedMaxRecords = Number(body.maxRecords ?? PLATFORM_CAPS[platform]);
-    const maxRecords = Math.min(Number.isFinite(requestedMaxRecords) && requestedMaxRecords > 0 ? Math.floor(requestedMaxRecords) : PLATFORM_CAPS[platform], PLATFORM_CAPS[platform]);
-    const apply = body.apply === true;
+    const controls = parseClearanceJobControls(body, platform);
     const source = await loadVerifiedSource(candidateId, platform, readString(body.sourceUrl));
     const preview = previewPayload({
       candidateId,
@@ -252,10 +220,10 @@ export async function POST(request: Request): Promise<Response> {
       sourceUrlRaw: source.sourceUrlRaw,
       sourceUrlCanonical: source.sourceUrlCanonical,
       scope,
-      maxRecords,
+      controls,
     });
 
-    if (!apply) {
+    if (!controls.apply) {
       return NextResponse.json({ ok: true, applied: false, preview });
     }
 
@@ -288,6 +256,18 @@ export async function POST(request: Request): Promise<Response> {
         clearance_run_id: preview.clearanceRunId,
         profile_id: source.profile.social_profile_id,
         source_url_raw: source.sourceUrlRaw,
+        controls: preview.requestedScope,
+        date_range: {
+          preset: controls.dateRangePreset,
+          start: controls.dateStart,
+          end: controls.dateEnd,
+        },
+        intent: {
+          preset: controls.intentPreset,
+          custom_query: controls.customQuery,
+        },
+        paid_route_enabled: false,
+        outreach_enabled: false,
       };
       const inserted = await client.query<ResearchJobRow>(
         `INSERT INTO patronpro_collab.research_jobs (
@@ -320,7 +300,7 @@ export async function POST(request: Request): Promise<Response> {
           ADAPTER_VERSION,
           scope,
           preview.scopeLevel,
-          maxRecords,
+          controls.maxRecords,
           JSON.stringify(payload),
           preview.idempotencyKey,
         ]
@@ -329,7 +309,7 @@ export async function POST(request: Request): Promise<Response> {
         `INSERT INTO patronpro_collab.research_job_events (
           job_id, seq, status, phase, attempt, detail_json_redacted
         ) VALUES ($1, 1, 'queued', 'queued', 0, $2::jsonb)`,
-        [jobId, JSON.stringify({ platform, scope, max_records: maxRecords })]
+        [jobId, JSON.stringify({ platform, scope, max_records: controls.maxRecords, controls: preview.requestedScope })]
       );
       await client.query("COMMIT");
       return NextResponse.json({ ok: true, applied: true, reusedExisting: false, preview, job: sanitizeJob(inserted.rows[0]) });
@@ -340,7 +320,7 @@ export async function POST(request: Request): Promise<Response> {
       client.release();
     }
   } catch (error) {
-    const status = error instanceof ApiError ? error.status : 500;
+    const status = errorStatus(error);
     return NextResponse.json({ ok: false, error: error instanceof Error ? error.message : "Unknown error" }, { status });
   }
 }
