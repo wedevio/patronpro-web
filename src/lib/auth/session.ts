@@ -1,15 +1,16 @@
 import { SignJWT, jwtVerify } from "jose";
+import { runtimeEnv } from "@/lib/lab/runtime-env";
 
 const SUPPORT_TTL_SECONDS = 8 * 60 * 60; // 8 hours
 
 function getSupportSecret(): Uint8Array {
-  const secret = process.env.SUPPORT_SESSION_SECRET;
+  const secret = runtimeEnv("SUPPORT_SESSION_SECRET");
   if (!secret) throw new Error("SUPPORT_SESSION_SECRET is not set");
   return new TextEncoder().encode(secret);
 }
 
 function getPanelSecret(): Uint8Array {
-  const secret = process.env.SUPPORT_SESSION_SECRET;
+  const secret = runtimeEnv("SUPPORT_SESSION_SECRET");
   if (!secret) throw new Error("SUPPORT_SESSION_SECRET is not set");
   return new TextEncoder().encode(secret);
 }

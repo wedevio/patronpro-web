@@ -20,9 +20,20 @@
 # production
 /build
 
+# local agent artifacts
+/.beads
+/dev
+/doc
+/mkt
+
+# local / FSN1 lab runtime data
+/.lab
+/public/lab-assets
+
 # misc
 .DS_Store
 *.pem
+.claude/
 
 # debug
 npm-debug.log*

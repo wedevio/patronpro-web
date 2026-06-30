@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { SignJWT, decodeJwt } from "jose";
+import { isPanelLabMode, labPanelCredentials, signLabPanelSession } from "@/lib/lab/panel-lab";
 
 const COOKIE_NAME = "pp-session";
 
@@ -15,6 +16,25 @@ export async function loginAction(
   const password = formData.get("password") as string;
 
   if (!email || !password) return { error: "Completá todos los campos." };
+
+  if (isPanelLabMode()) {
+    const lab = labPanelCredentials();
+    if (email !== lab.email || password !== lab.password) {
+      return { error: "Credenciales incorrectas." };
+    }
+
+    const cookieStore = await cookies();
+    const ppJwt = await signLabPanelSession(email);
+    cookieStore.set(COOKIE_NAME, ppJwt, {
+      httpOnly: true,
+      secure:   true,
+      sameSite: "lax",
+      path:     "/",
+      maxAge:   60 * 60 * 24 * 7,
+    });
+
+    return { success: true };
+  }
 
   // Read env vars at runtime (not module-level) to avoid undefined on Vercel
   const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL;
