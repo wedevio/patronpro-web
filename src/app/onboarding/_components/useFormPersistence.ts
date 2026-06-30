@@ -30,15 +30,15 @@ export function useFormPersistence(
         isSavingRef.current = true;
 
         // No serializar File objects
-        const dataToSave: Partial<OnboardingFormData> = {};
+         const dataToSave: Partial<OnboardingFormData> = {};
 
-        for (const [key, value] of Object.entries(formData)) {
-          // Ignorar File objects
-          if (value instanceof File) {
-            continue;
-          }
-          dataToSave[key as keyof OnboardingFormData] = value;
-        }
+         for (const [key, value] of Object.entries(formData)) {
+           // Ignorar File objects and undefined values
+           if (value instanceof File || value === undefined) {
+             continue;
+           }
+           (dataToSave as Record<string, unknown>)[key] = value;
+         }
 
         const response = await fetch("/api/onboarding/progress", {
           method: "POST",
