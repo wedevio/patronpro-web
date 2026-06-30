@@ -56,8 +56,8 @@ export async function POST(
     const result = await buildOnboardingLink({
       locationId,
       email,
-      phone: payload.phone ?? location.phone,
-      businessName: payload.businessName ?? location.name,
+      phone: (payload.phone || location.phone),
+      businessName: (payload.businessName || location.name),
       firstName: payload.firstName,
     });
 
