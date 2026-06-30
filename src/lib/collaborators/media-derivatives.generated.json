@@ -5338,6 +5338,44 @@
       }
     }
   },
+  "media/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/contact-sheets/inf-0037-01-tiktok-dcd3a6b99c.contact-sheet.jpg": {
+    "kind": "contact_sheet",
+    "sourceHeight": 1280,
+    "sourceWidth": 1080,
+    "variants": {
+      "detail": {
+        "byteSize": 92600,
+        "height": 1280,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/contact-sheets/inf-0037-01-tiktok-dcd3a6b99c.contact-sheet-6cff868db013/detail.webp",
+        "width": 1080
+      },
+      "thumb": {
+        "byteSize": 37614,
+        "height": 720,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/contact-sheets/inf-0037-01-tiktok-dcd3a6b99c.contact-sheet-6cff868db013/thumb.webp",
+        "width": 608
+      }
+    }
+  },
+  "media/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/frames/inf-0037-01-tiktok-dcd3a6b99c/frame-01.jpg": {
+    "kind": "frame_or_photo",
+    "sourceHeight": 640,
+    "sourceWidth": 360,
+    "variants": {
+      "detail": {
+        "byteSize": 7220,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/frames/inf-0037-01-tiktok-dcd3a6b99c/frame-01-4e1172a3a43e/detail.webp",
+        "width": 360
+      },
+      "thumb": {
+        "byteSize": 6548,
+        "height": 640,
+        "url": "/media/_optimized/getpatronpro-dashboard/v1/influencers/inf-0037-cristian-gutierrez-cslp/derived/m3-media-analysis/20260630-tiktok-commercial-signal-batch-tikwm-run/evidence/frames/inf-0037-01-tiktok-dcd3a6b99c/frame-01-4e1172a3a43e/thumb.webp",
+        "width": 360
+      }
+    }
+  },
   "media/influencers/inf-0037-cristian-gutierrez-wolfofcslp/derived/metadata-thumbnails/20260625-inf0037-tiktok-thumbs/media_inf0037_tiktok_01-cover.jpg": {
     "kind": "frame_or_photo",
     "sourceHeight": 1920,
