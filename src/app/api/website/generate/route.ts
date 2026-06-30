@@ -44,7 +44,6 @@ Custom values disponibles:
 - {{custom_values.company_name}}
 - {{custom_values.company_phone}}
 - {{custom_values.company_address}}
-- {{custom_values.automation_sender_email}}
 - {{custom_values.hours_of_operation}}
 - {{custom_values.dominio_web}}
 - {{custom_values.logo}}
@@ -53,9 +52,6 @@ Custom values disponibles:
 
 Teléfono (siempre clickeable):
 <a href="tel:{{custom_values.company_phone}}">{{custom_values.company_phone}}</a>
-
-Email:
-<a href="mailto:{{custom_values.automation_sender_email}}">{{custom_values.automation_sender_email}}</a>
 
 Formulario — aparece UNA sola vez, en la sección de contacto:
 {{custom_values.landing_form}}
@@ -125,7 +121,7 @@ Estas secciones en este orden — varía el layout interno, no la estructura:
 6. PROCESO: 4 pasos simples (ej: Llamás → Presupuesto gratis → Aprobás → Trabajo listo)
 7. TESTIMONIOS: 3 reseñas realistas con nombre, ciudad y estrellitas ★★★★★
 8. CTA DE URGENCIA: fondo oscuro, teléfono grande y visible, llamado a la acción
-9. CONTACTO: dirección, teléfono, email, horarios + formulario {{custom_values.landing_form}}
+9. CONTACTO: dirección, teléfono, horarios + formulario {{custom_values.landing_form}}
 10. FOOTER: logo cuadrado del cliente, descripción breve, links {{custom_values.dominio_web}}/privacy-policy y {{custom_values.dominio_web}}/terms-conditions, teléfono
 
 CRÍTICO — privacy y terms: SIEMPRE usa estos links exactos, sin hardcodear dominios:
