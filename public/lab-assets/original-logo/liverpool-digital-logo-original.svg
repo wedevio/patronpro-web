@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="320" viewBox="0 0 960 320" role="img" aria-label="Liverpool Digital Lab">
+  <rect width="960" height="320" rx="44" fill="#1E2C46"/>
+  <circle cx="146" cy="160" r="72" fill="#F67D0A"/>
+  <path d="M111 168h70c20 0 36-16 36-36v-14h-54v28h-52z" fill="#ffffff"/>
+  <path d="M105 206h112v24H105z" fill="#ffffff" opacity=".88"/>
+  <text x="260" y="148" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700" fill="#ffffff">Liverpool</text>
+  <text x="262" y="210" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" fill="#F67D0A">Digital Lab</text>
+</svg>

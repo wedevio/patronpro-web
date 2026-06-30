@@ -38,6 +38,7 @@ import { getAllGHLLocations } from "@/lib/panel/ghl-enrich";
 import { ghlFetch } from "@/lib/ghl/client";
 import { getPatronProLocationId } from "@/lib/ghl/contacts";
 import { buildOnboardingLink } from "@/lib/onboarding/invite";
+import { saveOnboardingLink } from "@/lib/panel/store";
 import {
   ONBOARDING_EMAIL_SUBJECT,
   ONBOARDING_EMAIL_HTML,
@@ -182,6 +183,15 @@ export async function POST(request: Request): Promise<Response> {
 
     const onboardingLink = onboardingInvite.onboardingLink;
     const ppContactId = onboardingInvite.patronProContactId;
+
+    try {
+      await saveOnboardingLink(clientLocationId, onboardingInvite.onboardingLink, onboardingInvite.expiresAt);
+    } catch (err) {
+      console.error("[send-onboarding] link metadata persistence failed", {
+        locationId: clientLocationId,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     console.info("[send-onboarding] link built", { locationId: clientLocationId, hasSignature: true });
 
