@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { finishOnboardingClientFlow } from "@/lib/onboarding/booking-navigation";
 import type { OnboardingSubmitResponse } from "@/lib/onboarding/booking-redirect";
 import type { OnboardingFormData, HoursOfOperation } from "@/lib/onboarding/types";
@@ -18,6 +18,11 @@ import Step3Brand from "./Step3Brand";
 import Step4Hours from "./Step4Hours";
 import StepReview from "./StepReview";
 import SuccessScreen from "./SuccessScreen";
+import {
+  useFormPersistence,
+  loadPersistedFormData,
+  clearPersistedFormData,
+} from "./useFormPersistence";
 
 interface OnboardingFormProps {
   locationId: string;
@@ -36,6 +41,7 @@ export default function OnboardingForm({
   expiresAt,
   onboardingSig,
 }: OnboardingFormProps) {
+  // Intentar cargar datos persistidos
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<OnboardingFormData>>({
     country: "US",
@@ -55,6 +61,21 @@ export default function OnboardingForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Cargar datos persistidos al montar el componente
+  useEffect(() => {
+    const loadData = async () => {
+      const persisted = await loadPersistedFormData(locationId, contactId);
+      if (persisted) {
+        setFormData((prev) => ({ ...prev, ...persisted.formData }));
+        setCurrentStep(persisted.step);
+      }
+    };
+    loadData();
+  }, [locationId, contactId]);
+
+  // Persistir datos en localStorage cada vez que cambian
+  useFormPersistence(locationId, contactId, currentStep, formData);
 
   function updateField(field: keyof OnboardingFormData, value: FieldValue) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -168,14 +189,18 @@ export default function OnboardingForm({
       }
 
        const flowResult = finishOnboardingClientFlow(json, (url) =>
-         window.location.assign(url)
-       );
+          window.location.assign(url)
+        );
 
-       if (flowResult === "redirected") {
-         return;
-       }
+        if (flowResult === "redirected") {
+          // Limpiar datos persistidos después de completar exitosamente
+          clearPersistedFormData(locationId, contactId);
+          return;
+        }
 
-      setSuccess(true);
+       setSuccess(true);
+       // Limpiar datos persistidos cuando se muestra la pantalla de éxito
+       clearPersistedFormData(locationId, contactId);
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : "Error desconocido"

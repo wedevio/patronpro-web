@@ -32,7 +32,7 @@ export async function POST(
       firstName?: string;
     };
 
-    const email = (payload.email ?? location.email ?? "").toLowerCase().trim();
+    const email = ((payload.email || location.email) ?? "").toLowerCase().trim();
     if (!email) {
       return NextResponse.json(
         { error: "La cuenta no tiene email disponible, así que no se puede generar el link." },
@@ -43,8 +43,8 @@ export async function POST(
     const result = await buildOnboardingLink({
       locationId,
       email,
-      phone: payload.phone ?? location.phone,
-      businessName: payload.businessName ?? location.name,
+      phone: (payload.phone || location.phone),
+      businessName: (payload.businessName || location.name),
       firstName: payload.firstName,
     });
 
