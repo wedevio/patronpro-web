@@ -11,6 +11,7 @@ import type {
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
 import { CandidateSectionNav } from "./CandidateSectionNav";
+import { CommercialManualReviewTasks } from "./CommercialManualReviewTasks";
 import { GhlContactButton } from "./GhlContactButton";
 import { EvidenceImageGrid, MediaEvidenceGallery, type GalleryEvidenceImage } from "./MediaEvidenceGallery";
 
@@ -1146,6 +1147,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
     { id: "reviewed-media", title: "Media evidence", value: candidate.media },
     { id: "source-index", title: "Sources", value: sourceIndexValue },
     { id: "roadmap-strategy", title: "Roadmap", value: roadmapValue },
+    { id: "manual-commercial-review", title: "Manual review", value: candidate.manualReviewTasks },
   ];
   const visibleSectionNavItems = sectionNavItems.filter((item) => hasMeaningfulContent(item.value));
   return (
@@ -1264,6 +1266,10 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
 
       <Section id="roadmap-strategy" title="Roadmap / Next Steps" value={roadmapValue}>
         <CandidateRoadmap candidate={candidate} />
+      </Section>
+
+      <Section id="manual-commercial-review" title="Manual Commercial Review" value={candidate.manualReviewTasks}>
+        <CommercialManualReviewTasks tasks={candidate.manualReviewTasks} />
       </Section>
     </div>
   );

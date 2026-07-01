@@ -198,6 +198,37 @@ SELECT
   COALESCE((
     SELECT jsonb_agg(
       jsonb_build_object(
+        'task_id', t.candidate_task_id,
+        'task_type', t.task_type,
+        'label', t.public_label,
+        'summary', t.stakeholder_summary,
+        'status', t.status,
+        'priority', t.priority,
+        'blocker_reason', t.blocker_reason,
+        'follow_up_at', t.follow_up_at,
+        'completed_at', t.completed_at,
+        'crm_sync_eligible', t.crm_sync_eligible,
+        'manual_review_required', t.manual_review_required,
+        'manual_reviewed', t.manual_reviewed,
+        'manual_review_verdict', t.manual_review_verdict,
+        'manual_review_notes', t.manual_review_notes,
+        'manual_reviewed_at', t.manual_reviewed_at,
+        'manual_reviewed_by', t.manual_reviewed_by,
+        'updated_at', t.updated_at
+      )
+      ORDER BY
+        CASE t.priority WHEN 'P0' THEN 1 WHEN 'P1' THEN 2 WHEN 'P2' THEN 3 ELSE 4 END,
+        t.updated_at DESC
+    )
+    FROM patronpro_collab.candidate_tasks t
+    WHERE t.candidate_id = c.candidate_id
+      AND t.task_type = 'manual_review'
+      AND t.manual_review_required
+      AND t.visibility = 'public_dashboard'
+  ), '[]'::jsonb) AS manual_review_tasks,
+  COALESCE((
+    SELECT jsonb_agg(
+      jsonb_build_object(
         'clearance_run_id', run.clearance_run_id,
         'platform', run.platform,
         'source_url', run.source_url,

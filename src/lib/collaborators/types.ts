@@ -203,6 +203,13 @@ export type CandidateTaskProjection = {
   followUpAt?: string | null;
   completedAt?: string | null;
   crmSyncEligible: boolean;
+  manualReviewRequired?: boolean;
+  manualReviewed?: boolean;
+  manualReviewVerdict?: "not_reviewed" | "no_conflict" | "conflict" | "needs_follow_up";
+  manualReviewNotes?: string | null;
+  manualReviewedAt?: string | null;
+  manualReviewedBy?: string | null;
+  updatedAt?: string | null;
 };
 
 export type ClearanceRunProjection = {
@@ -255,6 +262,7 @@ export type CollaboratorProjection = {
   externalCollaborators: ExternalCollaboratorProjection[];
   actionabilityAnswers: ActionabilityAnswerProjection[];
   tasks: CandidateTaskProjection[];
+  manualReviewTasks: CandidateTaskProjection[];
   clearanceRuns: ClearanceRunProjection[];
   missingFields: string[];
   nextAction?: string | null;

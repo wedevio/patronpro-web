@@ -48,6 +48,7 @@ export type RawCandidateRow = {
   external_collaborators: ExternalCollaboratorRow[] | null;
   actionability_answers: Record<string, ActionabilityAnswerRow> | null;
   public_tasks: CandidateTaskRow[] | null;
+  manual_review_tasks: CandidateTaskRow[] | null;
   clearance_runs: ClearanceRunRow[] | null;
   missing_fields: string[] | null;
   suggested_next_action: string | null;
@@ -241,6 +242,13 @@ type CandidateTaskRow = {
   follow_up_at?: string | null;
   completed_at?: string | null;
   crm_sync_eligible?: boolean | null;
+  manual_review_required?: boolean | null;
+  manual_reviewed?: boolean | null;
+  manual_review_verdict?: string | null;
+  manual_review_notes?: string | null;
+  manual_reviewed_at?: string | null;
+  manual_reviewed_by?: string | null;
+  updated_at?: string | null;
 };
 
 type ClearanceRunRow = {
@@ -783,6 +791,11 @@ function projectCandidateTask(row: CandidateTaskRow): CandidateTaskProjection | 
   const id = cleanString(row.task_id);
   const label = cleanString(row.label);
   if (!id || !label) return null;
+  const rawVerdict = cleanString(row.manual_review_verdict);
+  const manualReviewVerdict =
+    rawVerdict === "no_conflict" || rawVerdict === "conflict" || rawVerdict === "needs_follow_up" || rawVerdict === "not_reviewed"
+      ? rawVerdict
+      : "not_reviewed";
   return {
     id,
     type: cleanString(row.task_type),
@@ -794,6 +807,13 @@ function projectCandidateTask(row: CandidateTaskRow): CandidateTaskProjection | 
     followUpAt: cleanString(row.follow_up_at),
     completedAt: cleanString(row.completed_at),
     crmSyncEligible: Boolean(row.crm_sync_eligible),
+    manualReviewRequired: Boolean(row.manual_review_required),
+    manualReviewed: Boolean(row.manual_reviewed),
+    manualReviewVerdict,
+    manualReviewNotes: cleanString(row.manual_review_notes),
+    manualReviewedAt: cleanString(row.manual_reviewed_at),
+    manualReviewedBy: cleanString(row.manual_reviewed_by),
+    updatedAt: cleanString(row.updated_at),
   };
 }
 
@@ -972,6 +992,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     externalCollaborators: (row.external_collaborators ?? []).map(projectExternalCollaborator).filter(Boolean) as ExternalCollaboratorProjection[],
     actionabilityAnswers: projectActionabilityAnswers(row.actionability_answers),
     tasks: (row.public_tasks ?? []).map(projectCandidateTask).filter(Boolean) as CandidateTaskProjection[],
+    manualReviewTasks: (row.manual_review_tasks ?? []).map(projectCandidateTask).filter(Boolean) as CandidateTaskProjection[],
     clearanceRuns: (row.clearance_runs ?? []).map(projectClearanceRun).filter(Boolean) as ClearanceRunProjection[],
     missingFields: cleanList(row.missing_fields),
     nextAction: cleanString(row.suggested_next_action),
