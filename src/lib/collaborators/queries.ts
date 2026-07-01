@@ -2,7 +2,7 @@ import "server-only";
 
 import { queryRows } from "./db";
 import { projectCandidate, projectSummary, type RawCandidateRow } from "./projections";
-import type { CollaboratorLane, CollaboratorProjection, DashboardSummary } from "./types";
+import type { CandidateTaskProjection, CollaboratorLane, CollaboratorProjection, DashboardSummary } from "./types";
 
 const candidateSelect = `
 WITH actionability_summary AS (
@@ -319,4 +319,93 @@ LIMIT 40`);
 export async function getCollaborator(lane: CollaboratorLane, id: string): Promise<CollaboratorProjection | null> {
   const rows = await queryRows<RawCandidateRow>(`${candidateSelect} WHERE c.source_lane = $1 AND c.candidate_id = $2 LIMIT 1`, [lane, id]);
   return rows[0] ? projectCandidate(rows[0]) : null;
+}
+
+type TaskQueueRow = {
+  candidate_task_id: string;
+  candidate_id: string;
+  canonical_name: string;
+  source_lane: CollaboratorLane;
+  task_type: string;
+  public_label: string;
+  stakeholder_summary?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  blocker_reason?: string | null;
+  follow_up_at?: string | null;
+  completed_at?: string | null;
+  crm_sync_eligible?: boolean | null;
+  manual_review_required?: boolean | null;
+  manual_reviewed?: boolean | null;
+  manual_review_verdict?: CandidateTaskProjection["manualReviewVerdict"] | null;
+  manual_review_notes?: string | null;
+  manual_reviewed_at?: string | null;
+  manual_reviewed_by?: string | null;
+  updated_at?: string | null;
+};
+
+export async function getCommercialReviewTasks(): Promise<CandidateTaskProjection[]> {
+  const rows = await queryRows<TaskQueueRow>(`
+    SELECT
+      t.candidate_task_id,
+      c.candidate_id,
+      c.canonical_name,
+      c.source_lane,
+      t.task_type,
+      t.public_label,
+      t.stakeholder_summary,
+      t.status,
+      t.priority,
+      t.blocker_reason,
+      t.follow_up_at,
+      t.completed_at,
+      t.crm_sync_eligible,
+      t.manual_review_required,
+      t.manual_reviewed,
+      t.manual_review_verdict,
+      t.manual_review_notes,
+      t.manual_reviewed_at,
+      t.manual_reviewed_by,
+      t.updated_at
+    FROM patronpro_collab.candidate_tasks t
+    JOIN patronpro_collab.candidates c ON c.candidate_id = t.candidate_id
+    WHERE t.visibility = 'public_dashboard'
+      AND t.status IN ('open', 'in_progress', 'blocked')
+      AND t.manual_review_required
+    ORDER BY
+      CASE t.priority WHEN 'P0' THEN 1 WHEN 'P1' THEN 2 WHEN 'P2' THEN 3 ELSE 4 END,
+      CASE t.status WHEN 'open' THEN 1 WHEN 'in_progress' THEN 2 WHEN 'blocked' THEN 3 ELSE 4 END,
+      c.candidate_id,
+      t.updated_at DESC
+  `);
+
+  return rows.map((row) => ({
+    id: row.candidate_task_id,
+    candidateId: row.candidate_id,
+    candidateName: row.canonical_name,
+    candidateLane: row.source_lane,
+    candidateHref: `/collaborators/${row.source_lane}/${row.candidate_id}`,
+    type: row.task_type,
+    label: row.public_label,
+    summary: row.stakeholder_summary,
+    status: row.status,
+    priority: row.priority,
+    blockerReason: row.blocker_reason,
+    followUpAt: row.follow_up_at,
+    completedAt: row.completed_at,
+    crmSyncEligible: Boolean(row.crm_sync_eligible),
+    manualReviewRequired: Boolean(row.manual_review_required),
+    manualReviewed: Boolean(row.manual_reviewed),
+    manualReviewVerdict:
+      row.manual_review_verdict === "no_conflict" ||
+      row.manual_review_verdict === "conflict" ||
+      row.manual_review_verdict === "needs_follow_up" ||
+      row.manual_review_verdict === "not_reviewed"
+        ? row.manual_review_verdict
+        : "not_reviewed",
+    manualReviewNotes: row.manual_review_notes,
+    manualReviewedAt: row.manual_reviewed_at,
+    manualReviewedBy: row.manual_reviewed_by,
+    updatedAt: row.updated_at,
+  }));
 }

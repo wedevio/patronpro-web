@@ -6,6 +6,7 @@ const navItems = [
   ["Influencers", "/collaborators/influencers"],
   ["Communities", "/collaborators/communities"],
   ["Recommendations", "/collaborators/recommendations"],
+  ["Tasks", "/collaborators/tasks"],
   ["Roadmap", "/collaborators/roadmap"],
   ["Sources", "/collaborators/sources"],
 ];

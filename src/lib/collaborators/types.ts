@@ -194,6 +194,10 @@ export type CommercialPartnershipPricingProjection = {
 
 export type CandidateTaskProjection = {
   id: string;
+  candidateId?: string | null;
+  candidateName?: string | null;
+  candidateLane?: CollaboratorLane | null;
+  candidateHref?: string | null;
   type?: string | null;
   label: string;
   summary?: string | null;
