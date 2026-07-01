@@ -88,6 +88,7 @@ const REQUIRED_QUESTION_KEYS = [
   "decision_makers",
   "reliable_contact_routes",
   "commercial_signals_and_offers",
+  "commercial_partnerships_and_pricing",
   "collaboration_angle",
 ];
 

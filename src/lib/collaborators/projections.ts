@@ -7,6 +7,7 @@ import type {
   ContactProjection,
   ContactRouteProjection,
   DashboardSummary,
+  CommercialPartnershipPricingProjection,
   EvidenceImageProjection,
   ExternalCollaboratorProjection,
   ActionabilityAnswerProjection,
@@ -122,6 +123,7 @@ type MediaDerivativeRecord = {
 
 const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
 const MEDIA_ROOT_MARKER = "patron-pro-prospect-media-audit/";
+const PARTNERSHIP_PRICING_KEY = "commercial_partnerships_and_pricing";
 
 function normalizeEvidencePath(sourcePath: string | null): string | null {
   if (!sourcePath) return null;
@@ -356,6 +358,19 @@ function cleanUrlList(values: unknown): string[] {
     urls.push(url);
   }
   return urls;
+}
+
+function cleanPublicSourceUrlList(values: unknown): string[] {
+  return cleanUrlList(values).filter((url) => {
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== "https:") return false;
+      if (/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0)/i.test(parsed.hostname)) return false;
+      return !/(automatic\.picturelle\.com|\/mnt\/|\/home\/|dev\/agents\/|cookie|token|signed_url|api[_-]?key|secret|minimax|hdd|provider)/i.test(url);
+    } catch {
+      return false;
+    }
+  });
 }
 
 function cleanUrlRecord(value: unknown): Record<string, string> {
@@ -670,23 +685,85 @@ function answerJsonFallback(value: unknown) {
   return null;
 }
 
+function cleanPayloadList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const output: string[] = [];
+  for (const item of value) {
+    const text = cleanDashboardText(item);
+    if (!text || seen.has(text)) continue;
+    seen.add(text);
+    output.push(text);
+  }
+  return output.slice(0, 8);
+}
+
+function payloadNumber(value: unknown) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  return numberOrNull(value);
+}
+
+function cleanPartnershipPricingPayload(value: unknown): CommercialPartnershipPricingProjection | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  if (cleanString(record.schema_version) !== "commercial_partnership_pricing_v1") return null;
+
+  const rangeRecord =
+    record.estimated_mention_range_usd && typeof record.estimated_mention_range_usd === "object" && !Array.isArray(record.estimated_mention_range_usd)
+      ? (record.estimated_mention_range_usd as Record<string, unknown>)
+      : null;
+  const estimatedMentionRangeUsd = rangeRecord
+    ? {
+        low: payloadNumber(rangeRecord.low),
+        high: payloadNumber(rangeRecord.high),
+        label: cleanDashboardText(rangeRecord.label),
+        deliverable: cleanDashboardText(rangeRecord.deliverable),
+      }
+    : null;
+
+  const payload: CommercialPartnershipPricingProjection = {
+    schemaVersion: cleanString(record.schema_version),
+    knownPartnersOrBrands: cleanPayloadList(record.known_partners_or_brands),
+    relationshipType: cleanDashboardText(record.relationship_type),
+    commercialExperienceLevel: cleanDashboardText(record.commercial_experience_level),
+    crmOrSoftwareConflictStatus: cleanDashboardText(record.crm_or_software_conflict_status),
+    estimatedMentionRangeUsd,
+    pricingBasis: cleanDashboardText(record.pricing_basis),
+    confidence: cleanDashboardText(record.confidence),
+    reviewNotes: cleanDashboardText(record.review_notes),
+    evidenceUrls: cleanPublicSourceUrlList(record.evidence_urls),
+  };
+
+  return hasMeaningfulContent(payload) ? payload : null;
+}
+
 function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswerRow> | null): ActionabilityAnswerProjection[] {
   if (!answers || typeof answers !== "object") return [];
   return Object.entries(answers)
     .filter(([key]) => key !== "missing_next_step")
-    .map(([key, answer]) => ({
-      key,
-      label: cleanString(answer.label) ?? humanizeQuestionKey(key),
-      shortLabel: cleanString(answer.short_label),
-      group: cleanString(answer.dashboard_card_group),
-      status: cleanString(answer.answer_status),
-      value: cleanDashboardText(answer.answer_value) ?? answerJsonFallback(answer.answer_json),
-      confidence: cleanString(answer.confidence),
-      evidenceSummary: cleanDashboardText(answer.evidence_summary),
-      sourceUrls: cleanUrlList(answer.source_urls),
-      displayOrder: numberOrNull(answer.display_order) ?? 999,
-    }))
-    .filter((answer) => hasMeaningfulContent(answer.value) || hasMeaningfulContent(answer.evidenceSummary) || hasMeaningfulContent(answer.status))
+    .map(([key, answer]) => {
+      const partnershipPricing = key === PARTNERSHIP_PRICING_KEY ? cleanPartnershipPricingPayload(answer.answer_json) : null;
+      return {
+        key,
+        label: cleanString(answer.label) ?? humanizeQuestionKey(key),
+        shortLabel: cleanString(answer.short_label),
+        group: cleanString(answer.dashboard_card_group),
+        status: cleanString(answer.answer_status),
+        value: cleanDashboardText(answer.answer_value) ?? answerJsonFallback(answer.answer_json),
+        confidence: cleanString(answer.confidence),
+        evidenceSummary: cleanDashboardText(answer.evidence_summary),
+        sourceUrls: key === PARTNERSHIP_PRICING_KEY ? cleanPublicSourceUrlList(answer.source_urls) : cleanUrlList(answer.source_urls),
+        displayOrder: numberOrNull(answer.display_order) ?? 999,
+        partnershipPricing,
+      };
+    })
+    .filter(
+      (answer) =>
+        hasMeaningfulContent(answer.value) ||
+        hasMeaningfulContent(answer.evidenceSummary) ||
+        hasMeaningfulContent(answer.status) ||
+        hasMeaningfulContent(answer.partnershipPricing),
+    )
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map((answer) => ({
       key: answer.key,
@@ -698,6 +775,7 @@ function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswer
       confidence: answer.confidence,
       evidenceSummary: answer.evidenceSummary,
       sourceUrls: answer.sourceUrls,
+      partnershipPricing: answer.partnershipPricing,
     }));
 }
 

@@ -171,6 +171,25 @@ export type ActionabilityAnswerProjection = {
   confidence?: string | null;
   evidenceSummary?: string | null;
   sourceUrls: string[];
+  partnershipPricing?: CommercialPartnershipPricingProjection | null;
+};
+
+export type CommercialPartnershipPricingProjection = {
+  schemaVersion?: string | null;
+  knownPartnersOrBrands: string[];
+  relationshipType?: string | null;
+  commercialExperienceLevel?: string | null;
+  crmOrSoftwareConflictStatus?: string | null;
+  estimatedMentionRangeUsd?: {
+    low?: number | null;
+    high?: number | null;
+    label?: string | null;
+    deliverable?: string | null;
+  } | null;
+  pricingBasis?: string | null;
+  confidence?: string | null;
+  reviewNotes?: string | null;
+  evidenceUrls: string[];
 };
 
 export type CandidateTaskProjection = {

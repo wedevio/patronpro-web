@@ -2,6 +2,7 @@ import type {
   ActionabilityAnswerProjection,
   CandidateTaskProjection,
   ClearanceRunProjection,
+  CommercialPartnershipPricingProjection,
   CollaboratorProjection,
   ContactBookProjection,
   ContactRouteProjection,
@@ -837,7 +838,8 @@ function actionabilityCardValue(answer: ActionabilityAnswerProjection) {
   return answer.value ?? answer.evidenceSummary ?? answer.status ?? null;
 }
 
-const HIDDEN_TOP_ACTIONABILITY_KEYS = new Set(["recommended_outreach_path", "missing_next_step"]);
+const PARTNERSHIP_PRICING_KEY = "commercial_partnerships_and_pricing";
+const HIDDEN_TOP_ACTIONABILITY_KEYS = new Set(["recommended_outreach_path", "missing_next_step", PARTNERSHIP_PRICING_KEY]);
 
 function CollaborationCompatibilityCards({ answers }: { answers: ActionabilityAnswerProjection[] }) {
   const visibleAnswers = answers.filter((answer) => !HIDDEN_TOP_ACTIONABILITY_KEYS.has(answer.key));
@@ -866,6 +868,101 @@ function CollaborationCompatibilityCards({ answers }: { answers: ActionabilityAn
         </article>
       ))}
     </div>
+  );
+}
+
+function formatMentionRange(range: CommercialPartnershipPricingProjection["estimatedMentionRangeUsd"]) {
+  if (!range) return null;
+  if (range.label) return range.label;
+  if (range.low !== null && range.low !== undefined && range.high !== null && range.high !== undefined) {
+    return `$${formatNumber(range.low)}-$${formatNumber(range.high)}`;
+  }
+  return null;
+}
+
+function partnershipPricingAnswer(answers: ActionabilityAnswerProjection[]) {
+  return answers.find((answer) => answer.key === PARTNERSHIP_PRICING_KEY) ?? null;
+}
+
+function PartnershipPricingMetric({ label, value }: { label: string; value: React.ReactNode }) {
+  if (!hasMeaningfulContent(value)) return null;
+  return (
+    <div className="rounded-xl bg-white p-3">
+      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">{label}</dt>
+      <dd className="mt-1 text-sm font-semibold leading-6 text-[#182235]">{value}</dd>
+    </div>
+  );
+}
+
+function CommercialPartnershipPricingCard({ answers }: { answers: ActionabilityAnswerProjection[] }) {
+  const answer = partnershipPricingAnswer(answers);
+  if (!answer) return null;
+  const payload = answer.partnershipPricing;
+  const urls = payload?.evidenceUrls.length ? payload.evidenceUrls : answer.sourceUrls;
+  const range = formatMentionRange(payload?.estimatedMentionRangeUsd ?? null);
+  const deliverable = payload?.estimatedMentionRangeUsd?.deliverable;
+  const badges = [payload?.relationshipType, payload?.commercialExperienceLevel, payload?.crmOrSoftwareConflictStatus].filter(Boolean) as string[];
+
+  return (
+    <article className="mt-4 rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#526078]">Commercial Partnerships & Estimated Mention Value</p>
+          <p className="mt-2 text-xs font-semibold text-[#8a5b17]">Planning estimate only, not a collaborator quote.</p>
+        </div>
+        {(payload?.confidence ?? answer.confidence) ? (
+          <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{payload?.confidence ?? answer.confidence}</span>
+        ) : null}
+      </div>
+
+      {answer.value ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{answer.value}</p> : null}
+
+      {payload ? (
+        <>
+          <dl className="mt-4 grid gap-3 md:grid-cols-3">
+            <PartnershipPricingMetric label="Estimated range" value={range} />
+            <PartnershipPricingMetric label="Deliverable" value={deliverable} />
+            <PartnershipPricingMetric label="Conflict status" value={payload.crmOrSoftwareConflictStatus ? humanizeKey(payload.crmOrSoftwareConflictStatus) : null} />
+          </dl>
+
+          {badges.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {badges.map((badge) => (
+                <span key={badge} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#526078]">
+                  {humanizeKey(badge)}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {payload.knownPartnersOrBrands.length ? (
+              <SignalSection title="Known partners / brands" items={payload.knownPartnersOrBrands} />
+            ) : (
+              <div className="rounded-2xl border border-[#e4eaf2] bg-white p-4">
+                <h3 className="text-sm font-semibold text-[#182235]">Known partners / brands</h3>
+                <p className="mt-2 text-sm leading-6 text-[#526078]">No named third-party partner or sponsor found in current public evidence.</p>
+              </div>
+            )}
+            {payload.pricingBasis ? <SignalSection title="Pricing basis" items={[payload.pricingBasis]} /> : null}
+          </div>
+
+          {payload.reviewNotes ? <p className="mt-4 rounded-xl bg-white p-3 text-xs leading-5 text-[#526078]">{payload.reviewNotes}</p> : null}
+        </>
+      ) : (
+        <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#7c4a05]">Structured pricing payload is unavailable; review the pricing answer projection.</p>
+      )}
+
+      {urls.length ? (
+        <div className="mt-4 grid gap-1">
+          {urls.slice(0, 4).map((url) => (
+            <a key={url} className="break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+              {url}
+            </a>
+          ))}
+        </div>
+      ) : null}
+    </article>
   );
 }
 
@@ -1076,6 +1173,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
 
       <Section id="collaboration-compatibility" title="Fit Answers / Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
         <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
+        <CommercialPartnershipPricingCard answers={candidate.actionabilityAnswers} />
         <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
         <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
       </Section>
