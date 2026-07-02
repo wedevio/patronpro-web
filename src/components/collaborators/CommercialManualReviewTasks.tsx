@@ -32,6 +32,7 @@ const targetLabels: Record<string, string> = {
   bio_link_out: "Bio link",
   landing_page: "Landing page",
   cited_media: "Cited media",
+  clearance_blocker: "Clearance blocker",
 };
 
 function displayUrl(url: string) {
