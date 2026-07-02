@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckCircle2, Circle, ExternalLink, StickyNote } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { CandidateTaskProjection } from "@/lib/collaborators/types";
@@ -22,9 +23,16 @@ function taskStatus(task: TaskState) {
   if (task.saving) return "Saving";
   if (task.error) return task.error;
   if (task.saved) return "Saved";
-  if (task.manualReviewedAt) return `Reviewed ${task.manualReviewedAt}`;
+  if (task.manualReviewedAt) return "Reviewed";
   return task.status ?? "Open";
 }
+
+const targetLabels: Record<string, string> = {
+  social_profile_bio: "Profile / bio",
+  bio_link_out: "Bio link",
+  landing_page: "Landing page",
+  cited_media: "Cited media",
+};
 
 function displayUrl(url: string) {
   try {
@@ -34,6 +42,19 @@ function displayUrl(url: string) {
   } catch {
     return url;
   }
+}
+
+function targetType(task: CandidateTaskProjection) {
+  return task.reviewTargetType ? (targetLabels[task.reviewTargetType] ?? task.reviewTargetType) : "Review";
+}
+
+function groupTasks(tasks: TaskState[], showCandidate: boolean) {
+  const groups = new Map<string, TaskState[]>();
+  for (const task of tasks) {
+    const key = showCandidate ? (task.candidateName ?? task.candidateId ?? "Unassigned") : targetType(task);
+    groups.set(key, [...(groups.get(key) ?? []), task]);
+  }
+  return [...groups.entries()];
 }
 
 export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { tasks: CandidateTaskProjection[]; showCandidate?: boolean }) {
@@ -69,108 +90,123 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
   }
 
   return (
-    <div className="grid gap-4">
-      {items.map((task) => (
-        <article key={task.id} className="rounded-2xl border border-[#f0dfbd] bg-[#fffaf2] p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="grid gap-5">
+      {groupTasks(items, showCandidate).map(([group, groupItems]) => (
+        <section key={group} className="overflow-hidden rounded-xl border border-[#dfe5ee] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#edf1f6] bg-[#f8fafc] px-4 py-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a5b17]">{task.priority ?? "review"}</p>
-              <h3 className="mt-2 text-base font-semibold text-[#182235]">{task.label}</h3>
-              {showCandidate && task.candidateHref ? (
-                <Link href={task.candidateHref} className="mt-1 inline-block text-sm font-semibold text-[#1d5fa7] underline-offset-4 hover:underline">
-                  {task.candidateName ?? task.candidateId}
+              <h3 className="text-sm font-semibold text-[#182235]">{group}</h3>
+              {showCandidate && groupItems[0]?.candidateHref ? (
+                <Link href={groupItems[0].candidateHref ?? "#"} className="mt-1 inline-block text-xs font-semibold text-[#1d5fa7] underline-offset-4 hover:underline">
+                  Open collaborator
                 </Link>
               ) : null}
             </div>
-            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${task.error ? "bg-[#fff0f0] text-[#9f1d1d]" : "bg-white text-[#526078]"}`}>
-              {taskStatus(task)}
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#526078]">
+              {groupItems.filter((task) => task.manualReviewed).length}/{groupItems.length} reviewed
             </span>
           </div>
 
-          {task.summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
-          {task.reviewUrl ? (
-            <div className="mt-3 rounded-xl border border-[#ead8b8] bg-white p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a5b17]">
-                {task.reviewTargetLabel ?? task.reviewTargetType ?? "Review target"}
-              </p>
-              <a
-                href={task.reviewUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 block break-all text-sm font-semibold leading-6 text-[#1d5fa7] underline-offset-4 hover:underline"
-              >
-                {displayUrl(task.reviewUrl)}
-              </a>
-              {(task.contextUrls ?? []).length ? (
-                <div className="mt-2 grid gap-1">
-                  {(task.contextUrls ?? []).map((url) => (
+          <div className="hidden grid-cols-[44px_minmax(220px,1.5fr)_minmax(180px,1fr)_150px_86px] gap-3 border-b border-[#edf1f6] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:grid">
+            <span>Done</span>
+            <span>Task</span>
+            <span>Target</span>
+            <span>Verdict</span>
+            <span>Notes</span>
+          </div>
+
+          <div className="divide-y divide-[#edf1f6]">
+            {groupItems.map((task) => (
+              <div key={task.id} className="grid gap-3 px-4 py-3 lg:grid-cols-[44px_minmax(220px,1.5fr)_minmax(180px,1fr)_150px_86px] lg:items-start">
+                <label className="flex items-center gap-2 text-sm font-semibold text-[#182235] lg:justify-center">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={Boolean(task.manualReviewed)}
+                    onChange={(event) =>
+                      void saveTask(task, {
+                        manualReviewed: event.target.checked,
+                        manualReviewVerdict: event.target.checked
+                          ? task.manualReviewVerdict === "not_reviewed" || !task.manualReviewVerdict
+                            ? "no_conflict"
+                            : task.manualReviewVerdict
+                          : "not_reviewed",
+                      })
+                    }
+                  />
+                  {task.manualReviewed ? <CheckCircle2 className="h-5 w-5 text-[#1d6a3a]" /> : <Circle className="h-5 w-5 text-[#9aa6b8]" />}
+                  <span className="lg:hidden">Reviewed</span>
+                </label>
+
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-[#eef4fb] px-2 py-1 text-xs font-semibold text-[#355879]">{targetType(task)}</span>
+                    <span className="rounded-full bg-[#f8fafc] px-2 py-1 text-xs font-semibold text-[#526078]">{task.priority ?? "review"}</span>
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${task.error ? "bg-[#fff0f0] text-[#9f1d1d]" : "bg-[#f8fafc] text-[#526078]"}`}>
+                      {taskStatus(task)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-semibold leading-5 text-[#182235]">{task.reviewTargetLabel ?? task.label}</p>
+                  {task.blockerReason ? <p className="mt-1 text-xs leading-5 text-[#7c4a05]">{task.blockerReason}</p> : null}
+                </div>
+
+                <div className="grid gap-1">
+                  {task.reviewUrl ? (
                     <a
-                      key={url}
-                      href={url}
+                      href={task.reviewUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="break-all text-xs font-semibold leading-5 text-[#526078] underline-offset-4 hover:underline"
+                      className="inline-flex min-h-9 max-w-full items-center gap-2 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-semibold text-[#1d5fa7] underline-offset-4 hover:underline"
                     >
+                      <ExternalLink className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{displayUrl(task.reviewUrl)}</span>
+                    </a>
+                  ) : null}
+                  {(task.contextUrls ?? []).slice(0, 1).map((url) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer" className="truncate text-xs font-semibold text-[#526078] underline-offset-4 hover:underline">
                       Context: {displayUrl(url)}
                     </a>
                   ))}
                 </div>
-              ) : null}
-            </div>
-          ) : null}
-          {task.blockerReason ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#7c4a05]">{task.blockerReason}</p> : null}
 
-          <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,180px)_minmax(0,240px)_1fr] md:items-end">
-            <label className="flex min-h-11 items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#182235]">
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={Boolean(task.manualReviewed)}
-                onChange={(event) =>
-                  void saveTask(task, {
-                    manualReviewed: event.target.checked,
-                    manualReviewVerdict: event.target.checked
-                      ? task.manualReviewVerdict === "not_reviewed" || !task.manualReviewVerdict
-                        ? "no_conflict"
-                        : task.manualReviewVerdict
-                      : "not_reviewed",
-                  })
-                }
-              />
-              Reviewed
-            </label>
+                <select
+                  aria-label={`Verdict for ${task.label}`}
+                  className="min-h-9 rounded-md border border-[#dfe5ee] bg-white px-2 text-sm font-semibold text-[#182235]"
+                  value={task.manualReviewVerdict ?? "not_reviewed"}
+                  onChange={(event) => {
+                    const verdict = event.target.value as Verdict;
+                    void saveTask(task, { manualReviewVerdict: verdict, manualReviewed: verdict !== "not_reviewed" });
+                  }}
+                >
+                  {verdicts.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
 
-            <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
-              Verdict
-              <select
-                className="min-h-11 rounded-xl border border-[#dfe5ee] bg-white px-3 text-sm font-semibold normal-case tracking-normal text-[#182235]"
-                value={task.manualReviewVerdict ?? "not_reviewed"}
-                onChange={(event) => {
-                  const verdict = event.target.value as Verdict;
-                  void saveTask(task, { manualReviewVerdict: verdict, manualReviewed: verdict !== "not_reviewed" });
-                }}
-              >
-                {verdicts.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
-              Notes
-              <textarea
-                className="min-h-24 rounded-xl border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case leading-6 tracking-normal text-[#182235]"
-                maxLength={2000}
-                value={task.manualReviewNotes ?? ""}
-                onChange={(event) => updateItem(task.id, { manualReviewNotes: event.target.value })}
-                onBlur={(event) => void saveTask(task, { manualReviewNotes: event.target.value })}
-                placeholder="What did you check? What is the sponsorship/conflict verdict?"
-              />
-            </label>
+                <details className="group relative">
+                  <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-semibold text-[#526078]">
+                    <StickyNote className="h-4 w-4" />
+                    {task.manualReviewNotes ? "Edit" : "Add"}
+                  </summary>
+                  <label className="mt-2 grid gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:absolute lg:right-0 lg:top-10 lg:z-10 lg:w-[min(460px,calc(100vw-2rem))] lg:rounded-xl lg:border lg:border-[#dfe5ee] lg:bg-white lg:p-3 lg:shadow-lg">
+                    Notes
+                    <textarea
+                      className="min-h-28 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case leading-6 tracking-normal text-[#182235]"
+                      maxLength={2000}
+                      value={task.manualReviewNotes ?? ""}
+                      onChange={(event) => updateItem(task.id, { manualReviewNotes: event.target.value })}
+                      onBlur={(event) => void saveTask(task, { manualReviewNotes: event.target.value })}
+                      placeholder="Conflict? Evidence checked? Follow-up needed?"
+                    />
+                    {task.summary ? <span className="text-xs normal-case leading-5 tracking-normal text-[#68758d]">{task.summary}</span> : null}
+                  </label>
+                </details>
+              </div>
+            ))}
           </div>
-        </article>
+        </section>
       ))}
     </div>
   );

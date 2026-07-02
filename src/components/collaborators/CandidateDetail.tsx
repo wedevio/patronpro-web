@@ -1,6 +1,5 @@
 import type {
   ActionabilityAnswerProjection,
-  CandidateTaskProjection,
   ClearanceRunProjection,
   CommercialPartnershipPricingProjection,
   CollaboratorProjection,
@@ -782,56 +781,58 @@ function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
 }
 
 function CandidateRoadmap({ candidate }: { candidate: CollaboratorProjection }) {
+  const rows = [
+    candidate.nextAction
+      ? {
+          id: "next-action",
+          type: "Next action",
+          label: "Recommended operator move",
+          body: candidate.nextAction,
+          meta: ["current"],
+        }
+      : null,
+    ...candidate.tasks.map((task) => ({
+      id: task.id,
+      type: task.type ?? "Task",
+      label: task.label,
+      body: task.blockerReason ?? task.summary ?? null,
+      meta: [task.priority, task.status, task.followUpAt ? `follow-up ${task.followUpAt}` : null, task.crmSyncEligible ? "CRM eligible" : null].filter(Boolean) as string[],
+    })),
+    ...candidate.missingFields.map((field) => ({
+      id: `gap-${field}`,
+      type: "Evidence gap",
+      label: field,
+      body: "Verify or add a blocker before outreach.",
+      meta: ["missing"],
+    })),
+  ].filter(Boolean) as { id: string; type: string; label: string; body?: string | null; meta: string[] }[];
+
   return (
-    <div className="grid gap-4">
-      {candidate.nextAction ? (
-        <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Next action</p>
-          <p className="mt-2 text-sm leading-6 text-[#42506a]">{candidate.nextAction}</p>
-        </article>
-      ) : null}
-
-      {candidate.tasks.length ? (
-        <div className="grid gap-3 lg:grid-cols-2">
-          {candidate.tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </div>
-      ) : null}
-
-      {candidate.missingFields.length ? (
-        <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Open evidence gaps</p>
-          <div className="mt-3">{bullets(candidate.missingFields)}</div>
-        </article>
-      ) : null}
-    </div>
-  );
-}
-
-function TaskCard({ task }: { task: CandidateTaskProjection }) {
-  const meta = [task.priority, task.status, task.followUpAt ? `follow-up ${task.followUpAt}` : null, task.crmSyncEligible ? "CRM eligible" : null].filter(Boolean);
-  return (
-    <article className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">{task.type ?? "task"}</p>
-          <h3 className="mt-2 text-base font-semibold text-[#182235]">{task.label}</h3>
-        </div>
-        {task.completedAt ? <span className="rounded-full bg-[#e9f6ef] px-2 py-1 text-xs font-semibold text-[#1d6a3a]">done</span> : null}
+    <div className="overflow-hidden rounded-xl border border-[#dfe5ee] bg-white">
+      <div className="hidden grid-cols-[160px_minmax(260px,1fr)_minmax(180px,320px)] gap-3 border-b border-[#edf1f6] bg-[#f8fafc] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:grid">
+        <span>Type</span>
+        <span>Item</span>
+        <span>Status</span>
       </div>
-      {task.summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
-      {task.blockerReason ? <p className="mt-3 text-sm leading-6 text-[#7c4a05]">{task.blockerReason}</p> : null}
-      {meta.length ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {meta.map((item) => (
-            <span key={item} className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">
-              {item}
-            </span>
-          ))}
-        </div>
-      ) : null}
-    </article>
+      <div className="divide-y divide-[#edf1f6]">
+        {rows.map((row) => (
+          <div key={row.id} className="grid gap-2 px-4 py-3 lg:grid-cols-[160px_minmax(260px,1fr)_minmax(180px,320px)] lg:items-start">
+            <span className="w-fit rounded-full bg-[#eef4fb] px-2 py-1 text-xs font-semibold text-[#355879]">{row.type}</span>
+            <div>
+              <p className="text-sm font-semibold leading-5 text-[#182235]">{row.label}</p>
+              {row.body ? <p className="mt-1 text-sm leading-6 text-[#526078]">{row.body}</p> : null}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {row.meta.map((item) => (
+                <span key={item} className="rounded-full bg-[#f8fafc] px-2 py-1 text-xs font-semibold text-[#526078]">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
