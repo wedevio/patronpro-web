@@ -781,6 +781,7 @@ function ContactBook({ candidate }: { candidate: CollaboratorProjection }) {
 }
 
 function CandidateRoadmap({ candidate }: { candidate: CollaboratorProjection }) {
+  const roadmapTasks = candidate.tasks.filter((task) => task.type !== "manual_review");
   const rows = [
     candidate.nextAction
       ? {
@@ -791,7 +792,7 @@ function CandidateRoadmap({ candidate }: { candidate: CollaboratorProjection }) 
           meta: ["current"],
         }
       : null,
-    ...candidate.tasks.map((task) => ({
+    ...roadmapTasks.map((task) => ({
       id: task.id,
       type: task.type ?? "Task",
       label: task.label,
