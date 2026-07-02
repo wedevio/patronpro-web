@@ -33,6 +33,7 @@ const targetLabels: Record<string, string> = {
   landing_page: "Landing page",
   cited_media: "Cited media",
   clearance_blocker: "Clearance blocker",
+  commercial_signal_source: "Commercial source",
 };
 
 function displayUrl(url: string) {

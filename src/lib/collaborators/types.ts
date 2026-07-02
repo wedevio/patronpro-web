@@ -220,6 +220,28 @@ export type CandidateTaskProjection = {
   updatedAt?: string | null;
 };
 
+export type CommercialReviewTaskLaneSummary = {
+  lane: CollaboratorLane;
+  open: number;
+  blocked: number;
+  inProgress: number;
+  total: number;
+};
+
+export type CommercialReviewTaskSummary = {
+  visibleTotal: number;
+  visibleDone: number;
+  visibleOpen: number;
+  visibleBlocked: number;
+  visibleInProgress: number;
+  internalDeferred: number;
+  exactSourceOpen: number;
+  profileGateBlocked: number;
+  citedMediaOpen: number;
+  landingOrBioOpen: number;
+  laneSummaries: CommercialReviewTaskLaneSummary[];
+};
+
 export type ClearanceRunProjection = {
   id: string;
   platform?: string | null;

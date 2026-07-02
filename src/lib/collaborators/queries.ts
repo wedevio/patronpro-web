@@ -2,7 +2,7 @@ import "server-only";
 
 import { queryRows } from "./db";
 import { projectCandidate, projectSummary, projectTaskReviewMetadata, type RawCandidateRow } from "./projections";
-import type { CandidateTaskProjection, CollaboratorLane, CollaboratorProjection, DashboardSummary } from "./types";
+import type { CandidateTaskProjection, CollaboratorLane, CollaboratorProjection, CommercialReviewTaskSummary, DashboardSummary } from "./types";
 
 const candidateSelect = `
 WITH actionability_summary AS (
@@ -346,6 +346,107 @@ type TaskQueueRow = {
   updated_at?: string | null;
   raw_public_payload?: Record<string, unknown> | null;
 };
+
+type TaskSummaryRow = {
+  visible_total?: string | number | null;
+  visible_done?: string | number | null;
+  visible_open?: string | number | null;
+  visible_blocked?: string | number | null;
+  visible_in_progress?: string | number | null;
+  internal_deferred?: string | number | null;
+  exact_source_open?: string | number | null;
+  profile_gate_blocked?: string | number | null;
+  cited_media_open?: string | number | null;
+  landing_or_bio_open?: string | number | null;
+};
+
+type TaskLaneSummaryRow = {
+  source_lane: CollaboratorLane;
+  open_count?: string | number | null;
+  blocked_count?: string | number | null;
+  in_progress_count?: string | number | null;
+  total_count?: string | number | null;
+};
+
+function countValue(value: string | number | null | undefined) {
+  const count = Number(value ?? 0);
+  return Number.isFinite(count) ? count : 0;
+}
+
+export async function getCommercialReviewTaskSummary(): Promise<CommercialReviewTaskSummary> {
+  const [summary] = await queryRows<TaskSummaryRow>(`
+    SELECT
+      count(*) FILTER (WHERE t.visibility = 'public_dashboard' AND t.manual_review_required) AS visible_total,
+      count(*) FILTER (WHERE t.visibility = 'public_dashboard' AND t.manual_review_required AND t.status = 'done') AS visible_done,
+      count(*) FILTER (WHERE t.visibility = 'public_dashboard' AND t.manual_review_required AND t.status = 'open') AS visible_open,
+      count(*) FILTER (WHERE t.visibility = 'public_dashboard' AND t.manual_review_required AND t.status = 'blocked') AS visible_blocked,
+      count(*) FILTER (WHERE t.visibility = 'public_dashboard' AND t.manual_review_required AND t.status = 'in_progress') AS visible_in_progress,
+      count(*) FILTER (WHERE t.visibility = 'internal_only' AND NOT t.manual_review_required AND t.status = 'deferred') AS internal_deferred,
+      count(*) FILTER (
+        WHERE t.visibility = 'public_dashboard'
+          AND t.manual_review_required
+          AND t.status IN ('open', 'in_progress', 'blocked')
+          AND t.raw_public_payload->>'review_target_type' = 'commercial_signal_source'
+      ) AS exact_source_open,
+      count(*) FILTER (
+        WHERE t.visibility = 'public_dashboard'
+          AND t.manual_review_required
+          AND t.status = 'blocked'
+          AND t.raw_public_payload->>'review_target_type' = 'social_profile_bio'
+      ) AS profile_gate_blocked,
+      count(*) FILTER (
+        WHERE t.visibility = 'public_dashboard'
+          AND t.manual_review_required
+          AND t.status IN ('open', 'in_progress', 'blocked')
+          AND t.raw_public_payload->>'review_target_type' = 'cited_media'
+      ) AS cited_media_open,
+      count(*) FILTER (
+        WHERE t.visibility = 'public_dashboard'
+          AND t.manual_review_required
+          AND t.status IN ('open', 'in_progress', 'blocked')
+          AND t.raw_public_payload->>'review_target_type' IN ('landing_page', 'bio_link_out')
+      ) AS landing_or_bio_open
+    FROM patronpro_collab.candidate_tasks t
+    WHERE t.task_type = 'manual_review'
+  `);
+
+  const laneRows = await queryRows<TaskLaneSummaryRow>(`
+    SELECT
+      c.source_lane,
+      count(*) FILTER (WHERE t.status = 'open') AS open_count,
+      count(*) FILTER (WHERE t.status = 'blocked') AS blocked_count,
+      count(*) FILTER (WHERE t.status = 'in_progress') AS in_progress_count,
+      count(*) AS total_count
+    FROM patronpro_collab.candidate_tasks t
+    JOIN patronpro_collab.candidates c ON c.candidate_id = t.candidate_id
+    WHERE t.task_type = 'manual_review'
+      AND t.visibility = 'public_dashboard'
+      AND t.manual_review_required
+      AND t.status IN ('open', 'in_progress', 'blocked')
+    GROUP BY c.source_lane
+    ORDER BY c.source_lane
+  `);
+
+  return {
+    visibleTotal: countValue(summary?.visible_total),
+    visibleDone: countValue(summary?.visible_done),
+    visibleOpen: countValue(summary?.visible_open),
+    visibleBlocked: countValue(summary?.visible_blocked),
+    visibleInProgress: countValue(summary?.visible_in_progress),
+    internalDeferred: countValue(summary?.internal_deferred),
+    exactSourceOpen: countValue(summary?.exact_source_open),
+    profileGateBlocked: countValue(summary?.profile_gate_blocked),
+    citedMediaOpen: countValue(summary?.cited_media_open),
+    landingOrBioOpen: countValue(summary?.landing_or_bio_open),
+    laneSummaries: laneRows.map((row) => ({
+      lane: row.source_lane,
+      open: countValue(row.open_count),
+      blocked: countValue(row.blocked_count),
+      inProgress: countValue(row.in_progress_count),
+      total: countValue(row.total_count),
+    })),
+  };
+}
 
 export async function getCommercialReviewTasks(): Promise<CandidateTaskProjection[]> {
   const rows = await queryRows<TaskQueueRow>(`
