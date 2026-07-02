@@ -92,8 +92,8 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
   return (
     <div className="grid gap-5">
       {groupTasks(items, showCandidate).map(([group, groupItems]) => (
-        <section key={group} className="overflow-hidden rounded-xl border border-[#dfe5ee] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#edf1f6] bg-[#f8fafc] px-4 py-3">
+        <details key={group} open={!showCandidate} className="overflow-hidden rounded-xl border border-[#dfe5ee] bg-white">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 border-b border-[#edf1f6] bg-[#f8fafc] px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold text-[#182235]">{group}</h3>
               {showCandidate && groupItems[0]?.candidateHref ? (
@@ -105,7 +105,7 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
             <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#526078]">
               {groupItems.filter((task) => task.manualReviewed).length}/{groupItems.length} reviewed
             </span>
-          </div>
+          </summary>
 
           <div className="hidden grid-cols-[44px_minmax(220px,1.5fr)_minmax(180px,1fr)_150px_86px] gap-3 border-b border-[#edf1f6] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:grid">
             <span>Done</span>
@@ -206,7 +206,7 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
               </div>
             ))}
           </div>
-        </section>
+        </details>
       ))}
     </div>
   );
