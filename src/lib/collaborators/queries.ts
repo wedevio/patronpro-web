@@ -226,6 +226,7 @@ SELECT
       AND t.task_type = 'manual_review'
       AND t.manual_review_required
       AND t.visibility = 'public_dashboard'
+      AND t.status IN ('open', 'in_progress', 'blocked')
   ), '[]'::jsonb) AS manual_review_tasks,
   COALESCE((
     SELECT jsonb_agg(
