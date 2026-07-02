@@ -249,6 +249,7 @@ type CandidateTaskRow = {
   manual_reviewed_at?: string | null;
   manual_reviewed_by?: string | null;
   updated_at?: string | null;
+  raw_public_payload?: Record<string, unknown> | null;
 };
 
 type ClearanceRunRow = {
@@ -379,6 +380,26 @@ function cleanPublicSourceUrlList(values: unknown): string[] {
       return false;
     }
   });
+}
+
+export function projectTaskReviewMetadata(rawPublicPayload: Record<string, unknown> | null | undefined) {
+  const payload =
+    rawPublicPayload && typeof rawPublicPayload === "object" && !Array.isArray(rawPublicPayload) ? rawPublicPayload : {};
+  const reviewUrl = safePublicUrl(payload.review_url);
+  const rawContextUrls = [
+    payload.source_url,
+    payload.source_profile_url,
+    ...(Array.isArray(payload.context_urls) ? payload.context_urls : []),
+    ...(Array.isArray(payload.source_urls) ? payload.source_urls : []),
+  ];
+  const contextUrls = cleanPublicSourceUrlList(rawContextUrls).filter((url) => url !== reviewUrl);
+
+  return {
+    reviewTargetType: cleanString(payload.review_target_type),
+    reviewTargetLabel: cleanString(payload.review_target_label) ?? cleanString(payload.target_title) ?? cleanString(payload.source_label),
+    reviewUrl,
+    contextUrls,
+  };
 }
 
 function cleanUrlRecord(value: unknown): Record<string, string> {
@@ -806,6 +827,7 @@ function projectCandidateTask(row: CandidateTaskRow): CandidateTaskProjection | 
     blockerReason: cleanString(row.blocker_reason),
     followUpAt: cleanString(row.follow_up_at),
     completedAt: cleanString(row.completed_at),
+    ...projectTaskReviewMetadata(row.raw_public_payload),
     crmSyncEligible: Boolean(row.crm_sync_eligible),
     manualReviewRequired: Boolean(row.manual_review_required),
     manualReviewed: Boolean(row.manual_reviewed),

@@ -26,6 +26,16 @@ function taskStatus(task: TaskState) {
   return task.status ?? "Open";
 }
 
+function displayUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const path = `${parsed.pathname}${parsed.search}`.replace(/\/$/, "");
+    return `${parsed.hostname}${path}`;
+  } catch {
+    return url;
+  }
+}
+
 export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { tasks: CandidateTaskProjection[]; showCandidate?: boolean }) {
   const [items, setItems] = useState<TaskState[]>(tasks.map((task) => ({ ...task, saved: false, error: null })));
   if (!items.length) return null;
@@ -78,6 +88,36 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
           </div>
 
           {task.summary ? <p className="mt-3 text-sm leading-6 text-[#42506a]">{task.summary}</p> : null}
+          {task.reviewUrl ? (
+            <div className="mt-3 rounded-xl border border-[#ead8b8] bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a5b17]">
+                {task.reviewTargetLabel ?? task.reviewTargetType ?? "Review target"}
+              </p>
+              <a
+                href={task.reviewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 block break-all text-sm font-semibold leading-6 text-[#1d5fa7] underline-offset-4 hover:underline"
+              >
+                {displayUrl(task.reviewUrl)}
+              </a>
+              {(task.contextUrls ?? []).length ? (
+                <div className="mt-2 grid gap-1">
+                  {(task.contextUrls ?? []).map((url) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="break-all text-xs font-semibold leading-5 text-[#526078] underline-offset-4 hover:underline"
+                    >
+                      Context: {displayUrl(url)}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {task.blockerReason ? <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-5 text-[#7c4a05]">{task.blockerReason}</p> : null}
 
           <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,180px)_minmax(0,240px)_1fr] md:items-end">

@@ -206,6 +206,10 @@ export type CandidateTaskProjection = {
   blockerReason?: string | null;
   followUpAt?: string | null;
   completedAt?: string | null;
+  reviewTargetType?: string | null;
+  reviewTargetLabel?: string | null;
+  reviewUrl?: string | null;
+  contextUrls: string[];
   crmSyncEligible: boolean;
   manualReviewRequired?: boolean;
   manualReviewed?: boolean;

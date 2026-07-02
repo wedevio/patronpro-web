@@ -1,7 +1,7 @@
 import "server-only";
 
 import { queryRows } from "./db";
-import { projectCandidate, projectSummary, type RawCandidateRow } from "./projections";
+import { projectCandidate, projectSummary, projectTaskReviewMetadata, type RawCandidateRow } from "./projections";
 import type { CandidateTaskProjection, CollaboratorLane, CollaboratorProjection, DashboardSummary } from "./types";
 
 const candidateSelect = `
@@ -214,7 +214,8 @@ SELECT
         'manual_review_notes', t.manual_review_notes,
         'manual_reviewed_at', t.manual_reviewed_at,
         'manual_reviewed_by', t.manual_reviewed_by,
-        'updated_at', t.updated_at
+        'updated_at', t.updated_at,
+        'raw_public_payload', t.raw_public_payload
       )
       ORDER BY
         CASE t.priority WHEN 'P0' THEN 1 WHEN 'P1' THEN 2 WHEN 'P2' THEN 3 ELSE 4 END,
@@ -342,6 +343,7 @@ type TaskQueueRow = {
   manual_reviewed_at?: string | null;
   manual_reviewed_by?: string | null;
   updated_at?: string | null;
+  raw_public_payload?: Record<string, unknown> | null;
 };
 
 export async function getCommercialReviewTasks(): Promise<CandidateTaskProjection[]> {
@@ -366,7 +368,8 @@ export async function getCommercialReviewTasks(): Promise<CandidateTaskProjectio
       t.manual_review_notes,
       t.manual_reviewed_at,
       t.manual_reviewed_by,
-      t.updated_at
+      t.updated_at,
+      t.raw_public_payload
     FROM patronpro_collab.candidate_tasks t
     JOIN patronpro_collab.candidates c ON c.candidate_id = t.candidate_id
     WHERE t.visibility = 'public_dashboard'
@@ -393,6 +396,7 @@ export async function getCommercialReviewTasks(): Promise<CandidateTaskProjectio
     blockerReason: row.blocker_reason,
     followUpAt: row.follow_up_at,
     completedAt: row.completed_at,
+    ...projectTaskReviewMetadata(row.raw_public_payload),
     crmSyncEligible: Boolean(row.crm_sync_eligible),
     manualReviewRequired: Boolean(row.manual_review_required),
     manualReviewed: Boolean(row.manual_reviewed),

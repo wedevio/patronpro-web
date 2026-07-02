@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireDocsEditor } from "@/lib/auth/require-session";
 import { queryRows } from "@/lib/collaborators/db";
+import { projectTaskReviewMetadata } from "@/lib/collaborators/projections";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -26,6 +27,7 @@ type TaskRow = {
   manual_reviewed_at?: string | null;
   manual_reviewed_by?: string | null;
   updated_at?: string | null;
+  raw_public_payload?: Record<string, unknown> | null;
 };
 
 class ApiError extends Error {
@@ -63,6 +65,7 @@ function projectTask(row: TaskRow) {
     blockerReason: row.blocker_reason,
     followUpAt: row.follow_up_at,
     completedAt: row.completed_at,
+    ...projectTaskReviewMetadata(row.raw_public_payload),
     crmSyncEligible: Boolean(row.crm_sync_eligible),
     manualReviewRequired: Boolean(row.manual_review_required),
     manualReviewed: Boolean(row.manual_reviewed),
@@ -127,7 +130,8 @@ export async function PATCH(request: Request): Promise<Response> {
          manual_review_notes,
          manual_reviewed_at,
          manual_reviewed_by,
-         updated_at`,
+         updated_at,
+         raw_public_payload`,
       [taskId, reviewed, verdict, notes, auth.session.email, status]
     );
     if (!row) throw new ApiError(404, "manual review task not found");
