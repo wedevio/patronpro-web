@@ -45,7 +45,7 @@ export async function POST(
       return NextResponse.json({ error: "No se encontró la cuenta en GHL" }, { status: 404 });
     }
 
-    const email = (payload.email ?? location.email ?? "").toLowerCase().trim();
+    const email = ((payload.email || location.email) ?? "").toLowerCase().trim();
     if (!email) {
       return NextResponse.json(
         { error: "La cuenta no tiene email disponible, así que no se puede generar el link." },
@@ -56,9 +56,9 @@ export async function POST(
     const result = await buildOnboardingLink({
       locationId,
       email,
-      phone: (payload.phone || location.phone),
-      businessName: (payload.businessName || location.name),
-      firstName: payload.firstName,
+      phone: ((payload.phone || location.phone) ?? "").trim(),
+      businessName: ((payload.businessName || location.name) ?? "").trim(),
+      firstName: ((payload.firstName) ?? "").trim(),
     });
 
     await saveOnboardingLink(locationId, result.onboardingLink, result.expiresAt);
