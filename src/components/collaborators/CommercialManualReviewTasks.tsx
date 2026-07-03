@@ -3,6 +3,7 @@
 import { CheckCircle2, Circle, ExternalLink, StickyNote } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { formatManualMediaReviewNotes, parseManualMediaReviewNotes, type ManualMediaReviewInput } from "@/lib/collaborators/manual-media-review";
 import type { CandidateTaskProjection } from "@/lib/collaborators/types";
 
 const verdicts = [
@@ -50,6 +51,13 @@ function targetType(task: CandidateTaskProjection) {
   return task.reviewTargetType ? (targetLabels[task.reviewTargetType] ?? task.reviewTargetType) : "Review";
 }
 
+function reviewNotes(task: TaskState, patch: Partial<ManualMediaReviewInput>) {
+  return formatManualMediaReviewNotes({
+    ...parseManualMediaReviewNotes(task.manualReviewNotes, task.reviewUrl ?? ""),
+    ...patch,
+  });
+}
+
 function groupTasks(tasks: TaskState[], showCandidate: boolean) {
   const groups = new Map<string, TaskState[]>();
   for (const task of tasks) {
@@ -91,6 +99,29 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
     }
   }
 
+  async function uploadScreenshot(task: TaskState, file: File) {
+    updateItem(task.id, { saving: true });
+    try {
+      const metaResponse = await fetch("/api/collaborators/manual-review-media", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+      });
+      const meta = (await metaResponse.json()) as { signedUrl?: string; publicUrl?: string; error?: string };
+      if (!metaResponse.ok || !meta.signedUrl || !meta.publicUrl) throw new Error(meta.error ?? "Could not prepare screenshot upload");
+      const uploadResponse = await fetch(meta.signedUrl, { method: "PUT", headers: { "content-type": file.type }, body: file });
+      if (!uploadResponse.ok) throw new Error("Could not upload screenshot");
+      const review = parseManualMediaReviewNotes(task.manualReviewNotes, task.reviewUrl ?? "");
+      const notes = formatManualMediaReviewNotes({
+        ...review,
+        screenshotUrls: [...new Set([...review.screenshotUrls, meta.publicUrl])],
+      });
+      await saveTask({ ...task, saving: false }, { manualReviewNotes: notes });
+    } catch (error) {
+      updateItem(task.id, { saving: false, error: error instanceof Error ? error.message : "Could not upload screenshot" });
+    }
+  }
+
   return (
     <div className="grid gap-5">
       {groupTasks(items, showCandidate).map(([group, groupItems]) => (
@@ -120,7 +151,12 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
           <div className="divide-y divide-[#edf1f6]">
             {groupItems.map((task) => (
               <div key={task.id} className="grid gap-3 px-4 py-3 lg:grid-cols-[44px_minmax(220px,1.5fr)_minmax(180px,1fr)_150px_86px] lg:items-start">
-                <label className="flex items-center gap-2 text-sm font-semibold text-[#182235] lg:justify-center">
+                {(() => {
+                  const review = parseManualMediaReviewNotes(task.manualReviewNotes, task.reviewUrl ?? "");
+                  const screenshotText = review.screenshotUrls.join("\n");
+                  return (
+                    <>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-[#182235] lg:justify-center">
                   <input
                     type="checkbox"
                     className="sr-only"
@@ -138,9 +174,9 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
                   />
                   {task.manualReviewed ? <CheckCircle2 className="h-5 w-5 text-[#1d6a3a]" /> : <Circle className="h-5 w-5 text-[#9aa6b8]" />}
                   <span className="lg:hidden">Reviewed</span>
-                </label>
+                      </label>
 
-                <div>
+                      <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full bg-[#eef4fb] px-2 py-1 text-xs font-semibold text-[#355879]">{targetType(task)}</span>
                     <span className="rounded-full bg-[#f8fafc] px-2 py-1 text-xs font-semibold text-[#526078]">{task.priority ?? "review"}</span>
@@ -150,9 +186,9 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
                   </div>
                   <p className="mt-2 text-sm font-semibold leading-5 text-[#182235]">{task.reviewTargetLabel ?? task.label}</p>
                   {task.blockerReason ? <p className="mt-1 text-xs leading-5 text-[#7c4a05]">{task.blockerReason}</p> : null}
-                </div>
+                      </div>
 
-                <div className="grid gap-1">
+                      <div className="grid gap-1">
                   {task.reviewUrl ? (
                     <a
                       href={task.reviewUrl}
@@ -169,9 +205,9 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
                       Context: {displayUrl(url)}
                     </a>
                   ))}
-                </div>
+                      </div>
 
-                <select
+                      <select
                   aria-label={`Verdict for ${task.label}`}
                   className="min-h-9 rounded-md border border-[#dfe5ee] bg-white px-2 text-sm font-semibold text-[#182235]"
                   value={task.manualReviewVerdict ?? "not_reviewed"}
@@ -185,26 +221,100 @@ export function CommercialManualReviewTasks({ tasks, showCandidate = false }: { 
                       {label}
                     </option>
                   ))}
-                </select>
+                      </select>
 
-                <details className="group relative">
+                      <details className="group relative">
                   <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-2 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm font-semibold text-[#526078]">
                     <StickyNote className="h-4 w-4" />
                     {task.manualReviewNotes ? "Edit" : "Add"}
                   </summary>
-                  <label className="mt-2 grid gap-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:absolute lg:right-0 lg:top-10 lg:z-10 lg:w-[min(460px,calc(100vw-2rem))] lg:rounded-xl lg:border lg:border-[#dfe5ee] lg:bg-white lg:p-3 lg:shadow-lg">
-                    Notes
-                    <textarea
-                      className="min-h-28 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case leading-6 tracking-normal text-[#182235]"
-                      maxLength={2000}
-                      value={task.manualReviewNotes ?? ""}
-                      onChange={(event) => updateItem(task.id, { manualReviewNotes: event.target.value })}
-                      onBlur={(event) => void saveTask(task, { manualReviewNotes: event.target.value })}
-                      placeholder="Conflict? Evidence checked? Follow-up needed?"
-                    />
+                  <div className="mt-2 grid gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d] lg:absolute lg:right-0 lg:top-10 lg:z-10 lg:w-[min(520px,calc(100vw-2rem))] lg:rounded-xl lg:border lg:border-[#dfe5ee] lg:bg-white lg:p-3 lg:shadow-lg">
+                    <label className="grid gap-1">
+                      URL
+                      <input
+                        className="min-h-9 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case tracking-normal text-[#182235]"
+                        value={review.mediaUrl}
+                        onChange={(event) => updateItem(task.id, { manualReviewNotes: reviewNotes(task, { mediaUrl: event.target.value }) })}
+                        onBlur={(event) => void saveTask(task, { manualReviewNotes: reviewNotes(task, { mediaUrl: event.target.value }) })}
+                        placeholder="https://..."
+                      />
+                    </label>
+                    <div className="grid gap-2 normal-case tracking-normal text-[#182235] sm:grid-cols-2">
+                      <label className="flex items-center gap-2 rounded-md border border-[#dfe5ee] px-3 py-2 text-sm font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={review.commercialAlliance}
+                          onChange={(event) => void saveTask(task, { manualReviewNotes: reviewNotes(task, { commercialAlliance: event.target.checked }) })}
+                        />
+                        Commercial alliance
+                      </label>
+                      <label className="flex items-center gap-2 rounded-md border border-[#dfe5ee] px-3 py-2 text-sm font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={review.crmMention}
+                          onChange={(event) => void saveTask(task, { manualReviewNotes: reviewNotes(task, { crmMention: event.target.checked }) })}
+                        />
+                        CRM/software mention
+                      </label>
+                    </div>
+                    <label className="grid gap-1">
+                      Screenshot URLs
+                      <textarea
+                        className="min-h-20 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case leading-6 tracking-normal text-[#182235]"
+                        value={screenshotText}
+                        onChange={(event) =>
+                          updateItem(task.id, {
+                            manualReviewNotes: reviewNotes(task, {
+                              screenshotUrls: event.target.value
+                                .split(/\s+/)
+                                .map((url) => url.trim())
+                                .filter(Boolean),
+                            }),
+                          })
+                        }
+                        onBlur={(event) =>
+                          void saveTask(task, {
+                            manualReviewNotes: reviewNotes(task, {
+                              screenshotUrls: event.target.value
+                                .split(/\s+/)
+                                .map((url) => url.trim())
+                                .filter(Boolean),
+                            }),
+                          })
+                        }
+                        placeholder="https://..."
+                      />
+                    </label>
+                    <label className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-md border border-[#dfe5ee] bg-[#f8fafc] px-3 py-2 text-sm font-semibold normal-case tracking-normal text-[#526078]">
+                      Upload screenshot
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) void uploadScreenshot(task, file);
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                    <label className="grid gap-1">
+                      Analysis
+                      <textarea
+                        className="min-h-28 rounded-md border border-[#dfe5ee] bg-white px-3 py-2 text-sm normal-case leading-6 tracking-normal text-[#182235]"
+                        maxLength={3000}
+                        value={review.analysis}
+                        onChange={(event) => updateItem(task.id, { manualReviewNotes: reviewNotes(task, { analysis: event.target.value }) })}
+                        onBlur={(event) => void saveTask(task, { manualReviewNotes: reviewNotes(task, { analysis: event.target.value }) })}
+                        placeholder="Commercial signal, CRM overlap, context, and verdict basis."
+                      />
+                    </label>
                     {task.summary ? <span className="text-xs normal-case leading-5 tracking-normal text-[#68758d]">{task.summary}</span> : null}
-                  </label>
-                </details>
+                  </div>
+                      </details>
+                    </>
+                  );
+                })()}
               </div>
             ))}
           </div>

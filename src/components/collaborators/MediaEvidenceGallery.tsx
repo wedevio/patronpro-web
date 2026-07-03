@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { EvidenceImageProjection, MediaEvidenceProjection } from "@/lib/collaborators/types";
+import { isManualMediaReviewTask, parseManualMediaReviewNotes } from "@/lib/collaborators/manual-media-review";
+import type { CandidateTaskProjection, EvidenceImageProjection, MediaEvidenceProjection } from "@/lib/collaborators/types";
 
 type GalleryImage = EvidenceImageProjection & {
   id: string;
@@ -311,8 +312,15 @@ export function EvidenceImageGrid({
   );
 }
 
-export function MediaEvidenceGallery({ media }: { media: MediaEvidenceProjection[] }) {
+export function MediaEvidenceGallery({
+  media,
+  manualReviews = [],
+}: {
+  media: MediaEvidenceProjection[];
+  manualReviews?: CandidateTaskProjection[];
+}) {
   const images = useMemo(() => collectImages(media), [media]);
+  const reviewedManualMedia = manualReviews.filter(isManualMediaReviewTask);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
@@ -364,6 +372,36 @@ export function MediaEvidenceGallery({ media }: { media: MediaEvidenceProjection
               <AnalysisBlock label="Audio" text={item.audioSummary} />
               <AnalysisBlock label="CTA" text={item.cta} />
               <AnalysisBlock label="Risk" text={item.riskSummary} tone="risk" />
+            </article>
+          );
+        })}
+        {reviewedManualMedia.map((task) => {
+          const review = parseManualMediaReviewNotes(task.manualReviewNotes, task.reviewUrl ?? "");
+          const url = review.mediaUrl || task.reviewUrl;
+          return (
+            <article key={task.id} className="rounded-2xl border border-[#edf1f6] bg-[#fbfcfe] p-4">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+                <span>Manual review</span>
+                {task.manualReviewVerdict ? <span>{task.manualReviewVerdict.replaceAll("_", " ")}</span> : null}
+                {review.commercialAlliance ? <span>Commercial alliance</span> : null}
+                {review.crmMention ? <span>CRM/software mention</span> : null}
+              </div>
+              <h3 className="mt-2 text-sm font-semibold leading-5 text-[#182235]">{task.reviewTargetLabel ?? task.label}</h3>
+              {url ? (
+                <a href={url} target="_blank" rel="noreferrer" className="mt-2 block break-all text-sm text-[#1d5fa7]">
+                  Open reviewed source
+                </a>
+              ) : null}
+              {review.screenshotUrls.length ? (
+                <div className="mt-3 grid gap-1 text-sm">
+                  {review.screenshotUrls.map((screenshotUrl) => (
+                    <a key={screenshotUrl} href={screenshotUrl} target="_blank" rel="noreferrer" className="break-all text-[#1d5fa7] underline-offset-4 hover:underline">
+                      Screenshot
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+              <AnalysisBlock label="Human analysis" text={review.analysis || task.manualReviewNotes} />
             </article>
           );
         })}

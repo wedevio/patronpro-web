@@ -47,7 +47,7 @@ function readString(value: unknown) {
 
 function sanitizeNotes(value: unknown) {
   const text = typeof value === "string" ? value.trim() : "";
-  if (text.length > 2000) throw new ApiError(422, "notes must be 2000 characters or fewer");
+  if (text.length > 4000) throw new ApiError(422, "notes must be 4000 characters or fewer");
   if (/\/mnt\/|\/home\/|cookie|token|signed_url|api[_-]?key|secret/i.test(text)) {
     throw new ApiError(422, "notes cannot contain internal paths or secret-shaped text");
   }

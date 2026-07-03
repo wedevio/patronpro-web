@@ -9,6 +9,7 @@ import type {
   WebsiteProjection,
 } from "@/lib/collaborators/types";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
+import { isManualMediaReviewTask } from "@/lib/collaborators/manual-media-review";
 import { CandidateSectionNav } from "./CandidateSectionNav";
 import { CommercialManualReviewTasks } from "./CommercialManualReviewTasks";
 import { GhlContactButton } from "./GhlContactButton";
@@ -1135,6 +1136,8 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
   const sourceLinks = collectSourceLinks(candidate);
   const sourceIndexValue = [sourceLinks, candidate.evidenceIds];
   const roadmapValue = [candidate.tasks, candidate.missingFields, candidate.nextAction];
+  const manualMediaReviews = candidate.manualReviewTasks.filter(isManualMediaReviewTask);
+  const mediaEvidenceValue = [candidate.media, manualMediaReviews];
   const sectionNavItems = [
     { id: "overview", title: "Overview", value: [candidate.overviewSummary, candidate.fitSummary, candidate.score, candidate.evidenceConfidence, candidate.totalReach] },
     { id: "collaboration-compatibility", title: "Fit answers", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
@@ -1146,7 +1149,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
     { id: "review-links", title: "Reviews", value: reviewsValue },
     { id: "external-collaborators", title: "Collaborators", value: externalCollaboratorsValue },
     { id: "comments-engagement", title: "Comments", value: commentsValue },
-    { id: "reviewed-media", title: "Media evidence", value: candidate.media },
+    { id: "reviewed-media", title: "Media evidence", value: mediaEvidenceValue },
     { id: "source-index", title: "Sources", value: sourceIndexValue },
     { id: "roadmap-strategy", title: "Roadmap", value: roadmapValue },
     { id: "manual-commercial-review", title: "Manual review", value: candidate.manualReviewTasks },
@@ -1258,8 +1261,8 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <CommentSignals media={candidate.media} />
       </Section>
 
-      <Section id="reviewed-media" title="Reviewed media evidence" value={candidate.media}>
-        <MediaEvidenceGallery media={candidate.media} />
+      <Section id="reviewed-media" title="Reviewed media evidence" value={mediaEvidenceValue}>
+        <MediaEvidenceGallery media={candidate.media} manualReviews={manualMediaReviews} />
       </Section>
 
       <Section id="source-index" title="Source Index" value={sourceIndexValue}>
