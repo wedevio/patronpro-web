@@ -1504,7 +1504,7 @@ function CrmProviderStrategyDetail({ candidate }: { candidate: CollaboratorProje
         <Metric label="Social profiles" value={(strategy?.socialProfileCount ?? candidate.socialProfiles.length) || null} />
       </div>
 
-      <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={sectionNavItems} />
+      <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={sectionNavItems} wrapOnMobile />
 
       <Section id="patterns-to-replicate" title="Patterns To Replicate" value={candidate.crmStrategyPatterns}>
         <CrmProviderStrategyPatterns candidate={candidate} />

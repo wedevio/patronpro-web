@@ -15,10 +15,12 @@ export function CandidateSectionNav({
   candidateName,
   lane,
   items,
+  wrapOnMobile = false,
 }: {
   candidateName: string;
   lane: string;
   items: SectionNavItem[];
+  wrapOnMobile?: boolean;
 }) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [stuck, setStuck] = useState(false);
@@ -53,7 +55,7 @@ export function CandidateSectionNav({
           <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{laneLabel(lane)}</span>
           <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
         </a>
-        <div className="flex gap-2 overflow-x-auto p-3">
+        <div className={`flex gap-2 p-3 ${wrapOnMobile ? "flex-wrap overflow-visible" : "overflow-x-auto"}`}>
           {items.map((item) => (
             <a
               key={item.id}
