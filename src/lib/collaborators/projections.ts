@@ -13,6 +13,7 @@ import type {
   ActionabilityAnswerProjection,
   CrmProviderStrategyProjection,
   MediaEvidenceProjection,
+  ProviderPublicEvidenceProjection,
   SocialProfileProjection,
   WebsiteProjection,
   WebsiteScreenshotProjection,
@@ -47,6 +48,7 @@ export type RawCandidateRow = {
   contact_intelligence: ContactRow[] | null;
   contact_book: ContactBookRow[] | null;
   external_collaborators: ExternalCollaboratorRow[] | null;
+  provider_public_evidence: ProviderPublicEvidenceRow[] | null;
   actionability_answers: Record<string, ActionabilityAnswerRow> | null;
   public_tasks: CandidateTaskRow[] | null;
   manual_review_tasks: CandidateTaskRow[] | null;
@@ -224,6 +226,35 @@ type ExternalCollaboratorRow = {
   combined_reach?: number | string | null;
   shortlist_status?: string | null;
   collaboration_fit_score?: number | string | null;
+};
+
+type ProviderPublicEvidenceRow = {
+  provider_evidence_id?: string | null;
+  provider_source?: string | null;
+  evidence_type?: string | null;
+  brand_name?: string | null;
+  brand_domain?: string | null;
+  provider_page_url?: string | null;
+  original_source_url?: string | null;
+  platform?: string | null;
+  creator_handle?: string | null;
+  creator_display_name?: string | null;
+  post_date?: string | null;
+  visible_metric_text?: string | null;
+  followers_count?: number | string | null;
+  subscribers_count?: number | string | null;
+  views_count?: number | string | null;
+  likes_count?: number | string | null;
+  comments_count?: number | string | null;
+  shares_count?: number | string | null;
+  engagement_rate?: number | string | null;
+  audience_quality_score?: number | string | null;
+  estimated_rate_text?: string | null;
+  sponsor_signal?: string | null;
+  evidence_summary?: string | null;
+  source_confidence?: string | null;
+  screenshot_manifest?: unknown;
+  captured_at?: string | null;
 };
 
 type ActionabilityAnswerRow = {
@@ -712,6 +743,43 @@ function projectExternalCollaborator(row: ExternalCollaboratorRow): ExternalColl
   };
 }
 
+function projectProviderPublicEvidence(row: ProviderPublicEvidenceRow): ProviderPublicEvidenceProjection | null {
+  const id = cleanString(row.provider_evidence_id);
+  const providerSource = cleanString(row.provider_source);
+  const evidenceType = cleanString(row.evidence_type);
+  const providerPageUrl = safePublicUrl(row.provider_page_url);
+  if (!id || !providerSource || !evidenceType || !providerPageUrl) return null;
+  const sourceConfidence = cleanString(row.source_confidence) ?? "provider_page_only";
+  return {
+    id,
+    providerSource,
+    evidenceType,
+    brandName: cleanDashboardText(row.brand_name),
+    brandDomain: cleanDashboardText(row.brand_domain),
+    providerPageUrl,
+    originalSourceUrl: safePublicUrl(row.original_source_url),
+    platform: cleanDashboardText(row.platform),
+    creatorHandle: cleanDashboardText(row.creator_handle),
+    creatorDisplayName: cleanDashboardText(row.creator_display_name),
+    postDate: cleanString(row.post_date),
+    visibleMetric: formatVisibleMetric(row.visible_metric_text),
+    followers: numberOrNull(row.followers_count),
+    subscribers: numberOrNull(row.subscribers_count),
+    views: numberOrNull(row.views_count),
+    likes: numberOrNull(row.likes_count),
+    comments: numberOrNull(row.comments_count),
+    shares: numberOrNull(row.shares_count),
+    engagementRate: numberOrNull(row.engagement_rate),
+    audienceQualityScore: numberOrNull(row.audience_quality_score),
+    estimatedRateText: cleanDashboardText(row.estimated_rate_text),
+    sponsorSignal: cleanDashboardText(row.sponsor_signal),
+    evidenceSummary: cleanDashboardText(row.evidence_summary),
+    sourceConfidence,
+    capturedAt: cleanString(row.captured_at),
+    screenshots: projectWebsiteScreenshots(row.screenshot_manifest, providerPageUrl),
+  };
+}
+
 function answerJsonFallback(value: unknown) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
@@ -1058,6 +1126,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     contacts: (row.contact_intelligence ?? []).map(projectContact).filter((item) => hasMeaningfulContent(item)),
     contactBook: (row.contact_book ?? []).map(projectContactBook).filter(Boolean) as ContactBookProjection[],
     externalCollaborators: (row.external_collaborators ?? []).map(projectExternalCollaborator).filter(Boolean) as ExternalCollaboratorProjection[],
+    providerPublicEvidence: (row.provider_public_evidence ?? []).map(projectProviderPublicEvidence).filter(Boolean) as ProviderPublicEvidenceProjection[],
     actionabilityAnswers: projectActionabilityAnswers(row.actionability_answers),
     tasks: (row.public_tasks ?? []).map(projectCandidateTask).filter(Boolean) as CandidateTaskProjection[],
     manualReviewTasks: (row.manual_review_tasks ?? []).map(projectCandidateTask).filter(Boolean) as CandidateTaskProjection[],

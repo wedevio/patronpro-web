@@ -160,6 +160,41 @@ SELECT
       AND lower(coalesce(cr.relationship_type, '')) ~ '(external|collaborator|partner|sponsor|affiliate|featured)'
   ), '[]'::jsonb) AS external_collaborators,
   COALESCE((
+    SELECT jsonb_agg(
+      jsonb_build_object(
+        'provider_evidence_id', ppe.provider_evidence_id,
+        'provider_source', ppe.provider_source,
+        'evidence_type', ppe.evidence_type,
+        'brand_name', ppe.brand_name,
+        'brand_domain', ppe.brand_domain,
+        'provider_page_url', ppe.provider_page_url,
+        'original_source_url', ppe.original_source_url,
+        'platform', ppe.platform,
+        'creator_handle', ppe.creator_handle,
+        'creator_display_name', ppe.creator_display_name,
+        'post_date', ppe.post_date,
+        'visible_metric_text', ppe.visible_metric_text,
+        'followers_count', ppe.followers_count,
+        'subscribers_count', ppe.subscribers_count,
+        'views_count', ppe.views_count,
+        'likes_count', ppe.likes_count,
+        'comments_count', ppe.comments_count,
+        'shares_count', ppe.shares_count,
+        'engagement_rate', ppe.engagement_rate,
+        'audience_quality_score', ppe.audience_quality_score,
+        'estimated_rate_text', ppe.estimated_rate_text,
+        'sponsor_signal', ppe.sponsor_signal,
+        'evidence_summary', ppe.evidence_summary,
+        'source_confidence', ppe.source_confidence,
+        'screenshot_manifest', ppe.screenshot_manifest,
+        'captured_at', ppe.captured_at
+      )
+      ORDER BY ppe.captured_at DESC, ppe.provider_source, ppe.provider_evidence_id
+    )
+    FROM patronpro_collab.provider_public_evidence ppe
+    WHERE ppe.candidate_id = c.candidate_id
+  ), '[]'::jsonb) AS provider_public_evidence,
+  COALESCE((
     SELECT jsonb_object_agg(
       rq.question_key,
       jsonb_build_object(

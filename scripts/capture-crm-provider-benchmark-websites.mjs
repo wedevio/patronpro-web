@@ -33,6 +33,12 @@ const candidates = [
     name: "Thryv",
     url: "https://www.thryv.com/",
   },
+  {
+    slug: "workiz",
+    candidateId: "CRM-0017",
+    name: "Workiz",
+    url: "https://www.workiz.com/",
+  },
 ];
 
 const now = new Date().toISOString();
@@ -80,7 +86,15 @@ for (const candidate of candidates) {
     await page.waitForTimeout(1200);
 
     const text = await page.locator("body").innerText({ timeout: 15000 });
-    await writeFile(textPath, text.replace(/\n{3,}/g, "\n\n"), "utf8");
+    await writeFile(
+      textPath,
+      text
+        .split("\n")
+        .map((line) => line.trimEnd())
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n"),
+      "utf8",
+    );
 
     await page.screenshot({
       path: rawPng,

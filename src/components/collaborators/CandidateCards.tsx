@@ -22,6 +22,8 @@ function strategyReach(candidate: CollaboratorProjection) {
 function campaignSignalLabel(candidate: CollaboratorProjection) {
   const signalCount = candidate.crmStrategy?.campaignSignals.length ?? 0;
   const influencerCount = candidate.crmStrategy?.knownInfluencerOrPartnerCount ?? null;
+  const providerEvidenceCount = candidate.providerPublicEvidence.length;
+  if (providerEvidenceCount) return `${providerEvidenceCount} receipts`;
   if (influencerCount) return `${new Intl.NumberFormat("en-US").format(influencerCount)} creators`;
   if (signalCount) return `${signalCount} signals`;
   return "Pending";

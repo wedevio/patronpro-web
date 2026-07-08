@@ -161,6 +161,35 @@ export type ExternalCollaboratorProjection = {
   score?: number | null;
 };
 
+export type ProviderPublicEvidenceProjection = {
+  id: string;
+  providerSource: string;
+  evidenceType: string;
+  brandName?: string | null;
+  brandDomain?: string | null;
+  providerPageUrl: string;
+  originalSourceUrl?: string | null;
+  platform?: string | null;
+  creatorHandle?: string | null;
+  creatorDisplayName?: string | null;
+  postDate?: string | null;
+  visibleMetric?: string | null;
+  followers?: number | null;
+  subscribers?: number | null;
+  views?: number | null;
+  likes?: number | null;
+  comments?: number | null;
+  shares?: number | null;
+  engagementRate?: number | null;
+  audienceQualityScore?: number | null;
+  estimatedRateText?: string | null;
+  sponsorSignal?: string | null;
+  evidenceSummary?: string | null;
+  sourceConfidence: string;
+  capturedAt?: string | null;
+  screenshots: WebsiteScreenshotProjection[];
+};
+
 export type ActionabilityAnswerProjection = {
   key: string;
   label: string;
@@ -311,6 +340,7 @@ export type CollaboratorProjection = {
   contacts: ContactProjection[];
   contactBook: ContactBookProjection[];
   externalCollaborators: ExternalCollaboratorProjection[];
+  providerPublicEvidence: ProviderPublicEvidenceProjection[];
   actionabilityAnswers: ActionabilityAnswerProjection[];
   tasks: CandidateTaskProjection[];
   manualReviewTasks: CandidateTaskProjection[];

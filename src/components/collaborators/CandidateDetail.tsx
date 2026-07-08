@@ -358,6 +358,10 @@ function collectSourceLinks(candidate: CollaboratorProjection) {
     addSourceLink(links, seen, `${collaborator.candidateName} profile`, collaborator.primaryUrl);
     for (const url of collaborator.sourceUrls) addSourceLink(links, seen, `${collaborator.candidateName} source`, url);
   }
+  for (const evidence of candidate.providerPublicEvidence) {
+    addSourceLink(links, seen, `${evidence.providerSource} receipt`, evidence.providerPageUrl);
+    addSourceLink(links, seen, `${evidence.providerSource} original`, evidence.originalSourceUrl);
+  }
 
   return links;
 }
@@ -1205,6 +1209,80 @@ function ExternalCollaborators({ candidate }: { candidate: CollaboratorProjectio
   );
 }
 
+function providerEvidenceMetric(item: CollaboratorProjection["providerPublicEvidence"][number]) {
+  const metrics = [
+    formatNumber(item.views) ? `${formatNumber(item.views)} views` : null,
+    formatNumber(item.likes) ? `${formatNumber(item.likes)} likes` : null,
+    formatNumber(item.comments) ? `${formatNumber(item.comments)} comments` : null,
+    formatNumber(item.followers) ? `${formatNumber(item.followers)} followers` : null,
+    item.engagementRate !== null && item.engagementRate !== undefined ? `${item.engagementRate}% engagement` : null,
+    item.audienceQualityScore !== null && item.audienceQualityScore !== undefined ? `${item.audienceQualityScore} audience quality` : null,
+  ].filter(Boolean);
+  return item.visibleMetric || metrics.join(" + ") || null;
+}
+
+function providerEvidenceImages(candidate: CollaboratorProjection): GalleryEvidenceImage[] {
+  return candidate.providerPublicEvidence.flatMap((item) =>
+    item.screenshots.map((screenshot) => ({
+      ...screenshot.image,
+      id: `${item.id}-${screenshot.id}`,
+      label: screenshot.label,
+      mediaTitle: `${item.providerSource.replace(/_/g, " ")} receipt`,
+    })),
+  );
+}
+
+function PublicProviderEvidence({ candidate }: { candidate: CollaboratorProjection }) {
+  const images = providerEvidenceImages(candidate);
+  if (!candidate.providerPublicEvidence.length) return null;
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 lg:grid-cols-2">
+        {candidate.providerPublicEvidence.slice(0, 12).map((item) => (
+          <article key={item.id} className="rounded-2xl bg-[#f8fafc] p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#526078]">
+                {item.providerSource.replace(/_/g, " ")}
+              </span>
+              <span className="rounded-full bg-[#fff7ea] px-2 py-1 text-xs font-semibold text-[#9b5200]">
+                {item.sourceConfidence.replace(/_/g, " ")}
+              </span>
+              {item.platform ? <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{item.platform}</span> : null}
+            </div>
+            <h3 className="mt-3 text-base font-semibold text-[#182235]">
+              {[item.creatorDisplayName ?? item.creatorHandle, item.brandName].filter(Boolean).join(" / ") || humanizeKey(item.evidenceType)}
+            </h3>
+            {item.sponsorSignal || item.evidenceSummary ? (
+              <p className="mt-2 text-sm leading-6 text-[#42506a]">{item.sponsorSignal ?? item.evidenceSummary}</p>
+            ) : null}
+            {providerEvidenceMetric(item) || item.estimatedRateText ? (
+              <p className="mt-2 text-xs leading-5 text-[#68758d]">
+                {[providerEvidenceMetric(item), item.estimatedRateText].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+            <div className="mt-3 grid gap-1 text-xs">
+              <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={item.providerPageUrl} target="_blank" rel="noreferrer">
+                Provider receipt: {item.providerPageUrl}
+              </a>
+              {item.originalSourceUrl ? (
+                <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={item.originalSourceUrl} target="_blank" rel="noreferrer">
+                  Original source: {item.originalSourceUrl}
+                </a>
+              ) : null}
+            </div>
+            {item.capturedAt || item.postDate ? (
+              <p className="mt-3 text-xs text-[#68758d]">
+                {[item.postDate ? `Post ${item.postDate}` : null, item.capturedAt ? `Captured ${item.capturedAt}` : null].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+          </article>
+        ))}
+      </div>
+      <EvidenceImageGrid images={images} />
+    </div>
+  );
+}
+
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
   const isCrmProvider = candidate.lane === "crm_providers";
   const internalContactsValue = [candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts];
@@ -1225,6 +1303,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
     { id: "social-profiles", title: "Social inventory", value: candidate.socialProfiles },
     { id: "website-analysis", title: "Website", value: candidate.websites },
     { id: "review-links", title: "Reviews", value: reviewsValue },
+    { id: "provider-public-evidence", title: "Provider receipts", value: candidate.providerPublicEvidence },
     { id: "external-collaborators", title: "Collaborators", value: externalCollaboratorsValue },
     { id: "comments-engagement", title: "Comments", value: commentsValue },
     { id: "reviewed-media", title: "Media evidence", value: mediaEvidenceValue },
@@ -1337,6 +1416,10 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
 
       <Section id="review-links" title="Reviews / Ratings Sources" value={reviewsValue}>
         <WebsiteReviews websites={candidate.websites} />
+      </Section>
+
+      <Section id="provider-public-evidence" title="Public Provider Evidence" value={candidate.providerPublicEvidence}>
+        <PublicProviderEvidence candidate={candidate} />
       </Section>
 
       <Section id="external-collaborators" title="External collaborators" value={externalCollaboratorsValue}>
