@@ -10,57 +10,91 @@ const inspirationExamples = [
   {
     name: "RD Mortgage Pro",
     niche: "Mortgage brokers",
-    signal: "Public page says the CRM is built on and powered by GoHighLevel.",
-    takeaway: "Sells qualified lead flow, done-for-you ads, branded CRM, follow-up, appointments, reports, fast launch, and ROI proof.",
+    signal: "Validated website capture says the CRM is built on GoHighLevel.",
+    takeaway: "Packages ads, landing pages, branded CRM, follow-up, appointments, reporting, fast setup, scarcity, demo, and ROI proof into one vertical lead-gen system.",
   },
   {
-    name: "Local Business Ranks Contractor CRM",
+    name: "Lead2Client CRM",
+    niche: "Insurance agents",
+    signal: "Validated website capture says it is a GoHighLevel-powered platform for insurance agents.",
+    takeaway: "Combines CRM, AI lead tools, done-for-you ad campaigns, web services, pricing from $97/mo, strategy call, and agency-scale positioning.",
+  },
+  {
+    name: "UpMotion Contractor Software",
     niche: "Contractors",
-    signal: "Public page says the contractor CRM and automations are powered by GoHighLevel.",
-    takeaway: "Packages one login for leads, replies, estimates, scheduling, field updates, invoices, reviews, and contractor-specific playbooks.",
-  },
-  {
-    name: "UpMotion Media Contractor Software",
-    niche: "Contractors",
-    signal: "Public page says the contractor software is powered by GoHighLevel.",
-    takeaway: "Leads with a simple monthly price, AI receptionist, review automation, online booking, SMS, CRM, and email.",
-  },
-  {
-    name: "My Service Robot",
-    niche: "Field service",
-    signal: "Third-party comparison describes it as built on HighLevel CRM.",
-    takeaway: "Positions as a lighter service-business CRM against ServiceTitan-style heavy platforms.",
+    signal: "Validated website capture says the contractor software is powered by GoHighLevel.",
+    takeaway: "Leads with a $97/mo AI receptionist and missed-lead rescue story, then expands into reviews, booking, SMS, CRM, email, and a strategy call.",
   },
   {
     name: "CRM Done Better",
-    niche: "Local business",
-    signal: "Public page says it is powered by HighLevel.",
-    takeaway: "Sells proven infrastructure plus support, not just software access.",
+    niche: "Coaches",
+    signal: "Validated website capture says it is powered by HighLevel.",
+    takeaway: "Positions against the blank HighLevel account by selling a prebuilt system, onboarding, support, templates, automation, and an ecosystem of add-on services.",
+  },
+  {
+    name: "CareFunnels",
+    niche: "Home care agencies",
+    signal: "Validated comparison page says it is built on HighLevel for home care.",
+    takeaway: "Uses a sharp tools-versus-system comparison, then sells client intake, caregiver recruiting, ATS, AI voice/chat, referral partner follow-up, and specialist support.",
   },
   {
     name: "MarketerM8",
-    niche: "OBMs and clients",
-    signal: "Public post says HighLevel is delivered through MarketerM8.",
-    takeaway: "Frames the CRM as a supported operating system that makes the operator look strategic to clients.",
+    niche: "UK SMEs and OBMs",
+    signal: "Validated website and article captures say MarketerM8 is powered by HighLevel.",
+    takeaway: "Runs a seminar-style education funnel with discovery calls, demos, buy-now paths, OBM content, and recurring live HighLevel workshops.",
+  },
+  {
+    name: "My Service Robot",
+    niche: "Home services",
+    signal: "Captured checkout plus third-party comparison describe a HighLevel-based service-business CRM.",
+    takeaway: "Bundles a fully built CRM with hiring pipeline, lead follow-up, review/referral follow-up, training, private community, referral commissions, and done-for-you setup.",
+  },
+  {
+    name: "Tradie Pulse CRM",
+    niche: "Trades",
+    signal: "Validated website capture says the CRM is powered by LeadConnector.",
+    takeaway: "Keeps the trades bundle compact: conversations, scheduling, pipeline, invoices, forms, funnels, reviews, team access, Meta/Google Ads integrations, fast launch, and no lock-in.",
   },
 ];
 
 const inspirationMethod = [
-  "First confirm the base: public GoHighLevel, HighLevel, LeadConnector, app-domain, or white-label evidence.",
-  "Then run the normal collaborator research pass: website, social proof, content, offer, CTA, pricing, and skip ledger.",
-  "Score the advertising pattern separately: headline, niche promise, proof, demo path, pricing, urgency, and what PatronPro should copy or avoid.",
+  "Candidate resolution: confirm public GoHighLevel, HighLevel, LeadConnector, app-domain, or white-label evidence before a provider is eligible.",
+  "Website capture: save rendered text plus WebP screenshots for product, pricing, demo, comparison, workshop, and case-study pages when present.",
+  "Offer analysis: score headline, vertical promise, proof, CTA, pricing, urgency, onboarding, support, seminars, ads, affiliate/referral, and what PatronPro should copy or avoid.",
+  "Media follow-up: queue YouTube demos, workshops, founder/influencer videos, Meta/Google/YouTube ad claims, and affiliate portals as public-only evidence targets.",
 ];
 
 const inspirationSources = [
   ["HighLevel go-to-market model", "https://marketplace.gohighlevel.com/docs/oauth/AgencyVsSubAccount"],
   ["HighLevel SaaS Mode pricing", "https://www.gohighlevel.com/pricing"],
   ["RD Mortgage Pro", "https://www.rdmarketingsolutions.com/rd-mortgage-pro"],
-  ["Local Business Ranks Contractor CRM", "https://localbusinessranks.com/contractor-crm/"],
+  ["Lead2Client CRM", "https://www.lead2clientcrm.com/"],
   ["UpMotion Media Contractor Software", "https://upmotionmedia.com/software/"],
-  ["My Service Robot comparison", "https://www.yacdaddy.com/oby-reviews/my-service-robot-vs-servicetitan/"],
   ["CRM Done Better", "https://crmdonebetter.com/features"],
+  ["CareFunnels comparison", "https://www.carefunnels.com/highlevel-vs-carefunnels/"],
   ["MarketerM8", "https://www.marketerm8.com/post/all-in-one-crm-for-obms-and-clients"],
+  ["My Service Robot comparison", "https://www.yacdaddy.com/oby-reviews/my-service-robot-vs-highlevel/"],
+  ["Tradie Pulse CRM", "https://leads-connector.com/"],
 ] as const;
+
+const crmLaneStatus = [
+  {
+    title: "Website evidence",
+    body: "Fifteen provider pages were browser-captured with rendered text and WebP review screenshots. No raw PNG intermediates remain in the research bundle.",
+  },
+  {
+    title: "Validated examples",
+    body: "Eight dashboard examples are eligible now, with caveats on My Service Robot and Tradie Pulse until official identity evidence is stronger.",
+  },
+  {
+    title: "Media queue",
+    body: "Lead2Client, Agent CRM, My Service Robot, MarketerM8, and CareFunnels have public YouTube, workshop, founder, or demo surfaces ready for the next media pass.",
+  },
+  {
+    title: "Deploy boundary",
+    body: "The dashboard section is updated in this branch. Live FSN1 deploy remains pending explicit operator approval.",
+  },
+];
 
 const linkedinStrategy = [
   {
@@ -119,12 +153,21 @@ export default function RoadmapPage() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9b5200]">Inspiration</p>
-            <h2 className="mt-2 text-2xl font-semibold">GHL-based CRM advertising patterns</h2>
+            <h2 className="mt-2 text-2xl font-semibold">CRM provider intelligence lane</h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-[#526078]">
-              Study other white-label CRMs as positioning examples. The first step is proving whether the software appears to be built on GoHighLevel, HighLevel, or LeadConnector.
+              Study how GHL, HighLevel, and LeadConnector-based CRM providers package software, ads, workshops, AI, demos, onboarding, and vertical offers.
             </p>
           </div>
-          <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Research queue</span>
+          <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Captured shortlist</span>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {crmLaneStatus.map((item) => (
+            <article key={item.title} className="rounded-2xl bg-[#f8fafc] p-4">
+              <h3 className="text-sm font-semibold text-[#182235]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#526078]">{item.body}</p>
+            </article>
+          ))}
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
