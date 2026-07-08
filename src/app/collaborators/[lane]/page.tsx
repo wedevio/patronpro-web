@@ -5,7 +5,11 @@ import type { CollaboratorLane } from "@/lib/collaborators/types";
 
 export const dynamic = "force-dynamic";
 
-const lanes = new Set(["schools", "influencers", "communities"]);
+const lanes = new Set(["schools", "influencers", "communities", "crm_providers"]);
+
+function laneTitle(lane: string) {
+  return lane.replace(/_/g, " ");
+}
 
 export default async function CollaboratorLanePage({ params }: { params: Promise<{ lane: string }> }) {
   const { lane } = await params;
@@ -16,7 +20,7 @@ export default async function CollaboratorLanePage({ params }: { params: Promise
     <div className="space-y-5">
       <header className="rounded-3xl bg-white p-6 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#9b5200]">Collaborator lane</p>
-        <h1 className="mt-2 text-3xl font-semibold capitalize md:text-5xl">{lane}</h1>
+        <h1 className="mt-2 text-3xl font-semibold capitalize md:text-5xl">{laneTitle(lane)}</h1>
         <p className="mt-4 text-[#526078]">{candidates.length} records loaded from Postgres.</p>
       </header>
       <CandidateGrid candidates={candidates} />

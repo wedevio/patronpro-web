@@ -134,7 +134,13 @@ function normalizeEvidencePath(sourcePath: string | null): string | null {
   if (path.startsWith("media/")) return path;
   if (path.includes(MEDIA_ROOT_MARKER)) {
     const tail = path.split(MEDIA_ROOT_MARKER, 2)[1]?.replace(/^\/+/, "");
-    if (tail?.startsWith("schools/") || tail?.startsWith("influencers/") || tail?.startsWith("communities/") || tail?.startsWith("_optimized/")) {
+    if (
+      tail?.startsWith("schools/") ||
+      tail?.startsWith("influencers/") ||
+      tail?.startsWith("communities/") ||
+      tail?.startsWith("crm_providers/") ||
+      tail?.startsWith("_optimized/")
+    ) {
       return `media/${tail}`;
     }
   }
@@ -910,6 +916,7 @@ function typeLabel(type: string, lane: CollaboratorLane) {
   if (type === "creator") return "contractor-focused creator";
   if (type === "facebook_group") return "contractor community group";
   if (type === "community" || lane === "communities") return "contractor community";
+  if (type === "crm_provider" || lane === "crm_providers") return "CRM provider inspiration target";
   return "contractor-market collaborator prospect";
 }
 
@@ -1022,7 +1029,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
 }
 
 export function projectSummary(rows: { source_lane: CollaboratorLane; count: string | number }[], readyRows: number, missingRows: number, totalMedia: number): DashboardSummary {
-  const byLane: DashboardSummary["byLane"] = { schools: 0, influencers: 0, communities: 0 };
+  const byLane: DashboardSummary["byLane"] = { schools: 0, influencers: 0, communities: 0, crm_providers: 0 };
   let total = 0;
   for (const row of rows) {
     const count = numberOrNull(row.count) ?? 0;

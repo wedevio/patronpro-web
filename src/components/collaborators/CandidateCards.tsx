@@ -11,6 +11,10 @@ function reachLabel(reach?: number | null) {
   return new Intl.NumberFormat("en-US").format(reach);
 }
 
+function laneLabel(lane: string) {
+  return lane.replace(/_/g, " ");
+}
+
 export function CandidateGrid({ candidates }: { candidates: CollaboratorProjection[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -22,7 +26,7 @@ export function CandidateGrid({ candidates }: { candidates: CollaboratorProjecti
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#68758d]">{candidate.lane}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#68758d]">{laneLabel(candidate.lane)}</p>
               <h2 className="mt-2 text-xl font-semibold leading-tight text-[#182235] group-hover:text-[#1E2C46]">
                 {candidate.name}
               </h2>

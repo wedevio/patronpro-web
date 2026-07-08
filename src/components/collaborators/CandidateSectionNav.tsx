@@ -7,6 +7,10 @@ type SectionNavItem = {
   title: string;
 };
 
+function laneLabel(lane: string) {
+  return lane.replace(/_/g, " ");
+}
+
 export function CandidateSectionNav({
   candidateName,
   lane,
@@ -46,7 +50,7 @@ export function CandidateSectionNav({
           aria-hidden={!stuck}
           tabIndex={stuck ? 0 : -1}
         >
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{lane}</span>
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{laneLabel(lane)}</span>
           <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
         </a>
         <div className="flex gap-2 overflow-x-auto p-3">

@@ -225,6 +225,10 @@ function humanizeKey(key: string) {
   return key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function laneLabel(lane: string) {
+  return lane.replace(/_/g, " ");
+}
+
 function safeText(value: unknown) {
   if (value === null || value === undefined) return null;
   const text = String(value).trim();
@@ -1158,7 +1162,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
   return (
     <div className="space-y-5">
       <header id="overview" className="scroll-mt-24 rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">{candidate.lane}</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">{laneLabel(candidate.lane)}</p>
         <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight md:text-5xl">{candidate.name}</h1>
         {candidate.overviewSummary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.overviewSummary}</p> : null}
         {candidate.fitSummary ? (

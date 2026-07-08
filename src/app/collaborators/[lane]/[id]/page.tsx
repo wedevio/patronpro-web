@@ -5,7 +5,7 @@ import type { CollaboratorLane } from "@/lib/collaborators/types";
 
 export const dynamic = "force-dynamic";
 
-const lanes = new Set(["schools", "influencers", "communities"]);
+const lanes = new Set(["schools", "influencers", "communities", "crm_providers"]);
 
 export default async function CollaboratorDetailPage({ params }: { params: Promise<{ lane: string; id: string }> }) {
   const { lane, id } = await params;

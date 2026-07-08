@@ -1,4 +1,4 @@
-export type CollaboratorLane = "schools" | "influencers" | "communities";
+export type CollaboratorLane = "schools" | "influencers" | "communities" | "crm_providers";
 
 export type SocialProfileProjection = {
   platform: string;

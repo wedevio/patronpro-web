@@ -5,6 +5,7 @@ const navItems = [
   ["Schools", "/collaborators/schools"],
   ["Influencers", "/collaborators/influencers"],
   ["Communities", "/collaborators/communities"],
+  ["CRM Providers", "/collaborators/crm_providers"],
   ["Recommendations", "/collaborators/recommendations"],
   ["Tasks", "/collaborators/tasks"],
   ["Roadmap", "/collaborators/roadmap"],

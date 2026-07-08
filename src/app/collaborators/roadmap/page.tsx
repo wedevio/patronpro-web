@@ -88,11 +88,11 @@ const crmLaneStatus = [
   },
   {
     title: "Media queue",
-    body: "Lead2Client, Agent CRM, My Service Robot, MarketerM8, and CareFunnels have public YouTube, workshop, founder, or demo surfaces ready for the next media pass.",
+    body: "Lead2Client, Agent CRM, My Service Robot, MarketerM8, and CareFunnels now have partial YouTube metadata receipts in the live DB; transcript and ad-library tasks remain open.",
   },
   {
-    title: "Deploy boundary",
-    body: "The dashboard section is updated in this branch. Live FSN1 deploy remains pending explicit operator approval.",
+    title: "Live DB",
+    body: "The live collaborator database now has 12 crm_providers rows, 12 websites, 58 media rows, and open follow-up tasks for ad-library, identity, and social gaps.",
   },
 ];
 
@@ -158,7 +158,7 @@ export default function RoadmapPage() {
               Study how GHL, HighLevel, and LeadConnector-based CRM providers package software, ads, workshops, AI, demos, onboarding, and vertical offers.
             </p>
           </div>
-          <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Captured shortlist</span>
+          <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Live DB seeded</span>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
