@@ -220,6 +220,26 @@ export type CandidateTaskProjection = {
   updatedAt?: string | null;
 };
 
+export type CrmProviderStrategyScoreProjection = {
+  key: string;
+  label: string;
+  value?: number | null;
+};
+
+export type CrmProviderStrategyProjection = {
+  benchmarkRole?: string | null;
+  primaryOffer?: string | null;
+  funnelModel?: string | null;
+  strategySummary?: string | null;
+  rubricScores: CrmProviderStrategyScoreProjection[];
+  knownSocialReach?: number | null;
+  socialProfileCount?: number | null;
+  knownInfluencerOrPartnerCount?: number | null;
+  campaignSignals: string[];
+  primaryChannels: string[];
+  metricSources: string[];
+};
+
 export type CommercialReviewTaskLaneSummary = {
   lane: CollaboratorLane;
   open: number;
@@ -274,6 +294,7 @@ export type CollaboratorProjection = {
   shortlistStatus?: string | null;
   opportunityTier?: string | null;
   scoreInputs?: Record<string, unknown> | null;
+  crmStrategy?: CrmProviderStrategyProjection | null;
   evidenceIds: string[];
   totalReach?: number | null;
   tags: string[];

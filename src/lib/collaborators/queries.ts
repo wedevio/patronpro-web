@@ -189,6 +189,14 @@ SELECT
     ) answer ON true
     WHERE gs.project_key = 'patron-pro-collab-prospect-research'
       AND gs.status = 'active'
+      AND (
+        NOT (gs.raw_public_payload ? 'applicable_source_lanes')
+        OR (gs.raw_public_payload->'applicable_source_lanes') ? c.source_lane
+      )
+      AND (
+        NOT (rq.raw_public_payload ? 'applicable_source_lanes')
+        OR (rq.raw_public_payload->'applicable_source_lanes') ? c.source_lane
+      )
   ), '{}'::jsonb) AS actionability_answers,
   COALESCE((
     SELECT cas.public_tasks

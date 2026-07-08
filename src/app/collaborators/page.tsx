@@ -16,7 +16,7 @@ export default async function CollaboratorsOverviewPage() {
           PatronPro collaborator pipeline
         </h1>
         <p className="mt-4 max-w-4xl text-base leading-7 text-[#526078] md:text-lg">
-          Postgres-backed review surface for schools, influencers, communities, and CRM provider inspiration. The current static dashboard remains live while this Next.js version becomes the working system of record.
+          Postgres-backed review surface for schools, influencers, communities, and CRM provider case studies. The current static dashboard remains live while this Next.js version becomes the working system of record.
         </p>
       </header>
 
@@ -39,7 +39,7 @@ export default async function CollaboratorsOverviewPage() {
         <div className="rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
           <h2 className="text-xl font-semibold">Quality gate</h2>
           <p className="mt-3 text-sm leading-6 text-[#526078]">
-            Schools and influencers currently clear the live repair audit. CRM provider rows now carry partial YouTube metadata receipts and open ad-library/transcript follow-up tasks.
+            Schools and influencers currently clear the live repair audit. CRM provider rows now carry a separate strategy rubric, social profile receipts, and open ad-library/transcript follow-up tasks.
           </p>
         </div>
       </section>

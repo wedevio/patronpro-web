@@ -221,6 +221,79 @@ function scoreValue(score?: number | null) {
   );
 }
 
+function CrmProviderCaseStudyRubric({ candidate }: { candidate: CollaboratorProjection }) {
+  const strategy = candidate.crmStrategy;
+  const metricItems = [
+    ["Known social reach", formatNumber(strategy?.knownSocialReach ?? candidate.totalReach)],
+    ["Social profiles", strategy?.socialProfileCount ?? candidate.socialProfiles.length],
+    ["Campaign signals", strategy?.campaignSignals.length ?? null],
+    ["Creator/partner signals", strategy?.knownInfluencerOrPartnerCount ?? null],
+  ].filter(([, value]) => hasMeaningfulContent(value));
+
+  return (
+    <div className="grid gap-4">
+      {strategy?.strategySummary ? <p className="text-base leading-7 text-[#42506a]">{strategy.strategySummary}</p> : null}
+      <div className="grid gap-3 md:grid-cols-4">
+        {metricItems.map(([label, value]) => (
+          <Metric key={String(label)} label={String(label)} value={value} />
+        ))}
+      </div>
+      {strategy?.rubricScores.length ? (
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Rubric scores</h3>
+          <div className="grid gap-2 md:grid-cols-3">
+            {strategy.rubricScores.map((score) => (
+              <div key={score.key} className="rounded-xl bg-[#f8fafc] p-3">
+                <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">{score.label}</span>
+                <strong className="mt-1 block text-2xl text-[#182235]">{score.value ?? "-"}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      {strategy?.primaryOffer || strategy?.funnelModel ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {strategy.primaryOffer ? (
+            <div className="rounded-xl bg-[#f8fafc] p-4">
+              <h3 className="text-sm font-semibold text-[#182235]">Primary offer</h3>
+              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.primaryOffer}</p>
+            </div>
+          ) : null}
+          {strategy.funnelModel ? (
+            <div className="rounded-xl bg-[#f8fafc] p-4">
+              <h3 className="text-sm font-semibold text-[#182235]">Funnel model</h3>
+              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.funnelModel}</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {strategy && (strategy.campaignSignals.length || strategy.primaryChannels.length || strategy.metricSources.length) ? (
+        <div className="grid gap-3 md:grid-cols-3">
+          {strategy.campaignSignals.length ? (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Campaign signals</h3>
+              {bullets(strategy.campaignSignals)}
+            </div>
+          ) : null}
+          {strategy.primaryChannels.length ? (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Channels</h3>
+              {bullets(strategy.primaryChannels)}
+            </div>
+          ) : null}
+          {strategy.metricSources.length ? (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Metric sources</h3>
+              {bullets(strategy.metricSources)}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
+    </div>
+  );
+}
+
 function humanizeKey(key: string) {
   return key.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -1133,6 +1206,7 @@ function ExternalCollaborators({ candidate }: { candidate: CollaboratorProjectio
 }
 
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
+  const isCrmProvider = candidate.lane === "crm_providers";
   const internalContactsValue = [candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts];
   const externalCollaboratorsValue = [candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)];
   const reviewsValue = websiteReviewLinks(candidate.websites);
@@ -1144,7 +1218,7 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
   const mediaEvidenceValue = [candidate.media, manualMediaReviews];
   const sectionNavItems = [
     { id: "overview", title: "Overview", value: [candidate.overviewSummary, candidate.fitSummary, candidate.score, candidate.evidenceConfidence, candidate.totalReach] },
-    { id: "collaboration-compatibility", title: "Fit answers", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles] },
+    { id: "collaboration-compatibility", title: isCrmProvider ? "Rubric" : "Fit answers", value: [candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles, candidate.crmStrategy] },
     { id: "internal-contacts", title: "Contact intelligence", value: internalContactsValue },
     { id: "recommendation", title: "Recommendation", value: candidate.recommendation },
     { id: "strategy", title: "Strategy", value: [candidate.opportunities, candidate.shortcomings, candidate.risks, OUTREACH_CHANNEL_MATRIX] },
@@ -1167,26 +1241,32 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         {candidate.overviewSummary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.overviewSummary}</p> : null}
         {candidate.fitSummary ? (
           <div className="mt-5 max-w-5xl rounded-2xl border border-white/15 bg-white/10 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">PatronPro fit</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{isCrmProvider ? "Strategy takeaway" : "PatronPro fit"}</p>
             <p className="mt-2 text-sm leading-6 text-[#f2f6fb] md:text-base">{candidate.fitSummary}</p>
           </div>
         ) : null}
       </header>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Metric label="Compatibility" value={scoreValue(candidate.score)} />
+        <Metric label={isCrmProvider ? "Strategy" : "Compatibility"} value={scoreValue(candidate.score)} />
         <Metric label="Confidence" value={candidate.evidenceConfidence ?? null} />
-        <Metric label="Reach" value={formatNumber(candidate.totalReach)} />
-        <Metric label="Reviewed media" value={candidate.media.length || null} />
+        <Metric label={isCrmProvider ? "Social reach" : "Reach"} value={formatNumber(candidate.crmStrategy?.knownSocialReach ?? candidate.totalReach)} />
+        <Metric label={isCrmProvider ? "Social profiles" : "Reviewed media"} value={isCrmProvider ? (candidate.crmStrategy?.socialProfileCount ?? candidate.socialProfiles.length) : candidate.media.length || null} />
       </div>
 
       <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={visibleSectionNavItems} />
 
-      <Section id="collaboration-compatibility" title="Fit Answers / Compatibility" value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles]}>
-        <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
-        <CommercialPartnershipPricingCard answers={candidate.actionabilityAnswers} />
-        <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
-        <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
+      <Section id="collaboration-compatibility" title={isCrmProvider ? "CRM Provider Case Study Rubric" : "Fit Answers / Compatibility"} value={[candidate.actionabilityAnswers, candidate.clearanceRuns, candidate.socialProfiles, candidate.crmStrategy]}>
+        {isCrmProvider ? (
+          <CrmProviderCaseStudyRubric candidate={candidate} />
+        ) : (
+          <>
+            <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
+            <CommercialPartnershipPricingCard answers={candidate.actionabilityAnswers} />
+            <CommercialSignalsOffers clearanceRuns={candidate.clearanceRuns} />
+            <ClearanceSummary clearanceRuns={candidate.clearanceRuns} />
+          </>
+        )}
       </Section>
 
       <Section id="internal-contacts" title="Contact Intelligence / Public Routes" value={internalContactsValue}>
@@ -1204,9 +1284,11 @@ export function CandidateDetail({ candidate }: { candidate: CollaboratorProjecti
         <Section title="Shortcomings / Caveats" value={[candidate.shortcomings, candidate.risks]}>
           {bullets([...candidate.shortcomings, ...candidate.risks])}
         </Section>
-        <div className="lg:col-span-2">
-          <OutreachChannelMatrix />
-        </div>
+        {!isCrmProvider ? (
+          <div className="lg:col-span-2">
+            <OutreachChannelMatrix />
+          </div>
+        ) : null}
       </div>
 
       <Section id="social-profiles" title="Verified Social Inventory" value={candidate.socialProfiles}>

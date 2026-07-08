@@ -8,6 +8,30 @@ const phases = [
 
 const inspirationExamples = [
   {
+    name: "Jobber",
+    niche: "Home and commercial services",
+    signal: "Client-requested benchmark with public website, YouTube, Instagram, TikTok, Facebook, LinkedIn, and third-party creator sponsorship signals.",
+    takeaway: "Sells simple contractor operations first, then extends trust through summit, grant, creator, and education surfaces that make the CRM feel like a growth community.",
+  },
+  {
+    name: "Housecall Pro",
+    niche: "Home-service professionals",
+    signal: "Top field-service benchmark with strong official YouTube, TikTok, Instagram, Facebook, LinkedIn, and community signals.",
+    takeaway: "Uses practical technician and owner content, free-tool positioning, and short-video reach to make the product feel operational before the demo request.",
+  },
+  {
+    name: "ServiceTitan",
+    niche: "Trades and enterprise field service",
+    signal: "Large industry benchmark with official social surfaces, conference/community proof, partner marketplace signals, and vertical-specific product packaging.",
+    takeaway: "Leans on scale, authority, and education-led category leadership; useful for what PatronPro should adapt without copying enterprise weight.",
+  },
+  {
+    name: "Thryv",
+    niche: "Small-business CRM and marketing",
+    signal: "Broad SMB benchmark with official social surfaces and AI lead-flow messaging across CRM, marketing, payments, scheduling, and reputation.",
+    takeaway: "Packages CRM as the center of a broader marketing automation system, which is a useful contrast to narrower field-service-first providers.",
+  },
+  {
     name: "RD Mortgage Pro",
     niche: "Mortgage brokers",
     signal: "Validated website capture says the CRM is built on GoHighLevel.",
@@ -80,19 +104,19 @@ const inspirationSources = [
 const crmLaneStatus = [
   {
     title: "Website evidence",
-    body: "Fifteen provider pages were browser-captured with rendered text and WebP review screenshots. No raw PNG intermediates remain in the research bundle.",
+    body: "Provider pages are captured as rendered evidence with WebP review screenshots where browser capture is available. New benchmark records keep source URLs and open screenshot tasks separate from Git-heavy raw media.",
   },
   {
-    title: "Validated examples",
-    body: "Eight dashboard examples are eligible now, with caveats on My Service Robot and Tradie Pulse until official identity evidence is stronger.",
+    title: "Benchmark examples",
+    body: "The live lane now includes Jobber, Housecall Pro, ServiceTitan, and Thryv alongside the earlier GHL/HighLevel/LeadConnector provider examples.",
   },
   {
-    title: "Media queue",
-    body: "Lead2Client, Agent CRM, My Service Robot, MarketerM8, and CareFunnels now have partial YouTube metadata receipts in the live DB; transcript and ad-library tasks remain open.",
+    title: "Social strategy queue",
+    body: "Each new benchmark has public YouTube, Instagram, TikTok, Facebook, and LinkedIn profile records; Facebook count and ad-library checks remain open where unauthenticated pages blocked reliable counts.",
   },
   {
     title: "Live DB",
-    body: "The live collaborator database now has 12 crm_providers rows, 12 websites, 58 media rows, and open follow-up tasks for ad-library, identity, and social gaps.",
+    body: "The live collaborator database now has 16 crm_providers rows, 20 new benchmark social profiles, 48 new research answers, and 4 CRM case-study scorecards.",
   },
 ];
 
@@ -155,7 +179,7 @@ export default function RoadmapPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9b5200]">Inspiration</p>
             <h2 className="mt-2 text-2xl font-semibold">CRM provider intelligence lane</h2>
             <p className="mt-3 max-w-4xl text-sm leading-6 text-[#526078]">
-              Study how GHL, HighLevel, and LeadConnector-based CRM providers package software, ads, workshops, AI, demos, onboarding, and vertical offers.
+              Study how CRM providers package software, ads, workshops, AI, demos, onboarding, vertical offers, social distribution, influencers, and customer-acquisition funnels.
             </p>
           </div>
           <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Live DB seeded</span>

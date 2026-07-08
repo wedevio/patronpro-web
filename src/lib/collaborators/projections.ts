@@ -11,6 +11,7 @@ import type {
   EvidenceImageProjection,
   ExternalCollaboratorProjection,
   ActionabilityAnswerProjection,
+  CrmProviderStrategyProjection,
   MediaEvidenceProjection,
   SocialProfileProjection,
   WebsiteProjection,
@@ -125,6 +126,7 @@ type MediaDerivativeRecord = {
 const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivativeRecord>;
 const MEDIA_ROOT_MARKER = "patron-pro-prospect-media-audit/";
 const PARTNERSHIP_PRICING_KEY = "commercial_partnerships_and_pricing";
+const CRM_PROVIDER_CASE_STUDY_KEY = "crm_provider_case_study_v1";
 
 function normalizeEvidencePath(sourcePath: string | null): string | null {
   if (!sourcePath) return null;
@@ -772,6 +774,38 @@ function cleanPartnershipPricingPayload(value: unknown): CommercialPartnershipPr
   return hasMeaningfulContent(payload) ? payload : null;
 }
 
+function cleanCrmProviderStrategy(scoreInputs: Record<string, unknown> | null, lane: CollaboratorLane): CrmProviderStrategyProjection | null {
+  if (lane !== "crm_providers" || !scoreInputs || typeof scoreInputs !== "object" || Array.isArray(scoreInputs)) return null;
+  const rawPayload = scoreInputs[CRM_PROVIDER_CASE_STUDY_KEY];
+  if (!rawPayload || typeof rawPayload !== "object" || Array.isArray(rawPayload)) return null;
+  const payload = rawPayload as Record<string, unknown>;
+  const rubricPayload =
+    payload.rubric_scores && typeof payload.rubric_scores === "object" && !Array.isArray(payload.rubric_scores)
+      ? (payload.rubric_scores as Record<string, unknown>)
+      : {};
+  const rubricScores = Object.entries(rubricPayload)
+    .map(([key, value]) => ({
+      key,
+      label: humanizeQuestionKey(key),
+      value: payloadNumber(value),
+    }))
+    .filter((score) => score.value !== null);
+  const strategy: CrmProviderStrategyProjection = {
+    benchmarkRole: cleanDashboardText(payload.benchmark_role),
+    primaryOffer: cleanDashboardText(payload.primary_offer),
+    funnelModel: cleanDashboardText(payload.funnel_model),
+    strategySummary: cleanDashboardText(payload.strategy_summary),
+    rubricScores,
+    knownSocialReach: payloadNumber(payload.known_social_reach),
+    socialProfileCount: payloadNumber(payload.social_profile_count),
+    knownInfluencerOrPartnerCount: payloadNumber(payload.known_influencer_or_partner_count),
+    campaignSignals: cleanPayloadList(payload.campaign_signals),
+    primaryChannels: cleanPayloadList(payload.primary_channels),
+    metricSources: cleanPayloadList(payload.public_metric_sources),
+  };
+  return hasMeaningfulContent(strategy) ? strategy : null;
+}
+
 function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswerRow> | null): ActionabilityAnswerProjection[] {
   if (!answers || typeof answers !== "object") return [];
   return Object.entries(answers)
@@ -977,6 +1011,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
   const captureSummary = cleanString(row.capture_summary);
   const rankReason = cleanString(row.rank_reason);
   const websiteSummary = firstWebsiteSummary(websites);
+  const crmStrategy = cleanCrmProviderStrategy(row.score_inputs, row.source_lane);
   const overviewSummary = buildCandidateOverview({
     name: row.canonical_name,
     type: row.candidate_type,
@@ -988,7 +1023,10 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     rankReason,
     websiteSummary,
   });
-  const fitSummary = cleanString(row.recommended_collaboration_angle) ?? cleanString(row.rank_reason);
+  const fitSummary =
+    row.source_lane === "crm_providers"
+      ? crmStrategy?.strategySummary ?? cleanString(row.recommended_collaboration_angle) ?? cleanString(row.rank_reason)
+      : cleanString(row.recommended_collaboration_angle) ?? cleanString(row.rank_reason);
   return {
     id: row.candidate_id,
     lane: row.source_lane,
@@ -1003,6 +1041,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     shortlistStatus: cleanString(row.shortlist_status),
     opportunityTier: cleanString(row.opportunity_tier),
     scoreInputs: row.score_inputs && hasMeaningfulContent(row.score_inputs) ? row.score_inputs : null,
+    crmStrategy,
     evidenceIds: collectEvidenceIds(media),
     totalReach,
     tags,
