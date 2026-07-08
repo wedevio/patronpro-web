@@ -74,9 +74,9 @@ SELECT
     WHERE w.candidate_id = c.candidate_id
       AND lower(coalesce(w.crawl_status, '')) !~ '^(superseded|duplicate)'
   ), '[]'::jsonb) AS websites,
-  COALESCE((
-    SELECT jsonb_agg(
-      jsonb_build_object(
+	  COALESCE((
+	    SELECT jsonb_agg(
+	      jsonb_build_object(
         'media_item_id', m.media_item_id,
         'platform', m.platform,
         'canonical_url', m.canonical_url,
@@ -191,11 +191,41 @@ SELECT
       )
       ORDER BY ppe.captured_at DESC, ppe.provider_source, ppe.provider_evidence_id
     )
-    FROM patronpro_collab.provider_public_evidence ppe
-    WHERE ppe.candidate_id = c.candidate_id
-  ), '[]'::jsonb) AS provider_public_evidence,
-  COALESCE((
-    SELECT jsonb_object_agg(
+	    FROM patronpro_collab.provider_public_evidence ppe
+	    WHERE ppe.candidate_id = c.candidate_id
+	  ), '[]'::jsonb) AS provider_public_evidence,
+	  COALESCE((
+	    SELECT jsonb_agg(
+	      jsonb_build_object(
+	        'strategy_pattern_id', spp.strategy_pattern_id,
+	        'pattern_type', spp.pattern_type,
+	        'pattern_name', spp.pattern_name,
+	        'strategy_summary', spp.strategy_summary,
+	        'why_it_works', spp.why_it_works,
+	        'patronpro_replication_idea', spp.patronpro_replication_idea,
+	        'evidence_strength', spp.evidence_strength,
+	        'primary_channel', spp.primary_channel,
+	        'source_urls', spp.source_urls,
+	        'related_provider_evidence_ids', spp.related_provider_evidence_ids,
+	        'screenshot_manifest', spp.screenshot_manifest,
+	        'captured_at', spp.captured_at
+	      )
+	      ORDER BY
+	        CASE spp.evidence_strength
+	          WHEN 'strong_public' THEN 1
+	          WHEN 'directional_public' THEN 2
+	          WHEN 'needs_verification' THEN 3
+	          WHEN 'blocked' THEN 4
+	          ELSE 5
+	        END,
+	        spp.pattern_type,
+	        spp.strategy_pattern_id
+	    )
+	    FROM patronpro_collab.crm_provider_strategy_patterns spp
+	    WHERE spp.candidate_id = c.candidate_id
+	  ), '[]'::jsonb) AS crm_strategy_patterns,
+	  COALESCE((
+	    SELECT jsonb_object_agg(
       rq.question_key,
       jsonb_build_object(
         'question_id', rq.question_id,

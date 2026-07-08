@@ -11,6 +11,7 @@ import type {
   EvidenceImageProjection,
   ExternalCollaboratorProjection,
   ActionabilityAnswerProjection,
+  CrmProviderStrategyPatternProjection,
   CrmProviderStrategyProjection,
   MediaEvidenceProjection,
   ProviderPublicEvidenceProjection,
@@ -49,6 +50,7 @@ export type RawCandidateRow = {
   contact_book: ContactBookRow[] | null;
   external_collaborators: ExternalCollaboratorRow[] | null;
   provider_public_evidence: ProviderPublicEvidenceRow[] | null;
+  crm_strategy_patterns: CrmProviderStrategyPatternRow[] | null;
   actionability_answers: Record<string, ActionabilityAnswerRow> | null;
   public_tasks: CandidateTaskRow[] | null;
   manual_review_tasks: CandidateTaskRow[] | null;
@@ -257,6 +259,21 @@ type ProviderPublicEvidenceRow = {
   captured_at?: string | null;
 };
 
+type CrmProviderStrategyPatternRow = {
+  strategy_pattern_id?: string | null;
+  pattern_type?: string | null;
+  pattern_name?: string | null;
+  strategy_summary?: string | null;
+  why_it_works?: string | null;
+  patronpro_replication_idea?: string | null;
+  evidence_strength?: string | null;
+  primary_channel?: string | null;
+  source_urls?: unknown;
+  related_provider_evidence_ids?: unknown;
+  screenshot_manifest?: unknown;
+  captured_at?: string | null;
+};
+
 type ActionabilityAnswerRow = {
   label?: string | null;
   short_label?: string | null;
@@ -385,6 +402,35 @@ function cleanEvidencePath(value: unknown) {
   if (/cookie|token|signed_url|api[_-]?key|secret/i.test(trimmed)) return null;
   const normalized = normalizeEvidencePath(trimmed);
   return normalized?.startsWith("media/") ? normalized : null;
+}
+
+function cleanDashboardImageUrl(value: unknown) {
+  if (typeof value !== "string") return null;
+  const url = value.trim();
+  if (!url || !url.startsWith("/crm-provider-evidence/") || !url.endsWith(".webp")) return null;
+  if (url.includes("..") || /cookie|token|signed_url|api[_-]?key|secret/i.test(url)) return null;
+  return url;
+}
+
+const JOBBER_PUBLIC_EVIDENCE_WEBP = new Set([
+  "hypeauditor-instagram-audit-tool.detail.webp",
+  "hypeauditor-instagram-audit-tool.thumb.webp",
+  "jobber-website.detail.webp",
+  "jobber-website.thumb.webp",
+  "meta-ad-library-jobber-keyword.detail.webp",
+  "meta-ad-library-jobber-keyword.thumb.webp",
+  "modash-jobber-examples.detail.webp",
+  "modash-jobber-examples.thumb.webp",
+  "modash-jobber-influencers.detail.webp",
+  "modash-jobber-influencers.thumb.webp",
+]);
+
+function crmProviderPublicImageUrlFromArtifact(value: unknown) {
+  const artifact = cleanString(value);
+  if (!artifact || !artifact.endsWith(".webp")) return null;
+  const filename = artifact.split("/").pop();
+  if (!filename || !JOBBER_PUBLIC_EVIDENCE_WEBP.has(filename)) return null;
+  return `/crm-provider-evidence/jobber/strategy/${filename}`;
 }
 
 function cleanList(values: unknown): string[] {
@@ -575,6 +621,23 @@ function resolveEvidenceImage(sourcePath: string | null): EvidenceImageProjectio
   };
 }
 
+function projectDashboardPublicScreenshot(item: Record<string, unknown>, websiteUrl: string, index: number): WebsiteScreenshotProjection | null {
+  const detailUrl = cleanDashboardImageUrl(item.dashboard_public_detail_url) ?? crmProviderPublicImageUrlFromArtifact(item.detail_webp_artifact);
+  const thumbUrl = cleanDashboardImageUrl(item.dashboard_public_thumb_url) ?? crmProviderPublicImageUrlFromArtifact(item.thumb_webp_artifact);
+  if (!detailUrl || !thumbUrl) return null;
+  const label = cleanDashboardText(item.label) ?? `Screenshot ${index + 1}`;
+  return {
+    id: `${websiteUrl}-dashboard-public-${index}`,
+    label,
+    path: detailUrl,
+    image: {
+      kind: "crm_provider_evidence",
+      thumbUrl,
+      detailUrl,
+    },
+  };
+}
+
 function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): WebsiteScreenshotProjection[] {
   if (!Array.isArray(manifest)) return [];
   const screenshots: WebsiteScreenshotProjection[] = [];
@@ -593,6 +656,11 @@ function projectWebsiteScreenshots(manifest: unknown, websiteUrl: string): Websi
       continue;
     }
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const publicScreenshot = projectDashboardPublicScreenshot(item as Record<string, unknown>, websiteUrl, screenshots.length);
+    if (publicScreenshot) {
+      screenshots.push(publicScreenshot);
+      continue;
+    }
     for (const [key, value] of Object.entries(item)) {
       const path = cleanEvidencePath(value);
       if (!path) continue;
@@ -777,6 +845,27 @@ function projectProviderPublicEvidence(row: ProviderPublicEvidenceRow): Provider
     sourceConfidence,
     capturedAt: cleanString(row.captured_at),
     screenshots: projectWebsiteScreenshots(row.screenshot_manifest, providerPageUrl),
+  };
+}
+
+function projectCrmProviderStrategyPattern(row: CrmProviderStrategyPatternRow): CrmProviderStrategyPatternProjection | null {
+  const id = cleanString(row.strategy_pattern_id);
+  const type = cleanString(row.pattern_type);
+  const name = cleanDashboardText(row.pattern_name);
+  if (!id || !type || !name) return null;
+  return {
+    id,
+    type,
+    name,
+    strategySummary: cleanDashboardText(row.strategy_summary),
+    whyItWorks: cleanDashboardText(row.why_it_works),
+    patronproReplicationIdea: cleanDashboardText(row.patronpro_replication_idea),
+    evidenceStrength: cleanString(row.evidence_strength) ?? "directional_public",
+    primaryChannel: cleanDashboardText(row.primary_channel),
+    sourceUrls: cleanUrlList(row.source_urls),
+    relatedProviderEvidenceIds: cleanList(row.related_provider_evidence_ids),
+    screenshots: projectWebsiteScreenshots(row.screenshot_manifest, id),
+    capturedAt: cleanString(row.captured_at),
   };
 }
 
@@ -1110,6 +1199,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     opportunityTier: cleanString(row.opportunity_tier),
     scoreInputs: row.score_inputs && hasMeaningfulContent(row.score_inputs) ? row.score_inputs : null,
     crmStrategy,
+    crmStrategyPatterns: (row.crm_strategy_patterns ?? []).map(projectCrmProviderStrategyPattern).filter(Boolean) as CrmProviderStrategyPatternProjection[],
     evidenceIds: collectEvidenceIds(media),
     totalReach,
     tags,

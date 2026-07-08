@@ -289,7 +289,6 @@ function CrmProviderCaseStudyRubric({ candidate }: { candidate: CollaboratorProj
           ) : null}
         </div>
       ) : null}
-      <CollaborationCompatibilityCards answers={candidate.actionabilityAnswers} />
     </div>
   );
 }
@@ -361,6 +360,9 @@ function collectSourceLinks(candidate: CollaboratorProjection) {
   for (const evidence of candidate.providerPublicEvidence) {
     addSourceLink(links, seen, `${evidence.providerSource} receipt`, evidence.providerPageUrl);
     addSourceLink(links, seen, `${evidence.providerSource} original`, evidence.originalSourceUrl);
+  }
+  for (const pattern of candidate.crmStrategyPatterns) {
+    for (const url of pattern.sourceUrls) addSourceLink(links, seen, `${pattern.name} source`, url);
   }
 
   return links;
@@ -1283,8 +1285,261 @@ function PublicProviderEvidence({ candidate }: { candidate: CollaboratorProjecti
   );
 }
 
+function readableLabel(value?: string | null) {
+  return value ? value.replace(/_/g, " ") : null;
+}
+
+function strategyPatternImages(candidate: CollaboratorProjection): GalleryEvidenceImage[] {
+  return candidate.crmStrategyPatterns.flatMap((pattern) =>
+    pattern.screenshots.map((screenshot) => ({
+      ...screenshot.image,
+      id: `${pattern.id}-${screenshot.id}`,
+      label: screenshot.label,
+      mediaTitle: pattern.name,
+    })),
+  );
+}
+
+function evidenceStrengthClass(value: string) {
+  if (value === "strong_public") return "bg-[#e8f7ef] text-[#176b3a]";
+  if (value === "needs_verification") return "bg-[#fff7ea] text-[#9b5200]";
+  if (value === "blocked") return "bg-[#fff1f2] text-[#9f1239]";
+  return "bg-[#eef4fb] text-[#355879]";
+}
+
+function CrmProviderStrategyPatterns({ candidate }: { candidate: CollaboratorProjection }) {
+  const images = strategyPatternImages(candidate);
+  if (!candidate.crmStrategyPatterns.length) return null;
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {candidate.crmStrategyPatterns.map((pattern) => (
+          <article key={pattern.id} className="rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#526078]">
+                {readableLabel(pattern.type)}
+              </span>
+              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${evidenceStrengthClass(pattern.evidenceStrength)}`}>
+                {readableLabel(pattern.evidenceStrength)}
+              </span>
+              {pattern.primaryChannel ? (
+                <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#526078]">{pattern.primaryChannel}</span>
+              ) : null}
+            </div>
+            <h3 className="mt-3 text-base font-semibold text-[#182235]">{pattern.name}</h3>
+            {pattern.strategySummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{pattern.strategySummary}</p> : null}
+            {pattern.whyItWorks ? (
+              <div className="mt-3 rounded-xl bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">Why it works</p>
+                <p className="mt-1 text-sm leading-6 text-[#42506a]">{pattern.whyItWorks}</p>
+              </div>
+            ) : null}
+            {pattern.patronproReplicationIdea ? (
+              <div className="mt-3 rounded-xl border border-[#f0dfbd] bg-[#fffaf2] p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8a5b17]">PatronPro test</p>
+                <p className="mt-1 text-sm leading-6 text-[#42506a]">{pattern.patronproReplicationIdea}</p>
+              </div>
+            ) : null}
+            {pattern.sourceUrls.length ? (
+              <div className="mt-3 grid gap-1">
+                {pattern.sourceUrls.slice(0, 3).map((url) => (
+                  <a key={url} className="break-all text-xs text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                    {url}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+          </article>
+        ))}
+      </div>
+      <EvidenceImageGrid images={images} />
+    </div>
+  );
+}
+
+function CrmProviderChannelMap({ candidate }: { candidate: CollaboratorProjection }) {
+  const strategy = candidate.crmStrategy;
+  const rows = [
+    ["Campaign signals", strategy?.campaignSignals ?? []],
+    ["Primary channels", strategy?.primaryChannels ?? []],
+    ["Metric sources", strategy?.metricSources ?? []],
+  ].filter(([, items]) => Array.isArray(items) && items.length) as [string, string[]][];
+
+  return (
+    <div className="grid gap-4">
+      {rows.length ? (
+        <div className="grid gap-3 md:grid-cols-3">
+          {rows.map(([title, items]) => (
+            <div key={title}>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">{title}</h3>
+              {bullets(items)}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {candidate.socialProfiles.length ? (
+        <div className="overflow-x-auto rounded-2xl border border-[#edf1f6]">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="bg-[#f8fafc] text-xs uppercase tracking-[0.14em] text-[#68758d]">
+              <tr>
+                <th className="px-3 py-2">Platform</th>
+                <th className="px-3 py-2">Profile</th>
+                <th className="px-3 py-2">Public metric</th>
+                <th className="px-3 py-2">Research stance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {candidate.socialProfiles.map((profile) => (
+                <tr key={`${profile.platform}-${profile.url}`} className="border-t border-[#edf1f6]">
+                  <td className="px-3 py-3 font-semibold capitalize text-[#182235]">{profile.platform}</td>
+                  <td className="px-3 py-3">
+                    <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={profile.url} target="_blank" rel="noreferrer">
+                      {profile.url}
+                    </a>
+                  </td>
+                  <td className="px-3 py-3 text-[#42506a]">{socialMetric(profile)}</td>
+                  <td className="px-3 py-3 text-[#526078]">{profile.status ?? profile.verificationStatus ?? "public profile captured"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function CrmProviderMediaReviewQueue({ candidate, manualReviews }: { candidate: CollaboratorProjection; manualReviews: CollaboratorProjection["manualReviewTasks"] }) {
+  const gapPatterns = candidate.crmStrategyPatterns.filter((pattern) => pattern.evidenceStrength === "needs_verification" || pattern.type === "evidence_gap");
+  const queueItems = [
+    "Verify original creator posts behind Modash receipts where the public post is accessible.",
+    "Run ASR/OCR on top Jobber creator videos to capture hooks, codes, discount mechanics, raffle or grant CTAs, and spoken claims.",
+    "Separate official Jobber education videos from third-party sponsored creator posts before writing reusable ad briefs.",
+    "Confirm whether HypeAuditor or similar public tools can produce durable account-level screenshots without paid API access.",
+  ];
+  return (
+    <div className="grid gap-4">
+      {gapPatterns.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {gapPatterns.map((pattern) => (
+            <article key={pattern.id} className="rounded-2xl border border-[#f0dfbd] bg-[#fffaf2] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a5b17]">{readableLabel(pattern.evidenceStrength)}</p>
+              <h3 className="mt-2 text-base font-semibold text-[#182235]">{pattern.name}</h3>
+              {pattern.strategySummary ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{pattern.strategySummary}</p> : null}
+            </article>
+          ))}
+        </div>
+      ) : null}
+      <div>
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Next video-analysis tasks</h3>
+        {bullets(queueItems)}
+      </div>
+      <MediaEvidenceGallery media={candidate.media} manualReviews={manualReviews} />
+    </div>
+  );
+}
+
+function CrmProviderWebsiteOfferAnalysis({ candidate }: { candidate: CollaboratorProjection }) {
+  const strategy = candidate.crmStrategy;
+  return (
+    <div className="grid gap-4">
+      {strategy?.primaryOffer || strategy?.funnelModel ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {strategy.primaryOffer ? (
+            <div className="rounded-2xl bg-[#f8fafc] p-4">
+              <h3 className="text-sm font-semibold text-[#182235]">Primary offer</h3>
+              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.primaryOffer}</p>
+            </div>
+          ) : null}
+          {strategy.funnelModel ? (
+            <div className="rounded-2xl bg-[#f8fafc] p-4">
+              <h3 className="text-sm font-semibold text-[#182235]">Funnel model</h3>
+              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.funnelModel}</p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <WebsiteAnalysis websites={candidate.websites} />
+    </div>
+  );
+}
+
+function CrmProviderStrategyDetail({ candidate }: { candidate: CollaboratorProjection }) {
+  const strategy = candidate.crmStrategy;
+  const sourceLinks = collectSourceLinks(candidate);
+  const manualMediaReviews = candidate.manualReviewTasks.filter(isManualMediaReviewTask);
+  const sourceIndexValue = [sourceLinks, candidate.evidenceIds, candidate.crmStrategyPatterns];
+  const mediaEvidenceValue = [candidate.media, manualMediaReviews, candidate.crmStrategyPatterns.filter((pattern) => pattern.type === "evidence_gap")];
+  const sectionNavItems = [
+    { id: "overview", title: "Overview", value: [candidate.overviewSummary, candidate.fitSummary, candidate.score, candidate.evidenceConfidence] },
+    { id: "patterns-to-replicate", title: "Patterns", value: candidate.crmStrategyPatterns },
+    { id: "campaign-receipts", title: "Receipts", value: candidate.providerPublicEvidence },
+    { id: "channel-funnel-map", title: "Channels", value: [candidate.socialProfiles, strategy?.primaryChannels, strategy?.campaignSignals] },
+    { id: "website-offer", title: "Website", value: [candidate.websites, strategy?.primaryOffer, strategy?.funnelModel] },
+    { id: "media-review-queue", title: "Media queue", value: mediaEvidenceValue },
+    { id: "strategy-rubric", title: "Rubric", value: strategy },
+    { id: "source-index", title: "Sources", value: sourceIndexValue },
+  ].filter((item) => hasMeaningfulContent(item.value));
+
+  return (
+    <div className="space-y-5">
+      <header id="overview" className="scroll-mt-24 rounded-3xl bg-[#1E2C46] p-6 text-white shadow-sm md:p-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#FCCC7B]">CRM provider strategy case study</p>
+        <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight md:text-5xl">{candidate.name}</h1>
+        {candidate.overviewSummary ? <p className="mt-5 max-w-5xl text-base leading-7 text-[#d8e0ee] md:text-lg">{candidate.overviewSummary}</p> : null}
+        {candidate.fitSummary ? (
+          <div className="mt-5 max-w-5xl rounded-2xl border border-white/15 bg-white/10 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">Strategy takeaway</p>
+            <p className="mt-2 text-sm leading-6 text-[#f2f6fb] md:text-base">{candidate.fitSummary}</p>
+          </div>
+        ) : null}
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <Metric label="Strategy" value={scoreValue(candidate.score)} />
+        <Metric label="Confidence" value={candidate.evidenceConfidence ?? null} />
+        <Metric label="Patterns" value={candidate.crmStrategyPatterns.length || null} />
+        <Metric label="Campaign receipts" value={candidate.providerPublicEvidence.length || null} />
+        <Metric label="Social reach" value={formatNumber(strategy?.knownSocialReach ?? candidate.totalReach)} />
+        <Metric label="Social profiles" value={(strategy?.socialProfileCount ?? candidate.socialProfiles.length) || null} />
+      </div>
+
+      <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={sectionNavItems} />
+
+      <Section id="patterns-to-replicate" title="Patterns To Replicate" value={candidate.crmStrategyPatterns}>
+        <CrmProviderStrategyPatterns candidate={candidate} />
+      </Section>
+
+      <Section id="campaign-receipts" title="Campaign Receipts / Public Evidence" value={candidate.providerPublicEvidence}>
+        <PublicProviderEvidence candidate={candidate} />
+      </Section>
+
+      <Section id="channel-funnel-map" title="Channel And Funnel Map" value={[candidate.socialProfiles, strategy?.primaryChannels, strategy?.campaignSignals, strategy?.metricSources]}>
+        <CrmProviderChannelMap candidate={candidate} />
+      </Section>
+
+      <Section id="website-offer" title="Website And Offer Analysis" value={[candidate.websites, strategy?.primaryOffer, strategy?.funnelModel]}>
+        <CrmProviderWebsiteOfferAnalysis candidate={candidate} />
+      </Section>
+
+      <Section id="media-review-queue" title="Media / Video Review Queue" value={mediaEvidenceValue}>
+        <CrmProviderMediaReviewQueue candidate={candidate} manualReviews={manualMediaReviews} />
+      </Section>
+
+      <Section id="strategy-rubric" title="CRM Provider Strategy Rubric" value={strategy}>
+        <CrmProviderCaseStudyRubric candidate={candidate} />
+      </Section>
+
+      <Section id="source-index" title="Source Receipts" value={sourceIndexValue}>
+        <SourceIndex links={sourceLinks} evidenceIds={[...candidate.evidenceIds, ...candidate.crmStrategyPatterns.map((pattern) => pattern.id)]} />
+      </Section>
+    </div>
+  );
+}
+
 export function CandidateDetail({ candidate }: { candidate: CollaboratorProjection }) {
   const isCrmProvider = candidate.lane === "crm_providers";
+  if (isCrmProvider) return <CrmProviderStrategyDetail candidate={candidate} />;
   const internalContactsValue = [candidate.contactBook.filter((contact) => !isExternalContact(contact)), candidate.contacts];
   const externalCollaboratorsValue = [candidate.externalCollaborators, candidate.contactBook.filter(isExternalContact)];
   const reviewsValue = websiteReviewLinks(candidate.websites);

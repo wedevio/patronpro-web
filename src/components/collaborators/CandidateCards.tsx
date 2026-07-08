@@ -29,7 +29,14 @@ function campaignSignalLabel(candidate: CollaboratorProjection) {
   return "Pending";
 }
 
+function channelLabel(candidate: CollaboratorProjection) {
+  const channelCount = candidate.crmStrategy?.primaryChannels.length ?? 0;
+  if (channelCount) return `${channelCount} channels`;
+  return candidate.socialProfiles.length ? `${candidate.socialProfiles.length} profiles` : "Pending";
+}
+
 function CrmProviderCard({ candidate }: { candidate: CollaboratorProjection }) {
+  const patternCount = candidate.crmStrategyPatterns.length;
   return (
     <Link
       href={`/collaborators/${candidate.lane}/${candidate.id}`}
@@ -54,17 +61,23 @@ function CrmProviderCard({ candidate }: { candidate: CollaboratorProjection }) {
       ) : null}
       <div className="mt-5 grid grid-cols-3 gap-2 text-sm">
         <div className="rounded-xl bg-[#f5f7fb] p-3">
-          <span className="block text-xs text-[#68758d]">Social reach</span>
-          <strong className="mt-1 block text-[#182235]">{reachLabel(strategyReach(candidate))}</strong>
+          <span className="block text-xs text-[#68758d]">Patterns</span>
+          <strong className="mt-1 block text-[#182235]">{patternCount || "Pending"}</strong>
         </div>
         <div className="rounded-xl bg-[#f5f7fb] p-3">
-          <span className="block text-xs text-[#68758d]">Profiles</span>
-          <strong className="mt-1 block text-[#182235]">{candidate.crmStrategy?.socialProfileCount ?? candidate.socialProfiles.length}</strong>
+          <span className="block text-xs text-[#68758d]">Channels</span>
+          <strong className="mt-1 block text-[#182235]">{channelLabel(candidate)}</strong>
         </div>
         <div className="rounded-xl bg-[#f5f7fb] p-3">
-          <span className="block text-xs text-[#68758d]">Campaigns</span>
+          <span className="block text-xs text-[#68758d]">Receipts</span>
           <strong className="mt-1 block text-[#182235]">{campaignSignalLabel(candidate)}</strong>
         </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#526078]">
+        <span className="rounded-full bg-[#eef4fb] px-2 py-1">Reach {reachLabel(strategyReach(candidate))}</span>
+        {candidate.crmStrategy?.metricSources.length ? (
+          <span className="rounded-full bg-[#eef4fb] px-2 py-1">{candidate.crmStrategy.metricSources.length} metric sources</span>
+        ) : null}
       </div>
     </Link>
   );

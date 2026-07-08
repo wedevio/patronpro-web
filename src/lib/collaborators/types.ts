@@ -269,6 +269,21 @@ export type CrmProviderStrategyProjection = {
   metricSources: string[];
 };
 
+export type CrmProviderStrategyPatternProjection = {
+  id: string;
+  type: string;
+  name: string;
+  strategySummary?: string | null;
+  whyItWorks?: string | null;
+  patronproReplicationIdea?: string | null;
+  evidenceStrength: string;
+  primaryChannel?: string | null;
+  sourceUrls: string[];
+  relatedProviderEvidenceIds: string[];
+  screenshots: WebsiteScreenshotProjection[];
+  capturedAt?: string | null;
+};
+
 export type CommercialReviewTaskLaneSummary = {
   lane: CollaboratorLane;
   open: number;
@@ -324,6 +339,7 @@ export type CollaboratorProjection = {
   opportunityTier?: string | null;
   scoreInputs?: Record<string, unknown> | null;
   crmStrategy?: CrmProviderStrategyProjection | null;
+  crmStrategyPatterns: CrmProviderStrategyPatternProjection[];
   evidenceIds: string[];
   totalReach?: number | null;
   tags: string[];
