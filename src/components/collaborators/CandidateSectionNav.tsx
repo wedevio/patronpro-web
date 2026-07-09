@@ -55,7 +55,7 @@ export function CandidateSectionNav({
         />
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-x-0 top-full h-8 bg-gradient-to-b from-[#f5f7fb] via-[#f5f7fb]/85 to-[#f5f7fb]/0 transition-opacity duration-200 ${
+          className={`pointer-events-none absolute inset-x-0 top-[calc(100%-50px)] h-[82px] bg-gradient-to-b from-[#f5f7fb] via-[#f5f7fb]/85 to-[#f5f7fb]/0 transition-opacity duration-200 ${
             stuck ? "opacity-100" : "opacity-0"
           }`}
         />
