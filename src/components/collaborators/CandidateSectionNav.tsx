@@ -49,7 +49,7 @@ export function CandidateSectionNav({
       >
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-x-0 top-0 h-full bg-[#f5f7fb] transition-opacity duration-200 ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-[calc(100%-50px)] bg-[#f5f7fb] transition-opacity duration-200 ${
             stuck ? "opacity-100" : "opacity-0"
           }`}
         />
