@@ -40,33 +40,47 @@ export function CandidateSectionNav({
   return (
     <>
       <div ref={sentinelRef} className="h-px" />
-      <nav
-        aria-label="Candidate detail sections"
-        className="sticky top-3 z-20 overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white/95 shadow-sm backdrop-blur"
+      <div
+        className="sticky top-0 z-30 bg-[#f5f7fb] px-4 py-3 md:px-6"
+        style={{
+          marginLeft: "calc(50% - 50vw)",
+          marginRight: "calc(50% - 50vw)",
+        }}
       >
-        <a
-          href="#overview"
-          className={`block overflow-hidden bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
-            stuck ? "max-h-16 py-2" : "max-h-0 py-0"
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] transition-opacity duration-200 ${
+            stuck ? "opacity-100" : "opacity-0"
           }`}
-          aria-hidden={!stuck}
-          tabIndex={stuck ? 0 : -1}
+        />
+        <nav
+          aria-label="Candidate detail sections"
+          className="relative mx-auto max-w-[1632px] overflow-hidden rounded-2xl border border-[#dfe5ee] bg-white shadow-sm"
         >
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{laneLabel(lane)}</span>
-          <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
-        </a>
-        <div className={`flex gap-2 p-3 ${wrapOnMobile ? "flex-wrap overflow-visible" : "overflow-x-auto"}`}>
-          {items.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="whitespace-nowrap rounded-xl bg-[#f5f7fb] px-3 py-2 text-sm font-semibold text-[#42506a] outline-none hover:bg-[#e8eef7] hover:text-[#182235] focus-visible:ring-2 focus-visible:ring-[#f1a13c]"
-            >
-              {item.title}
-            </a>
-          ))}
-        </div>
-      </nav>
+          <a
+            href="#overview"
+            className={`block overflow-hidden bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
+              stuck ? "max-h-16 py-2" : "max-h-0 py-0"
+            }`}
+            aria-hidden={!stuck}
+            tabIndex={stuck ? 0 : -1}
+          >
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{laneLabel(lane)}</span>
+            <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
+          </a>
+          <div className={`flex gap-2 p-3 ${wrapOnMobile ? "flex-wrap overflow-visible" : "overflow-x-auto"}`}>
+            {items.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className="whitespace-nowrap rounded-xl bg-[#f5f7fb] px-3 py-2 text-sm font-semibold text-[#42506a] outline-none hover:bg-[#e8eef7] hover:text-[#182235] focus-visible:ring-2 focus-visible:ring-[#f1a13c]"
+              >
+                {item.title}
+              </a>
+            ))}
+          </div>
+        </nav>
+      </div>
     </>
   );
 }
