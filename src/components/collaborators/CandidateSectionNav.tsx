@@ -41,7 +41,7 @@ export function CandidateSectionNav({
     <>
       <div ref={sentinelRef} className="h-px" />
       <div
-        className="sticky top-0 z-30 bg-[#f5f7fb] px-4 py-3 md:px-6"
+        className="sticky top-0 z-30 px-4 pb-5 pt-3 md:px-6"
         style={{
           marginLeft: "calc(50% - 50vw)",
           marginRight: "calc(50% - 50vw)",
@@ -49,7 +49,13 @@ export function CandidateSectionNav({
       >
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] transition-opacity duration-200 ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-full bg-[#f5f7fb] transition-opacity duration-200 ${
+            stuck ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-x-0 top-full h-8 bg-gradient-to-b from-[#f5f7fb] via-[#f5f7fb]/85 to-[#f5f7fb]/0 transition-opacity duration-200 ${
             stuck ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -59,7 +65,7 @@ export function CandidateSectionNav({
         >
           <a
             href="#overview"
-            className={`block overflow-hidden bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
+            className={`relative block overflow-hidden bg-gradient-to-r from-[#1E2C46] via-[#273a5d] to-[#13223b] px-4 transition-[max-height,padding] duration-200 ${
               stuck ? "max-h-16 py-2" : "max-h-0 py-0"
             }`}
             aria-hidden={!stuck}
@@ -68,6 +74,12 @@ export function CandidateSectionNav({
             <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-[#FCCC7B]">{laneLabel(lane)}</span>
             <span className="block truncate text-sm font-semibold leading-5 text-[#f8fafc]">{candidateName}</span>
           </a>
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-x-0 top-[50px] z-10 h-5 bg-gradient-to-b from-[#13223b]/20 via-white/75 to-white/0 transition-opacity duration-200 ${
+              stuck ? "opacity-100" : "opacity-0"
+            }`}
+          />
           <div className={`flex gap-2 p-3 ${wrapOnMobile ? "flex-wrap overflow-visible" : "overflow-x-auto"}`}>
             {items.map((item) => (
               <a
