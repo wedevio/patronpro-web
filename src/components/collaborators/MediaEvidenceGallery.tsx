@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import { isManualMediaReviewTask, parseManualMediaReviewNotes } from "@/lib/collaborators/manual-media-review";
 import type { CandidateTaskProjection, EvidenceImageProjection, MediaEvidenceProjection } from "@/lib/collaborators/types";
 
@@ -16,6 +16,10 @@ export type GalleryEvidenceImage = GalleryImage;
 function formatNumber(value?: number | null) {
   if (!value) return null;
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function analysisParts(text?: string | null) {
@@ -139,9 +143,60 @@ function Lightbox({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [imageVisible, setImageVisible] = useState(true);
-  const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const drag = useRef<{ pointerId: number; x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const suppressClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeFrame = useRef<number | null>(null);
+
+  const clampedPan = (candidate: { x: number; y: number }, targetZoom = zoom) => {
+    if (targetZoom <= 1) return { x: 0, y: 0 };
+    const stage = stageRef.current;
+    const img = imageRef.current;
+    if (!stage || !img) return candidate;
+    const baseWidth = img.clientWidth;
+    const baseHeight = img.clientHeight;
+    if (!baseWidth || !baseHeight) return candidate;
+    const maxX = Math.max(0, (baseWidth * targetZoom - stage.clientWidth) / 2);
+    const maxY = Math.max(0, (baseHeight * targetZoom - stage.clientHeight) / 2);
+    return {
+      x: clamp(candidate.x, -maxX, maxX),
+      y: clamp(candidate.y, -maxY, maxY),
+    };
+  };
+
+  const maxZoomForImage = () => {
+    const img = imageRef.current;
+    if (!img?.clientWidth || !img.naturalWidth) return 8;
+    const naturalWidthScale = img.naturalWidth / img.clientWidth;
+    return Math.max(5, Math.min(24, Math.ceil(naturalWidthScale * 4) / 4));
+  };
+
+  const readableZoomForImage = () => {
+    const img = imageRef.current;
+    if (!img?.clientWidth || !img.naturalWidth) return 2;
+    const naturalWidthScale = img.naturalWidth / img.clientWidth;
+    return Math.max(2, Math.min(maxZoomForImage(), naturalWidthScale));
+  };
+
+  const zoomStep = () => (zoom >= 5 ? 1 : 0.5);
+
+  const clearSuppressClickTimer = () => {
+    if (suppressClickTimer.current) clearTimeout(suppressClickTimer.current);
+    suppressClickTimer.current = null;
+  };
+
+  const markDragClickSuppressed = () => {
+    clearSuppressClickTimer();
+    suppressClick.current = true;
+    suppressClickTimer.current = setTimeout(() => {
+      suppressClick.current = false;
+      suppressClickTimer.current = null;
+    }, 180);
+  };
+
   const resetView = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -171,29 +226,101 @@ function Lightbox({
     changeImage((index + 1) % images.length);
   };
   const changeZoom = (value: number) => {
-    const nextZoom = Math.max(1, Math.min(5, value));
-    if (nextZoom === 1) setPan({ x: 0, y: 0 });
+    const nextZoom = Math.max(1, Math.min(maxZoomForImage(), value));
     setZoom(nextZoom);
+    setPan((current) => clampedPan(current, nextZoom));
+  };
+
+  const finishDrag = (event: PointerEvent<HTMLImageElement>) => {
+    const activeDrag = drag.current;
+    drag.current = null;
+    if (activeDrag?.moved) markDragClickSuppressed();
+    try {
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+    } catch {
+      // Pointer capture may already be released by the browser.
+    }
   };
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-      if (event.key === "ArrowLeft" || event.key === "ArrowUp") previous();
-      if (event.key === "ArrowRight" || event.key === "ArrowDown") next();
-      if (event.key === "+" || event.key === "=") changeZoom(zoom + 0.25);
-      if (event.key === "-") changeZoom(zoom - 0.25);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        event.preventDefault();
+        previous();
+      }
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        event.preventDefault();
+        next();
+      }
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        changeZoom(zoom <= 1 ? readableZoomForImage() : zoom + zoomStep());
+      }
+      if (event.key === "-") {
+        event.preventDefault();
+        changeZoom(zoom - zoomStep());
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
 
-  useEffect(() => () => clearFade(), []);
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const documentElement = document.documentElement;
+    const previousBody = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    const previousOverscroll = documentElement.style.overscrollBehavior;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+    documentElement.style.overscrollBehavior = "none";
+    return () => {
+      body.style.position = previousBody.position;
+      body.style.top = previousBody.top;
+      body.style.left = previousBody.left;
+      body.style.right = previousBody.right;
+      body.style.width = previousBody.width;
+      body.style.overflow = previousBody.overflow;
+      documentElement.style.overscrollBehavior = previousOverscroll;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setPan((current) => clampedPan(current));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  });
+
+  useEffect(
+    () => () => {
+      clearFade();
+      clearSuppressClickTimer();
+    },
+    [],
+  );
 
   return (
     <div
       className="fixed inset-0 bg-[#0b1220]/90 p-4 text-white"
-      style={{ zIndex: 2147483647 }}
+      style={{ zIndex: 2147483647, overscrollBehavior: "none" }}
       role="dialog"
       aria-modal="true"
       onClick={(event) => {
@@ -215,17 +342,26 @@ function Lightbox({
           </button>
         </div>
         <div
+          ref={stageRef}
           className="min-h-0 flex flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black/30 p-3"
+          style={{ overscrollBehavior: "contain", touchAction: zoom > 1 ? "none" : "manipulation" }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) onClose();
+          }}
           onWheel={(event) => {
-            if (zoom <= 1) return;
             event.preventDefault();
+            event.stopPropagation();
+            if (zoom <= 1) return;
             setPan((current) => ({
-              x: current.x - (event.shiftKey ? event.deltaY : event.deltaX),
-              y: current.y - (event.shiftKey ? 0 : event.deltaY),
+              ...clampedPan({
+                x: current.x - (event.shiftKey ? event.deltaY : event.deltaX),
+                y: current.y - (event.shiftKey ? 0 : event.deltaY),
+              }),
             }));
           }}
         >
           <Image
+            ref={imageRef}
             key={image.id}
             src={image.detailUrl}
             width={image.detailWidth ?? 1600}
@@ -233,32 +369,44 @@ function Lightbox({
             alt={`${image.label} for ${image.mediaTitle}`}
             unoptimized
             loading="eager"
-            className={`h-auto w-auto max-h-full max-w-full rounded-xl object-contain transition-opacity duration-150 ease-out ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+            draggable={false}
+            className={`h-auto w-auto max-h-full max-w-full select-none rounded-xl object-contain transition-opacity duration-150 ease-out ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
             style={{
               opacity: imageVisible ? 1 : 0,
               transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
               transformOrigin: "center center",
+              touchAction: zoom > 1 ? "none" : "manipulation",
             }}
+            onLoad={() => setPan((current) => clampedPan(current))}
+            onDragStart={(event) => event.preventDefault()}
             onClick={(event) => {
               event.stopPropagation();
-              changeZoom(zoom + (event.shiftKey || event.altKey ? -0.5 : 0.5));
+              if (suppressClick.current) {
+                suppressClick.current = false;
+                return;
+              }
+              if (zoom <= 1) changeZoom(readableZoomForImage());
             }}
             onPointerDown={(event) => {
-              if (zoom <= 1) return;
-              drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+              event.stopPropagation();
+              if (zoom <= 1 || event.button !== 0) return;
+              event.preventDefault();
+              drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y, moved: false };
               event.currentTarget.setPointerCapture(event.pointerId);
             }}
             onPointerMove={(event) => {
-              if (!drag.current) return;
-              setPan({ x: drag.current.panX + event.clientX - drag.current.x, y: drag.current.panY + event.clientY - drag.current.y });
+              const activeDrag = drag.current;
+              if (!activeDrag || activeDrag.pointerId !== event.pointerId) return;
+              event.preventDefault();
+              const deltaX = event.clientX - activeDrag.x;
+              const deltaY = event.clientY - activeDrag.y;
+              if (Math.hypot(deltaX, deltaY) > 4) activeDrag.moved = true;
+              setPan(clampedPan({ x: activeDrag.panX + deltaX, y: activeDrag.panY + deltaY }));
             }}
-            onPointerUp={(event) => {
+            onPointerUp={finishDrag}
+            onPointerCancel={finishDrag}
+            onLostPointerCapture={() => {
               drag.current = null;
-              try {
-                event.currentTarget.releasePointerCapture(event.pointerId);
-              } catch {
-                // Pointer capture may already be released by the browser.
-              }
             }}
           />
         </div>
@@ -276,11 +424,11 @@ function Lightbox({
           </div>
         ) : null}
         <div className="flex justify-end gap-2 pt-2 text-sm">
-          <button type="button" onClick={() => changeZoom(zoom - 0.25)} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
+          <button type="button" onClick={() => changeZoom(zoom - zoomStep())} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
             −
           </button>
           <span className="rounded-full border border-white/10 px-3 py-1 text-white/70">{zoom.toFixed(2)}x</span>
-          <button type="button" onClick={() => changeZoom(zoom + 0.25)} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
+          <button type="button" onClick={() => changeZoom(zoom <= 1 ? readableZoomForImage() : zoom + zoomStep())} className="rounded-full border border-white/25 px-3 py-1 font-semibold hover:bg-white/10">
             +
           </button>
         </div>

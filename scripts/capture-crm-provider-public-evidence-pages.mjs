@@ -3,6 +3,8 @@ import sharp from "sharp";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+const MAX_WEBP_DIMENSION = 16380;
+
 const outDir = path.resolve(
   process.cwd(),
   "../patron-pro/dev/agents/artifacts/content/crm-provider-inspiration/20260708-provider-public-evidence",
@@ -56,6 +58,13 @@ const pages = [
   },
 ];
 
+const requestedSlugs = new Set(process.argv.slice(2));
+const selectedPages = requestedSlugs.size ? pages.filter((page) => requestedSlugs.has(page.slug)) : pages;
+const missingSlugs = [...requestedSlugs].filter((slug) => !pages.some((page) => page.slug === slug));
+if (missingSlugs.length) {
+  throw new Error(`Unknown public evidence page slug(s): ${missingSlugs.join(", ")}`);
+}
+
 const now = new Date().toISOString();
 
 await mkdir(outDir, { recursive: true });
@@ -70,7 +79,7 @@ const context = await browser.newContext({
 
 const receipts = [];
 
-for (const pageSpec of pages) {
+for (const pageSpec of selectedPages) {
   const page = await context.newPage();
   const rawPng = path.join(outDir, `${pageSpec.slug}.full.png`);
   const detailWebp = path.join(outDir, `${pageSpec.slug}.detail.webp`);
@@ -118,25 +127,33 @@ for (const pageSpec of pages) {
     });
 
     const image = sharp(rawPng).rotate();
+    const sourceMetadata = await image.metadata();
     await image
       .clone()
-      .resize({ width: 1440, height: 2600, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 78, effort: 5 })
+      .resize({ width: MAX_WEBP_DIMENSION, height: MAX_WEBP_DIMENSION, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 82, effort: 5 })
       .toFile(detailWebp);
     await image
       .clone()
-      .resize({ width: 480, height: 900, fit: "inside", withoutEnlargement: true })
+      .resize({ width: 480, height: 900, fit: "cover", position: "top", withoutEnlargement: true })
       .webp({ quality: 68, effort: 5 })
       .toFile(thumbWebp);
+    const detailMetadata = await sharp(detailWebp).metadata();
+    const thumbMetadata = await sharp(thumbWebp).metadata();
     await unlink(rawPng);
 
     receipt.status = "captured";
     receipt.title = await page.title();
     receipt.final_url = page.url();
     receipt.text_chars = text.length;
+    receipt.readability_policy = "detail_preserves_capture_width_unless_webp_dimension_limit_requires_minimal_downscale_thumb_is_top_crop";
+    receipt.source_dimensions = { width: sourceMetadata.width, height: sourceMetadata.height };
+    receipt.detail_dimensions = { width: detailMetadata.width, height: detailMetadata.height };
+    receipt.thumb_dimensions = { width: thumbMetadata.width, height: thumbMetadata.height };
   } catch (error) {
     receipt.status = "blocked";
     receipt.error = error instanceof Error ? error.message : String(error);
+    await unlink(rawPng).catch(() => undefined);
   } finally {
     receipts.push(receipt);
     await page.close();
@@ -151,6 +168,7 @@ await writeFile(
     {
       captured_at: now,
       out_dir: "dev/agents/artifacts/content/crm-provider-inspiration/20260708-provider-public-evidence",
+      selected_slugs: selectedPages.map((page) => page.slug),
       pages: receipts,
     },
     null,
