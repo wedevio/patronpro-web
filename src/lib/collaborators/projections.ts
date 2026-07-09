@@ -11,6 +11,12 @@ import type {
   EvidenceImageProjection,
   ExternalCollaboratorProjection,
   ActionabilityAnswerProjection,
+  CrmProviderDeepDiveEvidenceCoverageProjection,
+  CrmProviderDeepDiveFunnelStageProjection,
+  CrmProviderDeepDivePerformanceSignalProjection,
+  CrmProviderDeepDiveProjection,
+  CrmProviderDeepDiveSectionProjection,
+  CrmProviderDeepDiveStrategyReadinessProjection,
   CrmProviderStrategyPatternProjection,
   CrmProviderStrategyProjection,
   MediaEvidenceProjection,
@@ -131,6 +137,7 @@ const mediaDerivatives = mediaDerivativeManifest as Record<string, MediaDerivati
 const MEDIA_ROOT_MARKER = "patron-pro-prospect-media-audit/";
 const PARTNERSHIP_PRICING_KEY = "commercial_partnerships_and_pricing";
 const CRM_PROVIDER_CASE_STUDY_KEY = "crm_provider_case_study_v1";
+const CRM_PROVIDER_DEEP_DIVES_KEY = "crm_provider_deep_dives_v1";
 
 function normalizeEvidencePath(sourcePath: string | null): string | null {
   if (!sourcePath) return null;
@@ -963,6 +970,146 @@ function cleanCrmProviderStrategy(scoreInputs: Record<string, unknown> | null, l
   return hasMeaningfulContent(strategy) ? strategy : null;
 }
 
+function cleanCrmDeepDiveSections(value: unknown): CrmProviderDeepDiveSectionProjection[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      const heading = cleanDashboardText(record.heading);
+      if (!heading) return null;
+      const section: CrmProviderDeepDiveSectionProjection = {
+        heading,
+        body: cleanDashboardText(record.body),
+        bullets: cleanPayloadList(record.bullets),
+        takeaway: cleanDashboardText(record.takeaway),
+        sourceUrls: cleanPublicSourceUrlList(record.source_urls),
+      };
+      return hasMeaningfulContent(section) ? section : null;
+    })
+    .filter(Boolean) as CrmProviderDeepDiveSectionProjection[];
+}
+
+function cleanCrmDeepDiveEvidenceCoverage(value: unknown): CrmProviderDeepDiveEvidenceCoverageProjection | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const coverage: CrmProviderDeepDiveEvidenceCoverageProjection = {
+    sourceCount: payloadNumber(record.source_count),
+    firstPartySourceCount: payloadNumber(record.first_party_source_count),
+    originalPostCount: payloadNumber(record.original_post_count),
+    thirdPartySourceCount: payloadNumber(record.third_party_source_count),
+    coverageWindow: cleanDashboardText(record.coverage_window),
+    notes: cleanPayloadList(record.notes),
+  };
+  return hasMeaningfulContent(coverage) ? coverage : null;
+}
+
+function cleanCrmDeepDiveStrategyReadiness(value: unknown): CrmProviderDeepDiveStrategyReadinessProjection | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const status = cleanString(record.status);
+  if (!status) return null;
+  const readiness: CrmProviderDeepDiveStrategyReadinessProjection = {
+    status,
+    rationale: cleanDashboardText(record.rationale),
+    blockers: cleanPayloadList(record.blockers),
+    questionsUnlocked: cleanPayloadList(record.questions_unlocked),
+  };
+  return hasMeaningfulContent(readiness) ? readiness : null;
+}
+
+function cleanCrmDeepDiveFunnelStages(value: unknown): CrmProviderDeepDiveFunnelStageProjection[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      const stage = cleanDashboardText(record.stage);
+      if (!stage) return null;
+      const funnelStage: CrmProviderDeepDiveFunnelStageProjection = {
+        stage,
+        audienceState: cleanDashboardText(record.audience_state),
+        touchpoint: cleanDashboardText(record.touchpoint),
+        message: cleanDashboardText(record.message),
+        offerOrCta: cleanDashboardText(record.offer_or_cta),
+        destination: cleanDashboardText(record.destination),
+        attribution: cleanDashboardText(record.attribution),
+        evidenceStatus: cleanString(record.evidence_status),
+        sourceUrls: cleanPublicSourceUrlList(record.source_urls),
+      };
+      return hasMeaningfulContent(funnelStage) ? funnelStage : null;
+    })
+    .filter(Boolean) as CrmProviderDeepDiveFunnelStageProjection[];
+}
+
+function cleanCrmDeepDivePerformanceSignals(value: unknown): CrmProviderDeepDivePerformanceSignalProjection[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      const signal = cleanDashboardText(record.signal);
+      if (!signal) return null;
+      const performanceSignal: CrmProviderDeepDivePerformanceSignalProjection = {
+        signal,
+        observedValue: cleanDashboardText(record.observed_value),
+        scope: cleanDashboardText(record.scope),
+        interpretation: cleanDashboardText(record.interpretation),
+        confidence: cleanString(record.confidence),
+        caveat: cleanDashboardText(record.caveat),
+        sourceUrls: cleanPublicSourceUrlList(record.source_urls),
+      };
+      return hasMeaningfulContent(performanceSignal) ? performanceSignal : null;
+    })
+    .filter(Boolean) as CrmProviderDeepDivePerformanceSignalProjection[];
+}
+
+function projectCrmProviderDeepDive(value: unknown, index: number): CrmProviderDeepDiveProjection | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const id = cleanString(record.id) ?? cleanString(record.deep_dive_id) ?? `crm-provider-deep-dive-${index + 1}`;
+  const title = cleanDashboardText(record.title);
+  if (!id || !title) return null;
+  const dive: CrmProviderDeepDiveProjection = {
+    id,
+    topic: cleanString(record.topic) ?? "strategy_deep_dive",
+    title,
+    researchQuestion: cleanDashboardText(record.research_question),
+    researchStatus: cleanString(record.research_status) ?? "legacy_unclassified",
+    summary: cleanDashboardText(record.summary),
+    strategicUse: cleanDashboardText(record.strategic_use),
+    patronproApplication: cleanDashboardText(record.patronpro_application),
+    evidenceStrength: cleanString(record.evidence_strength) ?? "directional_public",
+    evidenceCoverage: cleanCrmDeepDiveEvidenceCoverage(record.evidence_coverage),
+    strategyReadiness: cleanCrmDeepDiveStrategyReadiness(record.strategy_readiness),
+    confirmedObservations: cleanPayloadList(record.confirmed_observations),
+    inferences: cleanPayloadList(record.inferences),
+    unknowns: cleanPayloadList(record.unknowns),
+    transferablePrinciples: cleanPayloadList(record.transferable_principles),
+    offerMechanics: cleanPayloadList(record.offer_mechanics),
+    funnelStages: cleanCrmDeepDiveFunnelStages(record.funnel_stages),
+    performanceSignals: cleanCrmDeepDivePerformanceSignals(record.performance_signals),
+    linkedPatternIds: cleanList(record.linked_pattern_ids),
+    sourceUrls: cleanPublicSourceUrlList(record.source_urls),
+    sections: cleanCrmDeepDiveSections(record.sections),
+    screenshots: projectWebsiteScreenshots(record.screenshot_manifest, id),
+    capturedAt: cleanString(record.captured_at),
+  };
+  return hasMeaningfulContent(dive) ? dive : null;
+}
+
+function cleanCrmProviderDeepDives(scoreInputs: Record<string, unknown> | null, lane: CollaboratorLane): CrmProviderDeepDiveProjection[] {
+  if (lane !== "crm_providers" || !scoreInputs || typeof scoreInputs !== "object" || Array.isArray(scoreInputs)) return [];
+  const rawPayload = scoreInputs[CRM_PROVIDER_DEEP_DIVES_KEY];
+  if (!rawPayload || typeof rawPayload !== "object") return [];
+  const items = Array.isArray(rawPayload)
+    ? rawPayload
+    : !Array.isArray(rawPayload) && Array.isArray((rawPayload as Record<string, unknown>).items)
+      ? ((rawPayload as Record<string, unknown>).items as unknown[])
+      : [];
+  return items.map(projectCrmProviderDeepDive).filter(Boolean) as CrmProviderDeepDiveProjection[];
+}
+
 function projectActionabilityAnswers(answers: Record<string, ActionabilityAnswerRow> | null): ActionabilityAnswerProjection[] {
   if (!answers || typeof answers !== "object") return [];
   return Object.entries(answers)
@@ -1169,6 +1316,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
   const rankReason = cleanString(row.rank_reason);
   const websiteSummary = firstWebsiteSummary(websites);
   const crmStrategy = cleanCrmProviderStrategy(row.score_inputs, row.source_lane);
+  const crmDeepDives = cleanCrmProviderDeepDives(row.score_inputs, row.source_lane);
   const overviewSummary = buildCandidateOverview({
     name: row.canonical_name,
     type: row.candidate_type,
@@ -1200,6 +1348,7 @@ export function projectCandidate(row: RawCandidateRow): CollaboratorProjection {
     scoreInputs: row.score_inputs && hasMeaningfulContent(row.score_inputs) ? row.score_inputs : null,
     crmStrategy,
     crmStrategyPatterns: (row.crm_strategy_patterns ?? []).map(projectCrmProviderStrategyPattern).filter(Boolean) as CrmProviderStrategyPatternProjection[],
+    crmDeepDives,
     evidenceIds: collectEvidenceIds(media),
     totalReach,
     tags,

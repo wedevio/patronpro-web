@@ -284,6 +284,78 @@ export type CrmProviderStrategyPatternProjection = {
   capturedAt?: string | null;
 };
 
+export type CrmProviderDeepDiveSectionProjection = {
+  heading: string;
+  body?: string | null;
+  bullets: string[];
+  takeaway?: string | null;
+  sourceUrls: string[];
+};
+
+export type CrmProviderDeepDiveEvidenceCoverageProjection = {
+  sourceCount?: number | null;
+  firstPartySourceCount?: number | null;
+  originalPostCount?: number | null;
+  thirdPartySourceCount?: number | null;
+  coverageWindow?: string | null;
+  notes: string[];
+};
+
+export type CrmProviderDeepDiveFunnelStageProjection = {
+  stage: string;
+  audienceState?: string | null;
+  touchpoint?: string | null;
+  message?: string | null;
+  offerOrCta?: string | null;
+  destination?: string | null;
+  attribution?: string | null;
+  evidenceStatus?: string | null;
+  sourceUrls: string[];
+};
+
+export type CrmProviderDeepDivePerformanceSignalProjection = {
+  signal: string;
+  observedValue?: string | null;
+  scope?: string | null;
+  interpretation?: string | null;
+  confidence?: string | null;
+  caveat?: string | null;
+  sourceUrls: string[];
+};
+
+export type CrmProviderDeepDiveStrategyReadinessProjection = {
+  status: string;
+  rationale?: string | null;
+  blockers: string[];
+  questionsUnlocked: string[];
+};
+
+export type CrmProviderDeepDiveProjection = {
+  id: string;
+  topic: string;
+  title: string;
+  researchQuestion?: string | null;
+  researchStatus: string;
+  summary?: string | null;
+  strategicUse?: string | null;
+  patronproApplication?: string | null;
+  evidenceStrength: string;
+  evidenceCoverage?: CrmProviderDeepDiveEvidenceCoverageProjection | null;
+  strategyReadiness?: CrmProviderDeepDiveStrategyReadinessProjection | null;
+  confirmedObservations: string[];
+  inferences: string[];
+  unknowns: string[];
+  transferablePrinciples: string[];
+  offerMechanics: string[];
+  funnelStages: CrmProviderDeepDiveFunnelStageProjection[];
+  performanceSignals: CrmProviderDeepDivePerformanceSignalProjection[];
+  linkedPatternIds: string[];
+  sourceUrls: string[];
+  sections: CrmProviderDeepDiveSectionProjection[];
+  screenshots: WebsiteScreenshotProjection[];
+  capturedAt?: string | null;
+};
+
 export type CommercialReviewTaskLaneSummary = {
   lane: CollaboratorLane;
   open: number;
@@ -340,6 +412,7 @@ export type CollaboratorProjection = {
   scoreInputs?: Record<string, unknown> | null;
   crmStrategy?: CrmProviderStrategyProjection | null;
   crmStrategyPatterns: CrmProviderStrategyPatternProjection[];
+  crmDeepDives: CrmProviderDeepDiveProjection[];
   evidenceIds: string[];
   totalReach?: number | null;
   tags: string[];

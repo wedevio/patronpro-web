@@ -8,6 +8,7 @@ import type {
   SocialProfileProjection,
   WebsiteProjection,
 } from "@/lib/collaborators/types";
+import { ArrowDownCircle, BarChart3, CheckCircle2, CircleHelp, FlaskConical, SearchCheck, Waves } from "lucide-react";
 import { hasMeaningfulContent } from "@/lib/collaborators/projections";
 import { isManualMediaReviewTask } from "@/lib/collaborators/manual-media-review";
 import { CandidateSectionNav } from "./CandidateSectionNav";
@@ -19,7 +20,7 @@ function Section({ id, title, children, value }: { id?: string; title: string; c
   if (!hasMeaningfulContent(value)) return null;
   const headingId = id ? `${id}-heading` : undefined;
   return (
-    <section id={id} aria-labelledby={headingId} className="scroll-mt-24 rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
+    <section id={id} aria-labelledby={headingId} className="min-w-0 overflow-hidden scroll-mt-24 rounded-2xl border border-[#dfe5ee] bg-white p-5 shadow-sm">
       <h2 id={headingId} className="text-lg font-semibold text-[#182235]">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
@@ -364,6 +365,18 @@ function collectSourceLinks(candidate: CollaboratorProjection) {
   for (const pattern of candidate.crmStrategyPatterns) {
     for (const url of pattern.sourceUrls) addSourceLink(links, seen, `${pattern.name} source`, url);
   }
+  for (const dive of candidate.crmDeepDives) {
+    for (const url of dive.sourceUrls) addSourceLink(links, seen, `${dive.title} source`, url);
+    for (const section of dive.sections) {
+      for (const url of section.sourceUrls) addSourceLink(links, seen, `${dive.title} / ${section.heading}`, url);
+    }
+    for (const stage of dive.funnelStages) {
+      for (const url of stage.sourceUrls) addSourceLink(links, seen, `${dive.title} / ${stage.stage}`, url);
+    }
+    for (const signal of dive.performanceSignals) {
+      for (const url of signal.sourceUrls) addSourceLink(links, seen, `${dive.title} / ${signal.signal}`, url);
+    }
+  }
 
   return links;
 }
@@ -480,7 +493,7 @@ function WebsiteAnalysis({ websites }: { websites: WebsiteProjection[] }) {
       {websites.map((website) => {
         const screenshots = websiteScreenshotImages(website);
         return (
-          <article key={website.url} className="rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
+          <article key={website.url} className="min-w-0 rounded-2xl border border-[#edf1f6] bg-[#f8fafc] p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#68758d]">Website review</p>
@@ -1300,8 +1313,548 @@ function strategyPatternImages(candidate: CollaboratorProjection): GalleryEviden
   );
 }
 
+function conciseText(value?: string | null, maxLength = 210) {
+  const text = value?.replace(/\s+/g, " ").trim();
+  if (!text) return null;
+  if (text.length <= maxLength) return text;
+  const slice = text.slice(0, maxLength);
+  const sentenceEnd = Math.max(slice.lastIndexOf(". "), slice.lastIndexOf("; "), slice.lastIndexOf(": "));
+  if (sentenceEnd > 90) return slice.slice(0, sentenceEnd + 1).trim();
+  return `${slice.replace(/\s+\S*$/, "").trim()}...`;
+}
+
+function uniqueConciseTexts(values: Array<string | null | undefined>, limit: number) {
+  const items: string[] = [];
+  const seen = new Set<string>();
+  for (const value of values) {
+    const text = conciseText(value);
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    items.push(text);
+    if (items.length >= limit) break;
+  }
+  return items;
+}
+
+function crmProviderMechanics(candidate: CollaboratorProjection) {
+  const strategy = candidate.crmStrategy;
+  const haystack = [
+    strategy?.primaryOffer,
+    strategy?.funnelModel,
+    strategy?.strategySummary,
+    ...(strategy?.campaignSignals ?? []),
+    ...(strategy?.primaryChannels ?? []),
+    ...candidate.providerPublicEvidence.flatMap((item) => [item.sponsorSignal, item.evidenceSummary, item.visibleMetric, item.estimatedRateText]),
+    ...candidate.crmStrategyPatterns.flatMap((pattern) => [
+      pattern.name,
+      pattern.strategySummary,
+      pattern.whyItWorks,
+      pattern.patronproReplicationIdea,
+      pattern.primaryChannel,
+    ]),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return uniqueConciseTexts(
+    [
+      /free|trial/.test(haystack) ? "Low-friction trial CTA before demo pressure." : null,
+      /discount|20%|code|tracked|affiliate|vanity|link[-\s]?in[-\s]?bio/.test(haystack)
+        ? "Discount, creator code, tracked URL, or link-in-bio path for attribution and urgency."
+        : null,
+      /creator|influencer|ambassador|partner|sponsor|youtube|tiktok|instagram/.test(haystack)
+        ? "Trade-specific creator distribution where the messenger looks like the buyer."
+        : null,
+      /quote|scheduling|invoice|payment|admin|receptionist|automation|\bai\b|ai assistant/.test(haystack)
+        ? "One workflow pain per creative: quote, schedule, invoice, payment, admin, receptionist, or automation."
+        : null,
+      /grant|giveaway|event|academy|education|community|tool/.test(haystack)
+        ? "Education, grants, tools, or events create a non-product reason to share the offer."
+        : null,
+      /meta|ad library|paid social|ad angle/.test(haystack)
+        ? "Paid-social angle testing around specific service-business pains."
+        : null,
+    ],
+    6,
+  );
+}
+
+function evidenceCaveats(candidate: CollaboratorProjection) {
+  const providerCaveats = candidate.providerPublicEvidence
+    .filter((item) => !["strong_public", "verified_public", "original_source_verified"].includes(item.sourceConfidence))
+    .map((item) => {
+      const confidence = readableLabel(item.sourceConfidence) ?? "Needs verification";
+      const source = readableLabel(item.providerSource) ?? "Provider source";
+      return `${source}: ${confidence}${item.evidenceSummary ? `. ${item.evidenceSummary}` : ""}`;
+    });
+  const patternCaveats = candidate.crmStrategyPatterns
+    .filter((pattern) => pattern.evidenceStrength === "needs_verification" || pattern.type === "evidence_gap")
+    .map((pattern) => pattern.strategySummary ?? pattern.name);
+
+  return uniqueConciseTexts([...patternCaveats, ...providerCaveats], 4);
+}
+
+type CrmDeepDive = CollaboratorProjection["crmDeepDives"][number];
+type PlaybookListItem = string | { text: string; href?: string | null };
+
+function crmDeepDivesForCandidate(candidate: CollaboratorProjection): CrmDeepDive[] {
+  return candidate.crmDeepDives;
+}
+
+function deepDiveAnchor(dive: CrmDeepDive) {
+  return `deep-dive-${dive.id}`;
+}
+
+function deepDiveHrefForText(text: string, deepDives: CrmDeepDive[]) {
+  const normalized = text.toLowerCase();
+  const grantsDive = deepDives.find((dive) => /grant|education|community|tool/.test(`${dive.topic} ${dive.title}`.toLowerCase()));
+  const creatorDive = deepDives.find((dive) => /creator|cta|code/.test(`${dive.topic} ${dive.title}`.toLowerCase()));
+  const target =
+    /grant|education|tools|events|success stories|community/.test(normalized)
+      ? grantsDive
+      : /offer|creator|trial|discount|code|attribut/.test(normalized)
+        ? creatorDive
+        : null;
+  return target ? `#${deepDiveAnchor(target)}` : null;
+}
+
+function playbookItemText(item: PlaybookListItem) {
+  return typeof item === "string" ? item : item.text;
+}
+
+function PlaybookList({ title, items, tone = "default" }: { title: string; items: PlaybookListItem[]; tone?: "default" | "warning" | "action" }) {
+  if (!items.length) return null;
+  const border = tone === "warning" ? "border-[#f0bf76]" : tone === "action" ? "border-[#6d8ebd]" : "border-[#f1a13c]";
+  const heading = tone === "warning" ? "text-[#8a5b17]" : "text-[#182235]";
+  return (
+    <div className={`border-t-2 ${border} pt-3`}>
+      <h3 className={`text-sm font-semibold uppercase tracking-[0.14em] ${heading}`}>{title}</h3>
+      <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#42506a]">
+        {items.map((item) => (
+          <li key={playbookItemText(item)} className="grid gap-2">
+            <span>{playbookItemText(item)}</span>
+            {typeof item !== "string" && item.href ? (
+              <a
+                href={item.href}
+                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#d5e0ef] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#355879] underline-offset-4 hover:border-[#6d8ebd] hover:text-[#1d5fa7]"
+              >
+                <Waves aria-hidden="true" className="h-3.5 w-3.5" />
+                Deep dive
+                <ArrowDownCircle aria-hidden="true" className="h-3.5 w-3.5" />
+              </a>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CrmProviderStrategyPlaybook({ candidate }: { candidate: CollaboratorProjection }) {
+  const strategy = candidate.crmStrategy;
+  const deepDives = crmDeepDivesForCandidate(candidate);
+  const strongPatterns = candidate.crmStrategyPatterns.filter((pattern) => pattern.evidenceStrength === "strong_public");
+  const workingSignals = uniqueConciseTexts(
+    [...strongPatterns.map((pattern) => pattern.whyItWorks), ...candidate.crmStrategyPatterns.map((pattern) => pattern.whyItWorks)],
+    4,
+  );
+  const workingSignalItems = workingSignals.map((text) => ({ text, href: deepDiveHrefForText(text, deepDives) }));
+  const researchQuestions = uniqueConciseTexts(
+    deepDives.flatMap((dive) => dive.strategyReadiness?.questionsUnlocked ?? []),
+    4,
+  );
+  const strategyHypotheses = uniqueConciseTexts(candidate.crmStrategyPatterns.map((pattern) => pattern.patronproReplicationIdea), 4);
+  const strategyItems = researchQuestions.length ? researchQuestions : strategyHypotheses;
+  const mechanics = crmProviderMechanics(candidate);
+  const caveats = evidenceCaveats(candidate);
+  const featuredImages = strategyPatternImages(candidate).slice(0, 6);
+  const metrics = [
+    ["Strong patterns", strongPatterns.length || null],
+    ["Creator/partner signals", strategy?.knownInfluencerOrPartnerCount ?? null],
+    ["Campaign receipts", candidate.providerPublicEvidence.length || null],
+    ["Primary channels", strategy?.primaryChannels.length || null],
+  ].filter(([, value]) => hasMeaningfulContent(value));
+
+  return (
+    <div className="grid gap-5">
+      {metrics.length ? (
+        <div className="grid gap-3 md:grid-cols-4">
+          {metrics.map(([label, value]) => (
+            <Metric key={String(label)} label={String(label)} value={value} />
+          ))}
+        </div>
+      ) : null}
+
+      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+        <PlaybookList title="What Works" items={workingSignalItems} />
+        <PlaybookList title={researchQuestions.length ? "Strategy Questions" : "Strategy Hypotheses"} items={strategyItems} tone="action" />
+        <PlaybookList title="Offer Mechanics" items={mechanics} />
+        <PlaybookList title="Evidence Gaps" items={caveats} tone="warning" />
+      </div>
+
+      {featuredImages.length ? (
+        <div className="border-t border-[#edf1f6] pt-4">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Priority evidence</h3>
+          <div className="mt-3">
+            <EvidenceImageGrid images={featuredImages} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" />
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function deepDiveImages(candidate: CollaboratorProjection, dive: CrmDeepDive): GalleryEvidenceImage[] {
+  const images: GalleryEvidenceImage[] = [
+    ...dive.screenshots.map((screenshot) => ({
+      ...screenshot.image,
+      id: `${dive.id}-${screenshot.id}`,
+      label: screenshot.label,
+      mediaTitle: dive.title,
+    })),
+  ];
+  const linkedPatternIds = new Set(dive.linkedPatternIds);
+  for (const pattern of candidate.crmStrategyPatterns) {
+    if (!linkedPatternIds.has(pattern.id)) continue;
+    for (const screenshot of pattern.screenshots) {
+      images.push({
+        ...screenshot.image,
+        id: `${dive.id}-${pattern.id}-${screenshot.id}`,
+        label: screenshot.label,
+        mediaTitle: pattern.name,
+      });
+    }
+  }
+  const seen = new Set<string>();
+  return images.filter((image) => {
+    const key = image.detailUrl;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function sourceLinksForDive(dive: CrmDeepDive) {
+  const seen = new Set<string>();
+  const urls = [
+    ...dive.sourceUrls,
+    ...dive.sections.flatMap((section) => section.sourceUrls),
+    ...dive.funnelStages.flatMap((stage) => stage.sourceUrls),
+    ...dive.performanceSignals.flatMap((signal) => signal.sourceUrls),
+  ].filter((url) => {
+    if (seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
+  return urls;
+}
+
+function researchStatusClass(value: string) {
+  if (/ready_for_strategy_hypotheses|foundation_ready/.test(value)) return "bg-[#e8f7ef] text-[#176b3a]";
+  if (/blocked|not_ready/.test(value)) return "bg-[#fff1f2] text-[#9f1239]";
+  return "bg-[#fff7ea] text-[#8a5b17]";
+}
+
+function ResearchFindingList({
+  title,
+  items,
+  icon,
+  tone,
+}: {
+  title: string;
+  items: string[];
+  icon: React.ReactNode;
+  tone: "confirmed" | "inference" | "unknown" | "principle";
+}) {
+  if (!items.length) return null;
+  const styles = {
+    confirmed: "border-[#75b58b] bg-[#f1faf4] text-[#176b3a]",
+    inference: "border-[#78a3ce] bg-[#f2f7fc] text-[#355879]",
+    unknown: "border-[#e0ad61] bg-[#fff9ef] text-[#8a5b17]",
+    principle: "border-[#9b8bc1] bg-[#f7f4fb] text-[#5f4d89]",
+  }[tone];
+  return (
+    <div className={`border-t-2 p-3 ${styles}`}>
+      <h4 className="flex items-center gap-2 text-sm font-semibold">
+        {icon}
+        {title}
+      </h4>
+      <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#42506a]">
+        {items.map((item) => (
+          <li key={item} className="border-l-2 border-current pl-3">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function DeepDiveEvidenceCoverage({ dive }: { dive: CrmDeepDive }) {
+  const coverage = dive.evidenceCoverage;
+  if (!coverage) return null;
+  const metrics = [
+    ["Sources", coverage.sourceCount],
+    ["First-party", coverage.firstPartySourceCount],
+    ["Original posts", coverage.originalPostCount],
+    ["Third-party", coverage.thirdPartySourceCount],
+  ].filter(([, value]) => value !== null && value !== undefined);
+  return (
+    <div className="mt-5 border-y border-[#dfe5ee] py-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map(([label, value]) => (
+          <div key={String(label)}>
+            <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#68758d]">{label}</span>
+            <strong className="mt-1 block text-xl text-[#182235]">{value}</strong>
+          </div>
+        ))}
+      </div>
+      {coverage.coverageWindow ? <p className="mt-3 text-xs text-[#526078]">Coverage window: {coverage.coverageWindow}</p> : null}
+      {coverage.notes.length ? <div className="mt-3">{bullets(coverage.notes)}</div> : null}
+    </div>
+  );
+}
+
+function DeepDiveFunnelMap({ dive }: { dive: CrmDeepDive }) {
+  if (!dive.funnelStages.length) return null;
+  return (
+    <div className="mt-5 border-t border-[#dfe5ee] pt-4">
+      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+        <SearchCheck aria-hidden="true" className="h-4 w-4" />
+        Observed funnel map
+      </h4>
+      <div className="mt-3 max-w-full overflow-hidden border border-[#dfe5ee]">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[920px] text-left text-sm">
+            <thead className="bg-white text-xs uppercase tracking-[0.12em] text-[#68758d]">
+              <tr>
+                <th className="px-3 py-2">Stage</th>
+                <th className="px-3 py-2">Audience / touchpoint</th>
+                <th className="px-3 py-2">Message / CTA</th>
+                <th className="px-3 py-2">Destination / attribution</th>
+                <th className="px-3 py-2">Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dive.funnelStages.map((stage) => (
+                <tr key={`${dive.id}-${stage.stage}`} className="border-t border-[#dfe5ee] align-top">
+                  <td className="px-3 py-3 font-semibold text-[#182235]">{stage.stage}</td>
+                  <td className="px-3 py-3 text-[#42506a]">
+                    {[stage.audienceState, stage.touchpoint].filter(Boolean).join(" / ") || "Not observed"}
+                  </td>
+                  <td className="px-3 py-3 text-[#42506a]">
+                    {[stage.message, stage.offerOrCta].filter(Boolean).join(" / ") || "Not observed"}
+                  </td>
+                  <td className="px-3 py-3 text-[#42506a]">
+                    {[stage.destination, stage.attribution].filter(Boolean).join(" / ") || "Not observed"}
+                  </td>
+                  <td className="px-3 py-3 text-[#526078]">{readableLabel(stage.evidenceStatus) ?? "Unclassified"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeepDivePerformanceSignals({ dive }: { dive: CrmDeepDive }) {
+  if (!dive.performanceSignals.length) return null;
+  return (
+    <div className="mt-5 border-t border-[#dfe5ee] pt-4">
+      <h4 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#68758d]">
+        <BarChart3 aria-hidden="true" className="h-4 w-4" />
+        Public performance signals
+      </h4>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        {dive.performanceSignals.map((signal) => (
+          <div key={`${dive.id}-${signal.signal}`} className="border-l-2 border-[#78a3ce] bg-white p-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h5 className="font-semibold text-[#182235]">{signal.signal}</h5>
+              {signal.confidence ? (
+                <span className="text-xs font-semibold uppercase tracking-[0.1em] text-[#526078]">{readableLabel(signal.confidence)}</span>
+              ) : null}
+            </div>
+            {signal.observedValue ? <p className="mt-2 text-sm font-semibold text-[#355879]">{signal.observedValue}</p> : null}
+            {signal.scope ? <p className="mt-1 text-xs text-[#68758d]">Scope: {signal.scope}</p> : null}
+            {signal.interpretation ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{signal.interpretation}</p> : null}
+            {signal.caveat ? <p className="mt-2 text-xs leading-5 text-[#8a5b17]">Caveat: {signal.caveat}</p> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CrmProviderDeepDives({ candidate, deepDives }: { candidate: CollaboratorProjection; deepDives: CrmDeepDive[] }) {
+  if (!deepDives.length) return null;
+  return (
+    <div className="grid gap-5">
+      {deepDives.map((dive) => {
+        const images = deepDiveImages(candidate, dive);
+        const sources = sourceLinksForDive(dive);
+        return (
+          <article key={dive.id} id={deepDiveAnchor(dive)} className="scroll-mt-28 rounded-2xl border border-[#dfe5ee] bg-[#f8fafc] p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#526078]">
+                {readableLabel(dive.topic)}
+              </span>
+              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${evidenceStrengthClass(dive.evidenceStrength)}`}>
+                {readableLabel(dive.evidenceStrength)}
+              </span>
+              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${researchStatusClass(dive.researchStatus)}`}>
+                {readableLabel(dive.researchStatus)}
+              </span>
+            </div>
+
+            <h3 className="mt-3 text-xl font-semibold text-[#182235]">{dive.title}</h3>
+            {dive.summary ? <p className="mt-3 max-w-5xl text-sm leading-6 text-[#42506a]">{dive.summary}</p> : null}
+
+            {dive.researchQuestion ? (
+              <p className="mt-4 border-l-4 border-[#355879] bg-white px-4 py-3 text-sm font-semibold leading-6 text-[#30405c]">
+                Research question: {dive.researchQuestion}
+              </p>
+            ) : null}
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {dive.strategicUse ? (
+                <div className="rounded-xl bg-white p-4">
+                  <h4 className="text-sm font-semibold text-[#182235]">Research significance</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#42506a]">{dive.strategicUse}</p>
+                </div>
+              ) : null}
+              {dive.patronproApplication ? (
+                <div className="rounded-xl border border-[#f0dfbd] bg-[#fffaf2] p-4">
+                  <h4 className="text-sm font-semibold text-[#8a5b17]">Legacy strategy hypothesis</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#42506a]">{dive.patronproApplication}</p>
+                </div>
+              ) : null}
+            </div>
+
+            <DeepDiveEvidenceCoverage dive={dive} />
+
+            {dive.strategyReadiness ? (
+              <div className={`mt-5 border-l-4 p-4 ${researchStatusClass(dive.strategyReadiness.status)}`}>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em]">Strategy readiness: {readableLabel(dive.strategyReadiness.status)}</p>
+                {dive.strategyReadiness.rationale ? <p className="mt-2 text-sm leading-6 text-[#30405c]">{dive.strategyReadiness.rationale}</p> : null}
+              </div>
+            ) : null}
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">
+              <ResearchFindingList
+                title="Confirmed observations"
+                items={dive.confirmedObservations}
+                icon={<CheckCircle2 aria-hidden="true" className="h-4 w-4" />}
+                tone="confirmed"
+              />
+              <ResearchFindingList
+                title="Interpretations, not proof"
+                items={dive.inferences}
+                icon={<FlaskConical aria-hidden="true" className="h-4 w-4" />}
+                tone="inference"
+              />
+              <ResearchFindingList
+                title="Unknown before strategy"
+                items={dive.unknowns}
+                icon={<CircleHelp aria-hidden="true" className="h-4 w-4" />}
+                tone="unknown"
+              />
+            </div>
+
+            {dive.offerMechanics.length ? (
+              <div className="mt-5 border-t border-[#dfe5ee] pt-4">
+                <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Offer mechanics</h4>
+                {bullets(dive.offerMechanics)}
+              </div>
+            ) : null}
+
+            <DeepDiveFunnelMap dive={dive} />
+            <DeepDivePerformanceSignals dive={dive} />
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <ResearchFindingList
+                title="Transferable principles, not a plan"
+                items={dive.transferablePrinciples}
+                icon={<Waves aria-hidden="true" className="h-4 w-4" />}
+                tone="principle"
+              />
+              <ResearchFindingList
+                title="Questions unlocked for strategy"
+                items={dive.strategyReadiness?.questionsUnlocked ?? []}
+                icon={<SearchCheck aria-hidden="true" className="h-4 w-4" />}
+                tone="inference"
+              />
+            </div>
+
+            {dive.strategyReadiness?.blockers.length ? (
+              <div className="mt-5">
+                <ResearchFindingList
+                  title="Readiness blockers"
+                  items={dive.strategyReadiness.blockers}
+                  icon={<CircleHelp aria-hidden="true" className="h-4 w-4" />}
+                  tone="unknown"
+                />
+              </div>
+            ) : null}
+
+            {dive.sections.length ? (
+              <div className="mt-5 grid gap-4">
+                {dive.sections.map((section) => (
+                  <div key={`${dive.id}-${section.heading}`} className="border-t border-[#dfe5ee] pt-4">
+                    <h4 className="text-base font-semibold text-[#182235]">{section.heading}</h4>
+                    {section.body ? <p className="mt-2 text-sm leading-6 text-[#42506a]">{section.body}</p> : null}
+                    {section.bullets.length ? (
+                      <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#42506a]">
+                        {section.bullets.map((item) => (
+                          <li key={item} className="rounded-xl bg-white px-3 py-2">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {section.takeaway ? (
+                      <p className="mt-3 rounded-xl border border-[#d5e0ef] bg-white px-3 py-2 text-sm font-semibold leading-6 text-[#30405c]">
+                        {section.takeaway}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {images.length ? (
+              <div className="mt-5 border-t border-[#dfe5ee] pt-4">
+                <h4 className="mb-2 text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Linked evidence</h4>
+                <EvidenceImageGrid images={images} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" />
+              </div>
+            ) : null}
+
+            {sources.length ? (
+              <div className="mt-5 border-t border-[#dfe5ee] pt-4">
+                <h4 className="text-sm font-semibold uppercase tracking-[0.14em] text-[#68758d]">Deep-dive sources</h4>
+                <div className="mt-2 grid gap-1 text-xs">
+                  {sources.map((url) => (
+                    <a key={url} className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={url} target="_blank" rel="noreferrer">
+                      {url}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {dive.capturedAt ? <p className="mt-4 text-xs text-[#68758d]">Research captured {dive.capturedAt}</p> : null}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 function evidenceStrengthClass(value: string) {
-  if (value === "strong_public") return "bg-[#e8f7ef] text-[#176b3a]";
+  if (value === "strong_public" || value === "strong_public_mechanics") return "bg-[#e8f7ef] text-[#176b3a]";
   if (value === "needs_verification") return "bg-[#fff7ea] text-[#9b5200]";
   if (value === "blocked") return "bg-[#fff1f2] text-[#9f1239]";
   return "bg-[#eef4fb] text-[#355879]";
@@ -1378,31 +1931,33 @@ function CrmProviderChannelMap({ candidate }: { candidate: CollaboratorProjectio
         </div>
       ) : null}
       {candidate.socialProfiles.length ? (
-        <div className="overflow-x-auto rounded-2xl border border-[#edf1f6]">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-[#f8fafc] text-xs uppercase tracking-[0.14em] text-[#68758d]">
-              <tr>
-                <th className="px-3 py-2">Platform</th>
-                <th className="px-3 py-2">Profile</th>
-                <th className="px-3 py-2">Public metric</th>
-                <th className="px-3 py-2">Research stance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {candidate.socialProfiles.map((profile) => (
-                <tr key={`${profile.platform}-${profile.url}`} className="border-t border-[#edf1f6]">
-                  <td className="px-3 py-3 font-semibold capitalize text-[#182235]">{profile.platform}</td>
-                  <td className="px-3 py-3">
-                    <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={profile.url} target="_blank" rel="noreferrer">
-                      {profile.url}
-                    </a>
-                  </td>
-                  <td className="px-3 py-3 text-[#42506a]">{socialMetric(profile)}</td>
-                  <td className="px-3 py-3 text-[#526078]">{profile.status ?? profile.verificationStatus ?? "public profile captured"}</td>
+        <div className="max-w-full overflow-hidden rounded-2xl border border-[#edf1f6]">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-[#f8fafc] text-xs uppercase tracking-[0.14em] text-[#68758d]">
+                <tr>
+                  <th className="px-3 py-2">Platform</th>
+                  <th className="px-3 py-2">Profile</th>
+                  <th className="px-3 py-2">Public metric</th>
+                  <th className="px-3 py-2">Research stance</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {candidate.socialProfiles.map((profile) => (
+                  <tr key={`${profile.platform}-${profile.url}`} className="border-t border-[#edf1f6]">
+                    <td className="px-3 py-3 font-semibold capitalize text-[#182235]">{profile.platform}</td>
+                    <td className="px-3 py-3">
+                      <a className="break-all text-[#1d5fa7] underline-offset-4 hover:underline" href={profile.url} target="_blank" rel="noreferrer">
+                        {profile.url}
+                      </a>
+                    </td>
+                    <td className="px-3 py-3 text-[#42506a]">{socialMetric(profile)}</td>
+                    <td className="px-3 py-3 text-[#526078]">{profile.status ?? profile.verificationStatus ?? "public profile captured"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>
@@ -1442,19 +1997,19 @@ function CrmProviderMediaReviewQueue({ candidate, manualReviews }: { candidate: 
 function CrmProviderWebsiteOfferAnalysis({ candidate }: { candidate: CollaboratorProjection }) {
   const strategy = candidate.crmStrategy;
   return (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       {strategy?.primaryOffer || strategy?.funnelModel ? (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid min-w-0 gap-3 md:grid-cols-2">
           {strategy.primaryOffer ? (
-            <div className="rounded-2xl bg-[#f8fafc] p-4">
+            <div className="min-w-0 rounded-2xl bg-[#f8fafc] p-4">
               <h3 className="text-sm font-semibold text-[#182235]">Primary offer</h3>
-              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.primaryOffer}</p>
+              <p className="mt-2 break-words text-sm leading-6 text-[#42506a]">{strategy.primaryOffer}</p>
             </div>
           ) : null}
           {strategy.funnelModel ? (
-            <div className="rounded-2xl bg-[#f8fafc] p-4">
+            <div className="min-w-0 rounded-2xl bg-[#f8fafc] p-4">
               <h3 className="text-sm font-semibold text-[#182235]">Funnel model</h3>
-              <p className="mt-2 text-sm leading-6 text-[#42506a]">{strategy.funnelModel}</p>
+              <p className="mt-2 break-words text-sm leading-6 text-[#42506a]">{strategy.funnelModel}</p>
             </div>
           ) : null}
         </div>
@@ -1466,12 +2021,23 @@ function CrmProviderWebsiteOfferAnalysis({ candidate }: { candidate: Collaborato
 
 function CrmProviderStrategyDetail({ candidate }: { candidate: CollaboratorProjection }) {
   const strategy = candidate.crmStrategy;
-  const sourceLinks = collectSourceLinks(candidate);
   const manualMediaReviews = candidate.manualReviewTasks.filter(isManualMediaReviewTask);
-  const sourceIndexValue = [sourceLinks, candidate.evidenceIds, candidate.crmStrategyPatterns];
+  const deepDives = crmDeepDivesForCandidate(candidate);
+  const sourceLinks = collectSourceLinks(candidate);
+  const sourceLinkUrls = new Set(sourceLinks.map((link) => link.url));
+  for (const dive of deepDives) {
+    for (const url of dive.sourceUrls) addSourceLink(sourceLinks, sourceLinkUrls, `${dive.title} source`, url);
+    for (const section of dive.sections) {
+      for (const url of section.sourceUrls) addSourceLink(sourceLinks, sourceLinkUrls, `${dive.title} / ${section.heading}`, url);
+    }
+  }
+  const sourceIndexValue = [sourceLinks, candidate.evidenceIds, candidate.crmStrategyPatterns, deepDives];
   const mediaEvidenceValue = [candidate.media, manualMediaReviews, candidate.crmStrategyPatterns.filter((pattern) => pattern.type === "evidence_gap")];
+  const playbookValue = [candidate.crmStrategyPatterns, candidate.providerPublicEvidence, strategy?.campaignSignals, strategy?.primaryChannels, deepDives];
   const sectionNavItems = [
     { id: "overview", title: "Overview", value: [candidate.overviewSummary, candidate.fitSummary, candidate.score, candidate.evidenceConfidence] },
+    { id: "strategy-playbook", title: "Playbook", value: playbookValue },
+    { id: "strategy-deep-dives", title: "Deep dives", value: deepDives },
     { id: "patterns-to-replicate", title: "Patterns", value: candidate.crmStrategyPatterns },
     { id: "campaign-receipts", title: "Receipts", value: candidate.providerPublicEvidence },
     { id: "channel-funnel-map", title: "Channels", value: [candidate.socialProfiles, strategy?.primaryChannels, strategy?.campaignSignals] },
@@ -1506,6 +2072,14 @@ function CrmProviderStrategyDetail({ candidate }: { candidate: CollaboratorProje
 
       <CandidateSectionNav candidateName={candidate.name} lane={candidate.lane} items={sectionNavItems} wrapOnMobile />
 
+      <Section id="strategy-playbook" title="CRM Strategy Playbook" value={playbookValue}>
+        <CrmProviderStrategyPlaybook candidate={candidate} />
+      </Section>
+
+      <Section id="strategy-deep-dives" title="Strategy Deep Dives" value={deepDives}>
+        <CrmProviderDeepDives candidate={candidate} deepDives={deepDives} />
+      </Section>
+
       <Section id="patterns-to-replicate" title="Patterns To Replicate" value={candidate.crmStrategyPatterns}>
         <CrmProviderStrategyPatterns candidate={candidate} />
       </Section>
@@ -1531,7 +2105,7 @@ function CrmProviderStrategyDetail({ candidate }: { candidate: CollaboratorProje
       </Section>
 
       <Section id="source-index" title="Source Receipts" value={sourceIndexValue}>
-        <SourceIndex links={sourceLinks} evidenceIds={[...candidate.evidenceIds, ...candidate.crmStrategyPatterns.map((pattern) => pattern.id)]} />
+        <SourceIndex links={sourceLinks} evidenceIds={[...candidate.evidenceIds, ...candidate.crmStrategyPatterns.map((pattern) => pattern.id), ...deepDives.map((dive) => dive.id)]} />
       </Section>
     </div>
   );
