@@ -798,7 +798,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-end gap-[6px] leading-none mt-3">
                     <span className="text-[22px] font-extrabold mb-2" style={{ color: "#1E2C46" }}>$</span>
-                    <span className="text-[72px] font-black tracking-[-0.04em]" style={{ color: "#1E2C46" }}>99</span>
+                    <span className="text-[72px] font-black tracking-[-0.04em]" style={{ color: "#1E2C46" }}>199</span>
                     <span className="text-[16px] font-semibold mb-[10px]" style={{ color: "#5f6f88" }}>/mes</span>
                   </div>
                   <p className="text-[15px] leading-[1.6] mt-3" style={{ color: "#5f6f88" }}>
@@ -820,7 +820,7 @@ export default function HomePage() {
                 ]} />
                 <div className="rounded-[14px] p-4" style={{ border: "2px solid #F67D0A", background: "rgba(246,125,10,0.05)" }}>
                   <div className="text-[14px] font-extrabold" style={{ color: "#1E2C46" }}>
-                    Setup Fee incluido — <span style={{ color: "#F67D0A" }}>$199 único</span>
+                    Setup Fee incluido — <span style={{ color: "#F67D0A" }}>$1500 único</span>
                   </div>
                   <div className="text-[12px] leading-[1.6] mt-0.5" style={{ color: "#5f6f88" }}>
                     Dominio personalizado · Teléfono, llamadas y email · Landings y calendarios. Todo configurado y listo para operar desde el día uno.
@@ -844,7 +844,7 @@ export default function HomePage() {
                   className="absolute top-[-14px] left-1/2 -translate-x-1/2 px-5 py-[6px] rounded-full text-white text-[12px] font-extrabold whitespace-nowrap tracking-[0.04em] inline-flex items-center gap-1.5"
                   style={{ background: "linear-gradient(90deg,#F67D0A,#FFAA38)" }}
                 >
-                  <Star size={12} strokeWidth={2.5} fill="white" color="white" /> Más popular · Ahorra $189
+                  <Star size={12} strokeWidth={2.5} fill="white" color="white" /> Más popular · Ahorra $398
                 </div>
                 <div>
                   <div className="text-[13px] font-bold uppercase tracking-[0.06em]" style={{ color: "#5f6f88" }}>
@@ -852,11 +852,11 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-end gap-[6px] leading-none mt-3">
                     <span className="text-[22px] font-extrabold mb-2" style={{ color: "#1E2C46" }}>$</span>
-                    <span className="text-[72px] font-black tracking-[-0.04em]" style={{ color: "#1E2C46" }}>999</span>
+                    <span className="text-[72px] font-black tracking-[-0.04em]" style={{ color: "#1E2C46" }}>1990</span>
                     <span className="text-[16px] font-semibold mb-[10px]" style={{ color: "#5f6f88" }}>/año</span>
                   </div>
-                  <div className="text-[14px] line-through -mt-2" style={{ color: "#5f6f88" }}>
-                    Equivale a $83/mes · Sin descuento $1.188/año
+                  <div className="text-[14px] -mt-2" style={{ color: "#5f6f88" }}>
+                    Equivale a $165/mes · Sin descuento $2.388/año
                   </div>
                   <p className="text-[15px] leading-[1.6] mt-3" style={{ color: "#5f6f88" }}>
                     La opción más inteligente para negocios que quieren tomarse el sistema en serio.
@@ -864,14 +864,14 @@ export default function HomePage() {
                 </div>
                 <PriceFeatures items={[
                   "Todo lo del plan mensual",
-                  "Ahorro de $189 frente al pago mensual",
+                  "Ahorro de $398 frente al pago mensual",
                   "Prioridad en soporte",
                   "Acceso anticipado a nuevas funciones",
                   "Onboarding personalizado incluido",
                 ]} />
                 <div className="rounded-[14px] p-4" style={{ border: "2px solid #F67D0A", background: "rgba(246,125,10,0.05)" }}>
                   <div className="text-[14px] font-extrabold" style={{ color: "#1E2C46" }}>
-                    Setup Fee incluido — <span style={{ color: "#F67D0A" }}>$199 único</span>
+                    Setup Fee incluido — <span style={{ color: "#F67D0A" }}>$1500 único</span>
                   </div>
                   <div className="text-[12px] leading-[1.6] mt-0.5" style={{ color: "#5f6f88" }}>
                     Dominio personalizado · Teléfono, llamadas y email · Landings y calendarios. Todo configurado y listo para operar desde el día uno.
@@ -882,7 +882,7 @@ export default function HomePage() {
                   className="mt-auto flex items-center justify-center min-h-[58px] rounded-[18px] font-extrabold text-[16px] text-white transition-all hover:-translate-y-0.5 cursor-pointer w-full"
                   style={{ background: "#F67D0A", boxShadow: "0 12px 30px rgba(246,125,10,0.32)" }}
                 >
-                  Crear cuenta anual — $999/año
+                  Crear cuenta anual — $1990/año
                 </button>
               </div>
             </div>
