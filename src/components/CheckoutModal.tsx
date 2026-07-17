@@ -46,7 +46,7 @@ export default function CheckoutModal({ plan, onClose }: Props) {
             style={{ background: "rgba(246,125,10,0.10)", color: "#1E2C46" }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-[#F67D0A]" />
-            {plan === "monthly" ? "Plan Mensual — $99/mes + Setup Fee $199" : "Plan Anual — $999/año + Setup Fee $199"}
+            {plan === "monthly" ? "Plan Mensual — $199/mes + Setup Fee $1500" : "Plan Anual — $1990/año + Setup Fee $1500"}
           </span>
           <h2 className="text-[26px] font-black leading-[1.1] tracking-[-0.02em]" style={{ color: "#1E2C46" }}>
             Create your PatronPro account
